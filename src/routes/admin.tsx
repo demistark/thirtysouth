@@ -116,7 +116,7 @@ function GuestsAdmin() {
     const { error } = editing
       ? await supabase.from("guests").update(payload).eq("id", editing.id)
       : await supabase.from("guests").insert(payload);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Saved");
     setEditing(null);
     setForm(emptyGuest);
@@ -126,13 +126,13 @@ function GuestsAdmin() {
   const remove = async (g: Guest) => {
     if (!confirm(`Remove ${g.display_name}? They will lose access.`)) return;
     const { error } = await supabase.from("guests").delete().eq("id", g.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     refresh();
   };
 
   const toggleManager = async (g: Guest, enabled: boolean) => {
     const { error } = await supabase.rpc("set_schedule_manager", { _guest_id: g.id, _enabled: enabled });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     refresh();
   };
 
@@ -140,7 +140,7 @@ function GuestsAdmin() {
     const ext = file.name.split(".").pop() || "jpg";
     const path = `${g.id}-${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from("guest-photos").upload(path, file);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await supabase.from("guests").update({ photo_url: path }).eq("id", g.id);
     toast.success("Photo uploaded");
     refresh();
@@ -252,7 +252,7 @@ function ContentRow({ k, initial }: { k: string; initial: string }) {
   const [value, setValue] = useState(initial);
   const save = async () => {
     const { error } = await supabase.from("site_content").update({ value }).eq("key", k);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(`Saved ${k}`);
     qc.invalidateQueries({ queryKey: ["site_content"] });
   };
@@ -312,7 +312,7 @@ function ChapterRow({ c }: { c: ChapterFull }) {
         scripture_text: f.scripture_text || null,
       })
       .eq("number", c.number);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(`Chapter ${c.number} saved`);
     qc.invalidateQueries({ queryKey: ["chapters"] });
   };
@@ -369,9 +369,9 @@ function SettingsAdmin() {
   }, [q.data]);
 
   const save = async () => {
-    const rows = DATE_KEYS.map((d) => ({ key: d.key, value: f[d.key] }));
+    const rows = DATE_KEYS.map((d) => ({ key: d.key, value: f[d.key] ?? "" }));
     const { error } = await supabase.from("settings").upsert(rows);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Dates saved");
     qc.invalidateQueries({ queryKey: ["settings"] });
   };
@@ -383,7 +383,7 @@ function SettingsAdmin() {
           <input type="date" className="field" value={f[d.key] ?? ""} onChange={(e) => setF({ ...f, [d.key]: e.target.value })} />
         </Field>
       ))}
-      <p className="caption-serif text-sm">All dates are read in {f.timezone ?? "Africa/Johannesburg"} time.</p>
+      <p className="caption-serif text-sm">All dates are read in {f["timezone"] ?? "Africa/Johannesburg"} time.</p>
       <div>
         <button className="btn-pill btn-pill-solid" onClick={save}>
           Save dates

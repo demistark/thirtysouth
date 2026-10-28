@@ -24,8 +24,8 @@ function Itinerary() {
   const { t } = useContent();
   const { phase } = useTripClock();
   const order: Tab[] = phase === "during" ? ["scenes", "wardrobe", "script"] : ["script", "scenes", "wardrobe"];
-  const [tab, setTab] = useState<Tab>(order[0]);
-  useEffect(() => setTab(order[0]), [phase]);
+  const [tab, setTab] = useState<Tab>(order[0]!);
+  useEffect(() => setTab(order[0]!), [phase]);
 
   return (
     <PageShell titleKey="itinerary.title" introKey="itinerary.intro">

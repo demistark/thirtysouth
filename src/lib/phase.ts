@@ -32,7 +32,7 @@ export function getPhase(now: Date, s: TripSettings): Phase {
 }
 
 function dayNumber(d: string): number {
-  const [y, m, day] = d.split("-").map(Number);
+  const [y = 0, m = 1, day = 1] = d.split("-").map(Number);
   return Date.UTC(y, m - 1, day) / 86_400_000;
 }
 
