@@ -12,6 +12,11 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { AuthProvider } from "@/lib/auth";
+import { TripClockProvider } from "@/lib/trip-clock";
+import { SiteHeader, SiteFooter } from "@/components/site/SiteHeader";
+import { PreviewBanner, PreviewControl } from "@/components/site/PreviewControl";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -78,14 +83,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "30° South" },
+      { name: "description", content: "A private trip companion for friends in Cape Town." },
+      { name: "robots", content: "noindex,nofollow" },
+      { property: "og:title", content: "30° South" },
+      { property: "og:description", content: "A private trip companion for friends in Cape Town." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:card", content: "summary" },
     ],
     links: [
       {
@@ -93,6 +97,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Jost:wght@300;400&family=Lora:ital@1&family=Montserrat:wght@400;500&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -121,7 +131,16 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AuthProvider>
+        <TripClockProvider>
+          <PreviewBanner />
+          <SiteHeader />
+          <Outlet />
+          <SiteFooter />
+          <PreviewControl />
+          <Toaster />
+        </TripClockProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
