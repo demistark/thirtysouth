@@ -5,6 +5,9 @@ import { toast } from "sonner";
 import { SubTabs } from "@/components/site/Blocks";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useServerFn } from "@tanstack/react-start";
+import { normalizeEmail } from "@/lib/email";
+import { syncGuestAccounts } from "@/lib/guest-accounts.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
