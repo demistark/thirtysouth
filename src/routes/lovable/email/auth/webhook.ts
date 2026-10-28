@@ -9,7 +9,7 @@ import { EmailChangeEmail } from '@/lib/email-templates/email-change'
 import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 
 // Configuration
-const SITE_NAME = "thirtydegreesSouth"
+const SITE_NAME = "30° South"
 const SENDER_DOMAIN = "notify.fieldfrenzy.org"
 const ROOT_DOMAIN = "fieldfrenzy.org"
 const FROM_DOMAIN = "fieldfrenzy.org"
@@ -23,18 +23,20 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
       POST: ({ request }) => {
         const handler = createAuthEmailHandler({
           apiKey: process.env['LOVABLE_API_KEY']!,
-          from: { name: SITE_NAME, address: `noreply@${FROM_DOMAIN}` },
+          from: { name: SITE_NAME, address: `hello@${FROM_DOMAIN}` },
+          replyTo: 'demvic007@yahoo.com',
           senderDomain: SENDER_DOMAIN,
           sendUrl: process.env['LOVABLE_SEND_URL'],
           emails: {
             signup: {
-              subject: 'Confirm your email',
+              subject: 'Your 30° South sign-in code',
               render: (data) =>
                 React.createElement(SignupEmail, {
                   siteName: SITE_NAME,
                   siteUrl: SITE_URL,
                   recipient: data.email,
                   confirmationUrl: data.url,
+                  token: data.token ?? '',
                 }),
             },
             invite: {
@@ -47,10 +49,11 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
                 }),
             },
             magiclink: {
-              subject: 'Your login link',
+              subject: 'Your 30° South sign-in code',
               render: (data) =>
                 React.createElement(MagicLinkEmail, {
                   siteName: SITE_NAME,
+                  token: data.token ?? '',
                   confirmationUrl: data.url,
                 }),
             },
