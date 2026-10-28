@@ -17,6 +17,7 @@ interface SignupEmailProps {
   siteUrl: string
   recipient: string
   confirmationUrl: string
+  token: string
 }
 
 export const SignupEmail = ({
@@ -24,6 +25,7 @@ export const SignupEmail = ({
   siteUrl,
   recipient,
   confirmationUrl,
+  token,
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head>
@@ -32,20 +34,24 @@ export const SignupEmail = ({
     <Preview>Confirm your email for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
+        <Heading style={h1}>Sign in to 30° South</Heading>
+        <Text style={codeLabel}>Your sign-in code</Text>
+        <Text style={codeBox}>{token}</Text>
+        <Text style={text}>Type this code on the sign-in page, or tap the button below.</Text>
+
         <Text style={text}>
-          Thanks for signing up for{' '}
+          Welcome to{' '}
           <Link href={siteUrl} style={link}>
             <strong>{siteName}</strong>
           </Link>
           !
         </Text>
         <Text style={text}>
-          Please confirm your email address (
+          This is your first sign-in (
           <Link href={`mailto:${recipient}`} style={link}>
             {recipient}
           </Link>
-          ) by clicking the button below:
+          ).
         </Text>
         <Button className="dm-btn" style={button} href={confirmationUrl}>
           Verify Email
@@ -93,3 +99,6 @@ const darkModeCss = `
   [data-ogsc] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
   [data-ogsb] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
 `
+
+const codeLabel = { fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: '#a7624d', margin: '0 0 8px' }
+const codeBox = { fontSize: '34px', letterSpacing: '0.35em', color: '#2f342f', border: '1px solid #34483f', padding: '14px 18px', margin: '0 0 20px', textAlign: 'center' as const }
