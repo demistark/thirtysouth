@@ -1,11 +1,21 @@
-# Fix: scripture is readable by signed-out visitors
+# Make chapter scripture public (smallest change)
 
-## Finding
-The `chapters` table lets anyone (signed out included) read every column, `scripture_ref` and `scripture_text` too. The column restriction that was meant to hide them is not in place, so the `chapter_scriptures()` gate can be skipped by querying the table directly.
+## Current state
+- Visitors can already read `scripture_ref` and `scripture_text` directly from `chapters`.
+- Only `chapter_scriptures()` still limits scripture to friends: it checks roles, and visitors can't run it.
 
-## Change
-- Remove table-wide read access on `chapters` for visitors and signed-in users, then allow reading only: number, date, title, summary, photo_url, sort_order.
-- Check that the itinerary page selects only those columns (not `*`), and that scripture still loads for friends through `chapter_scriptures()`.
-- Re-run the column check: visitors and signed-in users get `false` for both scripture columns.
+## Change (one small database update, no site code changes)
+```sql
+CREATE OR REPLACE FUNCTION public.chapter_scriptures()
+ RETURNS TABLE(number integer, scripture_ref text, scripture_text text, photo_url text)
+ LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO 'public'
+AS $$
+  SELECT c.number, c.scripture_ref, c.scripture_text, c.photo_url
+  FROM public.chapters c ORDER BY c.sort_order
+$$;
+GRANT EXECUTE ON FUNCTION public.chapter_scriptures() TO anon, authenticated;
+```
 
-Nothing else changes.
+## Follow-up
+- Update the project rule that says scripture is hidden from the public.
+- Check: a signed-out visitor sees scripture on the itinerary page.
