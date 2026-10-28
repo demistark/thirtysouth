@@ -14,16 +14,182 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chapters: {
+        Row: {
+          date: string
+          number: number
+          photo_url: string | null
+          scripture_ref: string | null
+          scripture_text: string | null
+          sort_order: number
+          summary: string
+          title: string
+        }
+        Insert: {
+          date: string
+          number: number
+          photo_url?: string | null
+          scripture_ref?: string | null
+          scripture_text?: string | null
+          sort_order?: number
+          summary?: string
+          title: string
+        }
+        Update: {
+          date?: string
+          number?: number
+          photo_url?: string | null
+          scripture_ref?: string | null
+          scripture_text?: string | null
+          sort_order?: number
+          summary?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      guests: {
+        Row: {
+          created_at: string
+          display_name: string
+          email: string
+          full_name: string
+          id: string
+          photo_url: string | null
+          splitwise_name: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          email: string
+          full_name: string
+          id?: string
+          photo_url?: string | null
+          splitwise_name?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          email?: string
+          full_name?: string
+          id?: string
+          photo_url?: string | null
+          splitwise_name?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      role_invites: {
+        Row: {
+          email: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          email: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          email?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          key: string
+          value: string
+        }
+        Insert: {
+          key: string
+          value: string
+        }
+        Update: {
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      site_content: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      chapter_scriptures: {
+        Args: never
+        Returns: {
+          number: number
+          photo_url: string
+          scripture_ref: string
+          scripture_text: string
+        }[]
+      }
+      guest_directory: {
+        Args: never
+        Returns: {
+          display_name: string
+          id: string
+          photo_url: string
+        }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_invited: { Args: { _email: string }; Returns: boolean }
+      link_guest: {
+        Args: { _email: string; _user_id: string }
+        Returns: undefined
+      }
+      set_schedule_manager: {
+        Args: { _enabled: boolean; _guest_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "host" | "schedule_manager" | "trip_guest" | "friend_afar"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +316,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["host", "schedule_manager", "trip_guest", "friend_afar"],
+    },
   },
 } as const
