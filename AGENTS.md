@@ -13,4 +13,4 @@
 - All user-facing copy lives in the `site_content` table and is read via `useContent().t(key)`; never hardcode editable copy. Why: the host edits copy in /admin.
 - Roles live only in `user_roles`; checked with `has_role()` in RLS. Invite gating: `is_invited()` pre-check + `link_guest()` trigger grants roles only for emails in `guests`. Why: privacy enforced server-side.
 - Phase-dependent UI must use `useTripClock()` (src/lib/trip-clock.tsx); phase math is in src/lib/phase.ts with tests. Why: single source for host "Preview as" override.
-- Chapter scripture is hidden from public via column grants; read it through the `chapter_scriptures()` RPC.
+- Chapter scripture is public (like title/summary); `chapter_scriptures()` is executable by anon and authenticated.
