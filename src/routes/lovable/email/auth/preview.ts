@@ -18,7 +18,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "thirtydegreesSouth"
+const SITE_NAME = "30° South"
 const ROOT_DOMAIN = "fieldfrenzy.org"
 
 // Sample data for preview mode ONLY (not used in actual email sending).
@@ -34,10 +34,12 @@ const SAMPLE_DATA: Record<string, object> = {
     siteUrl: SAMPLE_PROJECT_URL,
     recipient: SAMPLE_EMAIL,
     confirmationUrl: SAMPLE_PROJECT_URL,
+    token: '482915',
   },
   magiclink: {
     siteName: SITE_NAME,
     confirmationUrl: SAMPLE_PROJECT_URL,
+    token: '482915',
   },
   recovery: {
     siteName: SITE_NAME,
