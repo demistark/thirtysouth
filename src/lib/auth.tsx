@@ -1,0 +1,84 @@
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Session } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
+
+type Role = "host" | "schedule_manager" | "trip_guest" | "friend_afar";
+
+interface AuthState {
+  session: Session | null;
+  loading: boolean;
+  roles: Role[];
+  isHost: boolean;
+  isFriend: boolean;
+  initial: string;
+  signOut: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthState | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(s);
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+        queryClient.invalidateQueries({ queryKey: ["roles"] });
+      }
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setLoading(false);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [queryClient]);
+
+  const userId = session?.user.id;
+  // Roles always come from the database; never cached in storage.
+  const rolesQ = useQuery({
+    queryKey: ["roles", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId!);
+      if (error) throw error;
+      return (data ?? []).map((r) => r.role as Role);
+    },
+  });
+  const roles = userId ? (rolesQ.data ?? []) : [];
+
+  const isHost = roles.includes("host");
+  const isFriend = isHost || roles.includes("trip_guest");
+  const initial = (session?.user.email ?? "?").charAt(0).toUpperCase();
+
+  const signOut = async () => {
+    await queryClient.cancelQueries();
+    await supabase.auth.signOut();
+    queryClient.removeQueries({ queryKey: ["roles"] });
+    queryClient.removeQueries({ queryKey: ["admin"] });
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        session,
+        loading: loading || (!!userId && rolesQ.isLoading),
+        roles,
+        isHost,
+        isFriend,
+        initial,
+        signOut,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}
