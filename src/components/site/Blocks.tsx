@@ -70,7 +70,7 @@ export function SubTabs<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="mb-8 flex gap-6 overflow-x-auto border-b" role="tablist">
+    <div className="mb-8 flex gap-6 overflow-x-auto shadow-[inset_0_-1px_0_var(--color-border)]" role="tablist">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -78,7 +78,7 @@ export function SubTabs<T extends string>({
           aria-selected={value === tab.id}
           onClick={() => onChange(tab.id)}
           className={cn(
-            "label-caps -mb-px whitespace-nowrap border-b py-3 transition-colors",
+            "label-caps whitespace-nowrap border-b py-3 transition-colors",
             value === tab.id ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >

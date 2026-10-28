@@ -52,7 +52,7 @@ function HomeBefore() {
   return (
     <main>
       <section className="relative">
-        <PhotoSlot className="h-[62vh] min-h-[420px] w-full border-x-0 border-t-0" />
+        <PhotoSlot className="h-[62vh] min-h-[420px] w-full items-start border-x-0 border-t-0" />
         <div className="mx-auto -mt-28 max-w-5xl px-5 md:-mt-36">
           <div className="fade-in border bg-card px-6 py-10 text-center md:px-16 md:py-14">
             <p className="label-caps text-muted-foreground">{t("home.hero.welcome")}</p>
