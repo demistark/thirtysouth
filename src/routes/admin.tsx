@@ -5,6 +5,9 @@ import { toast } from "sonner";
 import { SubTabs } from "@/components/site/Blocks";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useServerFn } from "@tanstack/react-start";
+import { normalizeEmail } from "@/lib/email";
+import { syncGuestAccounts } from "@/lib/guest-accounts.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -110,17 +113,32 @@ function GuestsAdmin() {
     );
   }, [editing]);
 
+  const syncAccounts = useServerFn(syncGuestAccounts);
+  const runSync = async (announce: boolean) => {
+    try {
+      const r = await syncAccounts();
+      if (r.failed.length) toast.error(`Couldn't create sign-in for: ${r.failed.join(", ")}`);
+      else if (announce) toast.success(r.created ? `Ready to sign in: ${r.created} added` : "Everyone can already sign in");
+    } catch {
+      toast.error("Couldn't prepare sign-in. Try the button below the list.");
+    }
+  };
+
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = { ...form, splitwise_name: form.splitwise_name || null };
+    const payload = { ...form, email: normalizeEmail(form.email), splitwise_name: form.splitwise_name || null };
     const { error } = editing
       ? await supabase.from("guests").update(payload).eq("id", editing.id)
       : await supabase.from("guests").insert(payload);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.code === "23505" ? "That email is already on the list" : error.message);
+      return;
+    }
     toast.success("Saved");
     setEditing(null);
     setForm(emptyGuest);
     refresh();
+    await runSync(false);
   };
 
   const remove = async (g: Guest) => {
@@ -216,6 +234,9 @@ function GuestsAdmin() {
           </li>
         ))}
       </ul>
+      <button type="button" className="btn-pill" onClick={() => runSync(true)}>
+        Make sure everyone can sign in
+      </button>
     </div>
   );
 }
