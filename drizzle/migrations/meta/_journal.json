@@ -15,6 +15,13 @@
       "when": 1793159332660,
       "tag": "0001_public_chapter_scriptures",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793162756372,
+      "tag": "0002_invite_only_confirmed_roles_email_normalise",
+      "breakpoints": true
     }
   ]
 }
