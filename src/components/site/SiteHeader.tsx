@@ -20,14 +20,20 @@ export function SiteHeader() {
   const { session, displayName, signOut, isHost } = useAuth();
   const [open, setOpen] = useState(false);
   const [compact, setCompact] = useState(false);
+  const [homeHeaderReturned, setHomeHeaderReturned] = useState(false);
   const { pathname } = useLocation();
   const home = pathname === "/";
   useEffect(() => {
-    const update = () => setCompact(window.scrollY > 24);
+    const update = () => {
+      setCompact(window.scrollY > 24);
+      const firstCard = document.querySelector("[data-home-first-card]");
+      setHomeHeaderReturned(home && !!firstCard && firstCard.getBoundingClientRect().top <= 0);
+    };
     update();
     window.addEventListener("scroll", update, { passive: true });
-    return () => window.removeEventListener("scroll", update);
-  }, [pathname]);
+    window.addEventListener("resize", update);
+    return () => { window.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
+  }, [pathname, home]);
 
   const linkCls =
     "label-caps pt-1 pb-2 border-b-[3px] border-transparent text-muted-foreground transition-colors hover:text-foreground";
@@ -48,7 +54,7 @@ export function SiteHeader() {
 
   return (
     <div className={home ? "site-header-space" : "site-header-space sticky top-0 z-40"}>
-    <header className="site-header band-ink border-b bg-seafoam" data-compact={compact}>
+    <header className="site-header band-ink border-b bg-seafoam" data-compact={compact} data-home-returned={homeHeaderReturned}>
       <div className="site-header-bar mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-5 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <Link to="/" className="site-wordmark wordmark min-w-0 whitespace-nowrap text-base text-foreground">
           30° South
@@ -116,11 +122,12 @@ export function SiteHeader() {
 export function SiteFooter() {
   const { t } = useContent();
   return (
-    <footer className="band-ink footer-glow mt-24 border-t">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-10 text-center">
-        <span className="wordmark text-sm">30° South</span>
-        <span className="label-caps text-muted-foreground">{t("footer.line")}</span>
-        <Button variant="pill" className="mt-5 !px-4 !py-2" aria-label={t("common.back_to_top")} title={t("common.back_to_top")} onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })}><span aria-hidden="true">↑</span></Button>
+    <footer className="band-ink footer-glow relative mt-24 border-t">
+      <Button variant="ghost" size="icon" className="back-to-top-bubble" aria-label={t("common.back_to_top")} onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })}>
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="size-6"><path fill="currentColor" d="M10 19a2 2 0 0 0 4 0V9.8l3.6 3.6a2 2 0 0 0 2.8-2.8l-7-7a2 2 0 0 0-2.8 0l-7 7a2 2 0 0 0 2.8 2.8L10 9.8Z" /></svg>
+      </Button>
+      <div className="footer-text mx-auto flex max-w-6xl flex-col items-center justify-evenly gap-2 px-5 pb-5 pt-10 text-center sm:flex-row sm:gap-10 sm:pb-7 sm:pt-9">
+        {["footer.brand", "footer.place", "footer.date"].map((key) => <span key={key} className="label-caps text-foreground">{t(key)}</span>)}
       </div>
     </footer>
   );

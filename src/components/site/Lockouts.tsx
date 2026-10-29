@@ -23,7 +23,7 @@ export function RecordingLockout() {
 
 export function PurseLockout() {
   const { t } = useContent();
-  return <section className="lockout-band bg-band-tan"><p className="font-display-light text-4xl md:text-5xl">{t("lockout.friends")}</p><SignInLink /></section>;
+  return <section className="lockout-band bg-tint-ember"><p className="font-display-light text-4xl md:text-5xl">{t("lockout.friends")}</p><SignInLink /></section>;
 }
 
 export function ReflectionsDescription() {
