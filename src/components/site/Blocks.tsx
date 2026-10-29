@@ -50,7 +50,7 @@ export function PageShell({ titleKey, introKey, children }: { titleKey: string; 
   const { t } = useContent();
   return (
     <main className="mx-auto max-w-5xl px-5 pt-14 md:pt-20">
-      <h1 className="font-display-light text-5xl md:text-7xl">{t(titleKey)}</h1>
+      <h1 className="font-display-light text-5xl text-deep-atlantic md:text-7xl">{t(titleKey)}</h1>
       <p className="caption-serif mt-3 text-lg">{t(introKey)}</p>
       <div className="mt-10">{children}</div>
     </main>
@@ -76,7 +76,7 @@ export function SubTabs<T extends string>({
           onClick={() => onChange(tab.id)}
           className={cn(
             "label-caps whitespace-nowrap border-b py-3 transition-colors",
-            value === tab.id ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+            value === tab.id ? "border-apricot text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >
           {tab.label}

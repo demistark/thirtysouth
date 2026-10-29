@@ -46,6 +46,11 @@
   --color-rust: var(--rust);
   --color-band-sage: var(--band-sage);
   --color-band-tan: var(--band-tan);
+  --color-deep-atlantic: var(--deep-atlantic);
+  --color-seafoam: var(--seafoam);
+  --color-slate: var(--slate);
+  --color-apricot: var(--apricot);
+  --color-apricot-deep: var(--apricot-deep);
 }
 
 :root {
@@ -61,9 +66,24 @@
   --olive: oklch(0.51 0.035 125);        /* #65705a */
   --line: oklch(0.83 0.02 78);           /* #cfc6b8 */
   --ochre: oklch(0.86 0.07 98);          /* #dfd29f */
-  --rust: oklch(0.56 0.09 40);           /* #a7624d */
+  --rust: oklch(0.441 0.09 38);          /* #7c3f2c — darkened for AA on seafoam/tan bands */
   --band-sage: oklch(0.92 0.008 150);    /* #e4e8e3 */
   --band-tan: oklch(0.89 0.025 70);      /* #e9dccd */
+
+  /* Atlantic coastal additions */
+  --deep-atlantic: oklch(0.383 0.052 232); /* #24485a — large display type only */
+  --seafoam: oklch(0.893 0.019 184);       /* #cfe0dd — title bar + soft bands */
+  --slate: oklch(0.517 0.02 220);          /* #5c6b70 — secondary text/icons on cream & white only */
+  --apricot: oklch(0.81 0.096 72);         /* #e8b77a — thin accents only */
+  --apricot-deep: oklch(0.571 0.1 64);     /* #a06a32 — large numerals (AA-safe apricot shade) */
+
+  /* The site's single gradient: quiet sky-to-sea behind the Home hero. */
+  --gradient-hero: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--seafoam) 55%, var(--cream)) 0%,
+    var(--seafoam) 55%,
+    color-mix(in oklab, var(--apricot) 32%, var(--seafoam)) 100%
+  );
 
   /* semantic */
   --background: var(--cream);
@@ -77,7 +97,7 @@
   --secondary: var(--paper);
   --secondary-foreground: var(--ink);
   --muted: var(--paper);
-  --muted-foreground: var(--muted-ink);
+  --muted-foreground: var(--slate);
   --accent: var(--band-sage);
   --accent-foreground: var(--ink);
   --destructive: oklch(0.5 0.13 30);
@@ -241,6 +261,18 @@
   padding: 5rem 1.5rem;
   text-align: center;
   min-height: 20rem;
+  /* Small text on sea/sand bands stays ink (slate fails AA there). */
+  --muted-foreground: var(--ink);
+}
+
+/* Coloured bands (Seafoam, Sandstone/tan): small text uses ink, not slate. */
+@utility band-ink {
+  --muted-foreground: var(--ink);
+}
+
+/* The one site gradient: quiet sky-to-sea behind the Home hero. */
+@utility hero-sky {
+  background: var(--gradient-hero);
 }
 .recording-dot { animation: recording-blink 1.4s ease-in-out infinite; }
 @keyframes recording-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }

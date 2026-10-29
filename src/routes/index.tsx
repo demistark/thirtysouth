@@ -32,7 +32,7 @@ function HomePhasePlaceholder() {
     <main className="mx-auto max-w-4xl px-5 pt-20">
       <div className="fade-in border bg-card px-6 py-20 text-center">
         <p className="eyebrow">{phase === "during" ? "During" : "After"}</p>
-        <h1 className="font-display-light mt-4 text-5xl">
+        <h1 className="font-display-light mt-4 text-5xl text-deep-atlantic">
           {t(phase === "during" ? "home.during.title" : "home.after.title")}
         </h1>
         {currentChapter && (
@@ -51,8 +51,8 @@ function HomeBefore() {
   const { daysToGo } = useTripClock();
   return (
     <main>
-      <section className="relative">
-        <PhotoSlot className="h-[62vh] min-h-[420px] w-full items-start border-x-0 border-t-0" />
+      <section className="hero-sky relative">
+        <PhotoSlot className="h-[62vh] min-h-[420px] w-full items-start border-x-0 border-t-0 bg-transparent" />
         <div className="mx-auto -mt-28 max-w-5xl px-5 md:-mt-36">
           <div className="fade-in border bg-card px-6 py-10 text-center md:px-16 md:py-14">
             <p className="label-caps text-muted-foreground">{t("home.hero.welcome")}</p>
@@ -63,7 +63,7 @@ function HomeBefore() {
             </p>
             <div className="mx-auto mt-8 h-px w-16 bg-border" />
             <p className="mt-6 font-display-light text-3xl">
-              <span className="text-primary">{daysToGo}</span>{" "}
+              <span className="text-apricot-deep">{daysToGo}</span>{" "}
               {t(daysToGo === 1 ? "home.hero.day_to_go" : "home.hero.days_to_go")}
             </p>
           </div>
@@ -85,9 +85,9 @@ function CardFrame({ band, children, textOnly = false }: { band: "sage" | "tan";
   return (
     <section
       className={cn(
-        "grid gap-8 border p-6 md:items-center md:p-12",
+        "band-ink grid gap-8 border p-6 md:items-center md:p-12",
         !textOnly && "md:grid-cols-[1.1fr_1fr]",
-        band === "sage" ? "bg-band-sage" : "bg-band-tan",
+        band === "sage" ? "bg-seafoam" : "bg-band-tan",
       )}
     >
       {children}
@@ -113,7 +113,7 @@ function MomentsCard() {
               onClick={() => setTab(p)}
               className={cn(
                 "label-caps -mb-px border-b py-2 transition-colors",
-                tab === p ? "border-primary text-foreground" : "border-transparent text-muted-foreground",
+                tab === p ? "border-apricot text-foreground" : "border-transparent text-muted-foreground",
               )}
             >
               {p}
