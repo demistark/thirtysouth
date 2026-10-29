@@ -29,6 +29,13 @@
       "when": 1793237609340,
       "tag": "0003_travel_fun_facts",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793240460125,
+      "tag": "0004_own_private_profile_photos",
+      "breakpoints": true
     }
   ]
 }

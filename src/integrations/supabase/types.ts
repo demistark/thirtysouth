@@ -204,6 +204,14 @@ export type Database = {
         Args: { _email: string; _user_id: string }
         Returns: undefined
       }
+      my_profile: {
+        Args: never
+        Returns: {
+          display_name: string
+          photo_url: string
+        }[]
+      }
+      set_my_photo: { Args: { path: string }; Returns: undefined }
       set_schedule_manager: {
         Args: { _enabled: boolean; _guest_id: string }
         Returns: undefined
