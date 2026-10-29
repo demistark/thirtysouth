@@ -14,7 +14,6 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ItineraryRouteImport } from './routes/itinerary'
 import { Route as JournalRouteImport } from './routes/journal'
-import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PurseRouteImport } from './routes/purse'
 import { Route as TravelRouteImport } from './routes/travel'
 import { Route as JournalReflectionsRouteImport } from './routes/journal.reflections'
@@ -44,11 +43,6 @@ const ItineraryRoute = ItineraryRouteImport.update({
 const JournalRoute = JournalRouteImport.update({
   id: '/journal',
   path: '/journal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PurseRoute = PurseRouteImport.update({
@@ -83,7 +77,6 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/itinerary': typeof ItineraryRoute
   '/journal': typeof JournalRouteWithChildren
-  '/profile': typeof ProfileRoute
   '/purse': typeof PurseRoute
   '/travel': typeof TravelRoute
   '/journal/reflections': typeof JournalReflectionsRoute
@@ -96,7 +89,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/itinerary': typeof ItineraryRoute
   '/journal': typeof JournalRouteWithChildren
-  '/profile': typeof ProfileRoute
   '/purse': typeof PurseRoute
   '/travel': typeof TravelRoute
   '/journal/reflections': typeof JournalReflectionsRoute
@@ -110,7 +102,6 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/itinerary': typeof ItineraryRoute
   '/journal': typeof JournalRouteWithChildren
-  '/profile': typeof ProfileRoute
   '/purse': typeof PurseRoute
   '/travel': typeof TravelRoute
   '/journal/reflections': typeof JournalReflectionsRoute
@@ -125,7 +116,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/itinerary'
     | '/journal'
-    | '/profile'
     | '/purse'
     | '/travel'
     | '/journal/reflections'
@@ -138,7 +128,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/itinerary'
     | '/journal'
-    | '/profile'
     | '/purse'
     | '/travel'
     | '/journal/reflections'
@@ -151,7 +140,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/itinerary'
     | '/journal'
-    | '/profile'
     | '/purse'
     | '/travel'
     | '/journal/reflections'
@@ -165,7 +153,6 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ItineraryRoute: typeof ItineraryRoute
   JournalRoute: typeof JournalRouteWithChildren
-  ProfileRoute: typeof ProfileRoute
   PurseRoute: typeof PurseRoute
   TravelRoute: typeof TravelRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -207,13 +194,6 @@ declare module '@tanstack/react-router' {
       path: '/journal'
       fullPath: '/journal'
       preLoaderRoute: typeof JournalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/purse': {
@@ -271,7 +251,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ItineraryRoute: ItineraryRoute,
   JournalRoute: JournalRouteWithChildren,
-  ProfileRoute: ProfileRoute,
   PurseRoute: PurseRoute,
   TravelRoute: TravelRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
