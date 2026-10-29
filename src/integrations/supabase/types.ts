@@ -211,7 +211,7 @@ export type Database = {
           photo_url: string
         }[]
       }
-      set_my_photo: { Args: { path: string }; Returns: undefined }
+      set_my_photo: { Args: { path?: string }; Returns: undefined }
       set_schedule_manager: {
         Args: { _enabled: boolean; _guest_id: string }
         Returns: undefined
