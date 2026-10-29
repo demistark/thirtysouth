@@ -3,7 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useContent, useSettings } from "@/lib/data";
-import { isOtpEnabled } from "@/lib/profile-photo";
+import { isOtpEnabled } from "@/lib/otp";
 import { Button } from "@/components/ui/button";
 import { normalizeEmail } from "@/lib/email";
 

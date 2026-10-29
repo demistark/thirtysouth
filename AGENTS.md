@@ -19,8 +19,7 @@
 - Area-specific lockouts live in the shared Lockouts module; itinerary access is checked through canViewScenes, independently of other friends-only sections. Why: broader itinerary access must not expose travel or purse.
 - Reflections is the nested /journal/reflections route, rendered through Journal's Outlet; other Journal tabs remain public. Why: its URL and page identity stay consistent with its name.
 - Travel facts use fun_facts with active-only public reads and host-scoped full access; CSV parsing uses Papa Parse and validates the entire import before writing. Why: hidden facts remain private and quoted CSV text imports reliably.
-- Read signed-in display names and photo paths through the ownership-scoped my_profile RPC; self-service photo writes use set_my_photo, never guest UPDATE privileges. Why: expose only the caller's profile without broadening guest-table access.
-- Share client photo validation and resizing between profile and admin; keep user uploads in user-id folders in the private bucket and delete replaced objects. Why: consistent limits and isolated friend writes while retaining host management.
+- Read signed-in display names through the ownership-scoped, name-only my_profile RPC. Why: preserve header names without exposing guest records or retaining photo functionality.
 - Keep header scroll behavior in SiteHeader with a stable reserved height and global anchor offset. Why: compacting cannot move or obscure page content.
 - Treat otp_enabled as an exact-string opt-in setting checked by shared isOtpEnabled. Why: unavailable email codes remain hidden by default.
 - Keep phase-independent itinerary ordering in itinerary-tabs and its regression test. Why: date overrides must not reshuffle tabs.
