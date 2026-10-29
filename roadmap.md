@@ -6,3 +6,4 @@
 - [ ] Delete retired guests.photo_url column — blocked by “Execute backward incompatible database migrations” permission set to Never allow; requires user permission change.
 - [x] Gate code entry with otp_enabled, default off; verify and run basic security scan.
 - [x] Apply compact footer, editable three-part text, glass back-to-top bubble, Home header return and Purse ember tint; verify desktop/phone, reduced motion, contrast and regressions.
+- [ ] Change Script alternating tint to olive wash and tighten footer into one line at every size; verify.

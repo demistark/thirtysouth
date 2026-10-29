@@ -42,6 +42,7 @@
 
   --color-paper: var(--paper);
   --color-olive: var(--olive);
+  --color-olive-wash: var(--olive-wash);
   --color-ochre: var(--ochre);
   --color-ember: var(--ember);
   --color-ember-deep: var(--ember-deep);
@@ -69,6 +70,7 @@
   --muted-ink: oklch(0.52 0.018 75);     /* #756e63 */
   --green: oklch(0.38 0.03 160);         /* #34483f */
   --olive: oklch(0.51 0.035 125);        /* #65705a */
+  --olive-wash: oklch(0.938 0.018 119);  /* about #E9ECDF — Script rows only */
   --line: oklch(0.83 0.02 78);           /* #cfc6b8 */
   --ochre: oklch(0.86 0.07 98);          /* #dfd29f */
   --ember: oklch(0.59 0.178 36.4);       /* #d14a22 — lines, dots, large shapes only */
@@ -190,8 +192,9 @@
 .back-to-top-bubble:hover { transform: translateY(-3px); background: var(--bubble-glow-hover), var(--bubble-fill); color: var(--ink); }
 .back-to-top-bubble:active { transform: translateY(1px); }
 .back-to-top-bubble:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
-.footer-text .label-caps { letter-spacing: .24em; }
+.footer-text .label-caps { letter-spacing: .08em; font-size: .5625rem; white-space: nowrap; }
 @media (min-width: 640px) {
+  .footer-text .label-caps { letter-spacing: .18em; font-size: .6875rem; }
   .site-header-bar { padding-left: 1.25rem; padding-right: 1.25rem; }
 }
 @media (max-width: 639px) {
