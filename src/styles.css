@@ -175,7 +175,7 @@
 @keyframes header-return { from { transform: translateY(-100%); } to { transform: translateY(0); } }
 .back-to-top-bubble {
   position: absolute;
-  top: -1.625rem;
+  top: -4rem;
   left: calc(50% - 1.625rem);
   width: 3.25rem;
   height: 3.25rem;
