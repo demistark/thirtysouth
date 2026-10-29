@@ -47,7 +47,7 @@ function Script() {
   return (
     <ol className="fade-in divide-y border-y">
       {(data ?? []).map((c) => (
-        <li key={c.number} className="grid gap-2 px-4 py-6 odd:bg-paper md:grid-cols-[8rem_1fr] md:gap-8 md:px-6">
+        <li key={c.number} className="band-ink grid gap-2 bg-background px-4 py-6 odd:bg-olive-wash md:grid-cols-[8rem_1fr] md:gap-8 md:px-6">
           <div>
             <p className="eyebrow">Chapter {c.number}</p>
             <p className="label-caps mt-1 text-muted-foreground">{formatChapterDate(c.date)}</p>

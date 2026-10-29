@@ -126,7 +126,7 @@ export function SiteFooter() {
       <Button variant="ghost" size="icon" className="back-to-top-bubble" aria-label={t("common.back_to_top")} onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })}>
         <svg viewBox="0 0 24 24" aria-hidden="true" className="size-6"><path fill="currentColor" d="M10 19a2 2 0 0 0 4 0V9.8l3.6 3.6a2 2 0 0 0 2.8-2.8l-7-7a2 2 0 0 0-2.8 0l-7 7a2 2 0 0 0 2.8 2.8L10 9.8Z" /></svg>
       </Button>
-      <div className="footer-text mx-auto flex max-w-6xl flex-col items-center justify-evenly gap-2 px-5 pb-5 pt-10 text-center sm:flex-row sm:gap-10 sm:pb-7 sm:pt-9">
+      <div className="footer-text mx-auto flex max-w-6xl items-center justify-center gap-3 px-5 pb-5 pt-10 text-center sm:gap-6 sm:pb-7 sm:pt-9">
         {["footer.brand", "footer.place", "footer.date"].map((key) => <span key={key} className="label-caps text-foreground">{t(key)}</span>)}
       </div>
     </footer>
