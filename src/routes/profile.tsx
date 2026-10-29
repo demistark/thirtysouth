@@ -63,7 +63,7 @@ function Profile() {
         const { error } = await supabase.storage.from("guest-photos").upload(uploaded, blob, { contentType: "image/webp" });
         if (error) throw error;
       }
-      const { error } = await supabase.rpc("set_my_photo", { path: uploaded as unknown as string });
+      const { error } = await supabase.rpc("set_my_photo", uploaded ? { path: uploaded } : {});
       if (error) {
         if (uploaded) await supabase.storage.from("guest-photos").remove([uploaded]);
         throw error;
