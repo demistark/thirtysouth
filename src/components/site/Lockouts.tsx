@@ -16,7 +16,7 @@ export function SignInLink() {
 export function RecordingLockout() {
   const { t } = useContent();
   return <section className="lockout-band bg-band-sage">
-    <p className="font-display-light flex items-center justify-center gap-3 text-3xl md:text-4xl"><span className="recording-dot h-2 w-2 shrink-0 rounded-full bg-rust" aria-hidden="true" />{t("lockout.recording")}</p>
+    <p className="font-display-light flex items-center justify-center gap-3 text-3xl md:text-4xl"><span className="recording-dot h-2.5 w-2.5 shrink-0 rounded-full bg-ember" aria-hidden="true" />{t("lockout.recording")}</p>
     <SignInLink />
   </section>;
 }

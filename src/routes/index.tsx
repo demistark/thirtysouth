@@ -51,19 +51,19 @@ function HomeBefore() {
   const { daysToGo } = useTripClock();
   return (
     <main>
-      <section className="hero-sky relative">
-        <PhotoSlot className="h-[62vh] min-h-[420px] w-full items-start border-x-0 border-t-0 bg-transparent" />
+      <section className="hero-sky relative pb-16 md:pb-20">
+        <PhotoSlot className="h-[62vh] min-h-[420px] w-full items-start border-0 bg-transparent" />
         <div className="mx-auto -mt-28 max-w-5xl px-5 md:-mt-36">
           <div className="fade-in border bg-card px-6 py-10 text-center md:px-16 md:py-14">
             <p className="label-caps text-muted-foreground">{t("home.hero.welcome")}</p>
-            <h1 className="wordmark mt-5 text-5xl !tracking-[0.18em] sm:text-7xl md:text-8xl">30° South</h1>
+            <h1 className="wordmark mt-5 whitespace-nowrap text-[clamp(2rem,10.5vw,3rem)] !tracking-[0.12em] sm:text-7xl sm:!tracking-[0.18em] md:text-8xl">30° South</h1>
             <p className="label-caps mt-6 text-foreground">
               <span className="hidden sm:inline">{t("home.hero.place")}</span>
               <span className="sm:hidden">{t("home.hero.place").split(/\s*·\s*/).map((line, i) => <span key={i} className="block">{line}</span>)}</span>
             </p>
             <div className="mx-auto mt-8 h-px w-16 bg-border" />
             <p className="mt-6 font-display-light text-3xl">
-              <span className="text-apricot-deep">{daysToGo}</span>{" "}
+              <span className="text-ember">{daysToGo}</span>{" "}
               {t(daysToGo === 1 ? "home.hero.day_to_go" : "home.hero.days_to_go")}
             </p>
           </div>
@@ -72,22 +72,22 @@ function HomeBefore() {
 
       <div className="mx-auto mt-20 flex max-w-6xl flex-col gap-6 px-5">
         <MomentsCard />
-        <SectionCard n={2} to="/itinerary" band="tan" />
-        <SectionCard n={3} to="/travel" band="sage" />
-        <SectionCard n={4} to="/purse" band="tan" />
-        <SectionCard n={5} to="/journal" band="sage" polaroid />
+        <SectionCard n={2} to="/itinerary" tint="bg-sandstone" />
+        <SectionCard n={3} to="/travel" tint="bg-tint-ember" />
+        <SectionCard n={4} to="/purse" tint="bg-tint-sage-olive" />
+        <SectionCard n={5} to="/journal" tint="bg-tint-teal" polaroid />
       </div>
     </main>
   );
 }
 
-function CardFrame({ band, children, textOnly = false }: { band: "sage" | "tan"; children: React.ReactNode; textOnly?: boolean }) {
+function CardFrame({ tint, children, textOnly = false }: { tint: string; children: React.ReactNode; textOnly?: boolean }) {
   return (
     <section
       className={cn(
         "band-ink grid gap-8 border p-6 md:items-center md:p-12",
         !textOnly && "md:grid-cols-[1.1fr_1fr]",
-        band === "sage" ? "bg-seafoam" : "bg-band-tan",
+        tint,
       )}
     >
       {children}
@@ -99,7 +99,7 @@ function MomentsCard() {
   const { t } = useContent();
   const [tab, setTab] = useState<Phase>("before");
   return (
-    <CardFrame band="sage">
+    <CardFrame tint="bg-seafoam">
       <div>
         <p className="eyebrow">{t("home.card1.eyebrow")}</p>
         <h2 className="font-display-light mt-4 text-4xl md:text-5xl">{t("home.card1.headline")}</h2>
@@ -112,8 +112,8 @@ function MomentsCard() {
               aria-selected={tab === p}
               onClick={() => setTab(p)}
               className={cn(
-                "label-caps -mb-px border-b py-2 transition-colors",
-                tab === p ? "border-apricot text-foreground" : "border-transparent text-muted-foreground",
+                "label-caps -mb-px border-b-[3px] pb-3 pt-2 transition-colors",
+                tab === p ? "border-ember text-foreground" : "border-transparent text-muted-foreground",
               )}
             >
               {p}
@@ -133,18 +133,18 @@ function MomentsCard() {
 function SectionCard({
   n,
   to,
-  band,
+  tint,
   polaroid,
 }: {
   n: number;
   to: "/itinerary" | "/travel" | "/purse" | "/journal";
-  band: "sage" | "tan";
+  tint: string;
   polaroid?: boolean;
 }) {
   const { t } = useContent();
   const k = (s: string) => t(`home.card${n}.${s}`);
   return (
-    <CardFrame band={band} textOnly={n === 2 || n === 4}>
+    <CardFrame tint={tint} textOnly={n === 2 || n === 4}>
       <div>
         <p className="eyebrow">{k("eyebrow")}</p>
         <h2 className="font-display-light mt-4 text-4xl md:text-5xl">{k("headline")}</h2>

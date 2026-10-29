@@ -30,8 +30,8 @@ export function SiteHeader() {
   }, [pathname]);
 
   const linkCls =
-    "label-caps py-1 border-b border-transparent text-muted-foreground transition-colors hover:text-foreground";
-  const activeCls = "!text-foreground !border-apricot";
+    "label-caps pt-1 pb-2 border-b-[3px] border-transparent text-muted-foreground transition-colors hover:text-foreground";
+  const activeCls = "!text-foreground !border-ember";
 
   const authControl = session ? (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
@@ -78,16 +78,19 @@ export function SiteHeader() {
           <SheetTrigger className="site-menu shrink-0 md:hidden" aria-label={t("nav.open_menu")}>
             <Menu className="h-5 w-5" strokeWidth={1.25} />
           </SheetTrigger>
-          <SheetContent side="right" className="w-72 bg-background">
+          <SheetContent
+            side="top"
+            className="band-ink h-full w-full border-0 bg-seafoam px-8 pb-10 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] data-[state=closed]:!duration-250 data-[state=open]:!duration-250 [&>button]:right-6 [&>button]:top-[calc(env(safe-area-inset-top,0px)+1.25rem)] [&>button_svg]:h-6 [&>button_svg]:w-6"
+          >
             <SheetTitle className="wordmark text-sm">30° South</SheetTitle>
-            <nav className="mt-10 flex flex-col gap-6">
+            <nav className="mt-14 flex flex-col gap-8">
               {NAV.map((n) => (
                 <Link
                   key={n.to}
                   to={n.to}
                   onClick={() => setOpen(false)}
-                  className="font-display-light text-2xl text-muted-foreground"
-                  activeProps={{ className: "!text-foreground underline underline-offset-8 decoration-1 decoration-apricot" }}
+                  className="font-display-light text-3xl text-foreground"
+                  activeProps={{ className: "underline underline-offset-[10px] decoration-[3px] decoration-ember" }}
                   activeOptions={{ exact: n.to === "/" }}
                 >
                   {t(n.key)}
@@ -98,7 +101,7 @@ export function SiteHeader() {
                   {t("nav.admin")}
                 </Link>
               )}
-              <div className="min-w-0 pt-4" onClick={() => setOpen(false)}>
+              <div className="min-w-0 pt-6" onClick={() => setOpen(false)}>
                 {authControl}
               </div>
             </nav>
@@ -113,7 +116,7 @@ export function SiteHeader() {
 export function SiteFooter() {
   const { t } = useContent();
   return (
-    <footer className="band-ink mt-24 border-t bg-band-tan">
+    <footer className="band-ink footer-glow mt-24 border-t">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-10 text-center">
         <span className="wordmark text-sm">30° South</span>
         <span className="label-caps text-muted-foreground">{t("footer.line")}</span>
