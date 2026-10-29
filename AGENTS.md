@@ -20,6 +20,6 @@
 - Reflections is the nested /journal/reflections route, rendered through Journal's Outlet; other Journal tabs remain public. Why: its URL and page identity stay consistent with its name.
 - Travel facts use fun_facts with active-only public reads and host-scoped full access; CSV parsing uses Papa Parse and validates the entire import before writing. Why: hidden facts remain private and quoted CSV text imports reliably.
 - Read signed-in display names through the ownership-scoped, name-only my_profile RPC. Why: preserve header names without exposing guest records or retaining photo functionality.
-- Keep header scroll behavior in SiteHeader with a stable reserved height and global anchor offset. Why: compacting cannot move or obscure page content.
+- Keep header scroll behavior in SiteHeader with a stable reserved height, global anchor offset and a Home first-card marker for the returning fixed header. Why: header transitions cannot move content or depend on guessed page heights.
 - Treat otp_enabled as an exact-string opt-in setting checked by shared isOtpEnabled. Why: unavailable email codes remain hidden by default.
 - Keep phase-independent itinerary ordering in itinerary-tabs and its regression test. Why: date overrides must not reshuffle tabs.

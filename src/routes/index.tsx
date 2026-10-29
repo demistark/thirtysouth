@@ -70,11 +70,11 @@ function HomeBefore() {
         </div>
       </section>
 
-      <div className="mx-auto mt-20 flex max-w-6xl flex-col gap-6 px-5">
+      <div data-home-first-card className="mx-auto mt-20 flex max-w-6xl flex-col gap-6 px-5">
         <MomentsCard />
         <SectionCard n={2} to="/itinerary" tint="bg-sandstone" />
         <SectionCard n={3} to="/travel" tint="bg-tint-ember" />
-        <SectionCard n={4} to="/purse" tint="bg-tint-sage-olive" />
+        <SectionCard n={4} to="/purse" tint="bg-tint-ember" />
         <SectionCard n={5} to="/journal" tint="bg-tint-teal" polaroid />
       </div>
     </main>

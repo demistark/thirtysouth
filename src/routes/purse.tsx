@@ -32,7 +32,7 @@ function Purse() {
   return (
     <PageShell titleKey="purse.title" introKey="purse.intro">
       <SubTabs tabs={ids.map((id) => ({ id, label: t(`purse.tab.${id}`) }))} value={current} onChange={setTab} />
-      {loading ? <div className="min-h-80 bg-band-tan" /> : isFriend ? <ComingSoon /> : <PurseLockout />}
+      {loading ? <div className="min-h-80 bg-tint-ember" /> : isFriend ? <ComingSoon /> : <PurseLockout />}
     </PageShell>
   );
 }
