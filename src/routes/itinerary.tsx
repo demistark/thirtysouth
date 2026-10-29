@@ -47,13 +47,13 @@ function Script() {
   return (
     <ol className="fade-in divide-y border-y">
       {(data ?? []).map((c) => (
-        <li key={c.number} className="grid gap-2 py-6 md:grid-cols-[8rem_1fr] md:gap-8">
+        <li key={c.number} className="grid gap-2 px-4 py-6 odd:bg-paper md:grid-cols-[8rem_1fr] md:gap-8 md:px-6">
           <div>
             <p className="eyebrow">Chapter {c.number}</p>
             <p className="label-caps mt-1 text-muted-foreground">{formatChapterDate(c.date)}</p>
           </div>
           <div>
-            <h3 className="font-display-light text-2xl md:text-3xl">{c.title}</h3>
+            <h3 className="font-display-light text-2xl text-deep-atlantic md:text-3xl">{c.title}</h3>
             <p className="mt-1 text-sm text-muted-foreground">{c.summary}</p>
           </div>
         </li>
