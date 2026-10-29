@@ -7,3 +7,4 @@
 - [x] Gate code entry with otp_enabled, default off; verify and run basic security scan.
 - [x] Apply compact footer, editable three-part text, glass back-to-top bubble, Home header return and Purse ember tint; verify desktop/phone, reduced motion, contrast and regressions.
 - [x] Change Script alternating tint to olive wash and tighten footer into one line at every size; verified 320px/390px/tablet/desktop and ink contrast above 10:1.
+- [x] Build Itinerary Scenes/Wardrobe with RLS, private wardrobe photos, admin editing and CSV import.
