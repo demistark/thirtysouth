@@ -50,6 +50,13 @@
       "when": 1793242344191,
       "tag": "0006_retire_guest_profile_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793308642708,
+      "tag": "0007_itinerary_scenes_wardrobe",
+      "breakpoints": true
     }
   ]
 }

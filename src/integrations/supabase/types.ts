@@ -24,6 +24,7 @@ export type Database = {
           sort_order: number
           summary: string
           title: string
+          visible: boolean
         }
         Insert: {
           date: string
@@ -34,6 +35,7 @@ export type Database = {
           sort_order?: number
           summary?: string
           title: string
+          visible?: boolean
         }
         Update: {
           date?: string
@@ -44,6 +46,7 @@ export type Database = {
           sort_order?: number
           summary?: string
           title?: string
+          visible?: boolean
         }
         Relationships: []
       }
@@ -119,6 +122,68 @@ export type Database = {
         }
         Relationships: []
       }
+      scenes: {
+        Row: {
+          chapter_number: number
+          details: string
+          end_time: string | null
+          experience_card: string | null
+          id: string
+          kind: string
+          leave_at: string | null
+          location: string
+          scene_order: number
+          start_time: string | null
+          summary: string
+          title: string
+          updated_at: string
+          visible: boolean
+          wardrobe_look: number | null
+        }
+        Insert: {
+          chapter_number: number
+          details?: string
+          end_time?: string | null
+          experience_card?: string | null
+          id?: string
+          kind?: string
+          leave_at?: string | null
+          location?: string
+          scene_order: number
+          start_time?: string | null
+          summary?: string
+          title: string
+          updated_at?: string
+          visible?: boolean
+          wardrobe_look?: number | null
+        }
+        Update: {
+          chapter_number?: number
+          details?: string
+          end_time?: string | null
+          experience_card?: string | null
+          id?: string
+          kind?: string
+          leave_at?: string | null
+          location?: string
+          scene_order?: number
+          start_time?: string | null
+          summary?: string
+          title?: string
+          updated_at?: string
+          visible?: boolean
+          wardrobe_look?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scenes_chapter_number_fkey"
+            columns: ["chapter_number"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["number"]
+          },
+        ]
+      }
       settings: {
         Row: {
           key: string
@@ -170,20 +235,60 @@ export type Database = {
         }
         Relationships: []
       }
+      wardrobe_looks: {
+        Row: {
+          chapter_number: number
+          date_label: string
+          description: string
+          id: string
+          look_label: string
+          look_order: number
+          palette: Json
+          photos: Json
+          title: string
+          visible: boolean
+        }
+        Insert: {
+          chapter_number: number
+          date_label?: string
+          description?: string
+          id?: string
+          look_label?: string
+          look_order: number
+          palette?: Json
+          photos?: Json
+          title: string
+          visible?: boolean
+        }
+        Update: {
+          chapter_number?: number
+          date_label?: string
+          description?: string
+          id?: string
+          look_label?: string
+          look_order?: number
+          palette?: Json
+          photos?: Json
+          title?: string
+          visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_looks_chapter_number_fkey"
+            columns: ["chapter_number"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["number"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      chapter_scriptures: {
-        Args: never
-        Returns: {
-          number: number
-          photo_url: string
-          scripture_ref: string
-          scripture_text: string
-        }[]
-      }
+      can_edit_itinerary: { Args: { _user_id: string }; Returns: boolean }
+      can_view_itinerary: { Args: { _user_id: string }; Returns: boolean }
       guest_directory: {
         Args: never
         Returns: {
