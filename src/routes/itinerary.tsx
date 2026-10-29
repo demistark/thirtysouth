@@ -132,7 +132,7 @@ function Scenes({ chapter, onWear }: { chapter: number; onWear: (l: WardrobeLook
   );
 }
 
-function SceneCard({ s, open, onToggle, look, onWear }: { s: Scene; open: boolean; onToggle: () => void; look?: WardrobeLook; onWear: (l: WardrobeLook) => void }) {
+function SceneCard({ s, open, onToggle, look, onWear }: { s: Scene; open: boolean; onToggle: () => void; look?: WardrobeLook | undefined; onWear: (l: WardrobeLook) => void }) {
   const { t } = useContent();
   const time = [s.start_time, s.end_time].filter(Boolean).join(" – ");
   return (
