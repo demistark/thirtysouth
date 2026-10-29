@@ -17,12 +17,11 @@ const NAV = [
 
 export function SiteHeader() {
   const { t } = useContent();
-  const { session, displayName, signOut, isHost, roles } = useAuth();
+  const { session, displayName, signOut, isHost } = useAuth();
   const [open, setOpen] = useState(false);
   const [compact, setCompact] = useState(false);
   const { pathname } = useLocation();
   const home = pathname === "/";
-  const canProfile = roles.some((role) => ["host", "trip_guest", "friend_afar"].includes(role));
   useEffect(() => {
     const update = () => setCompact(window.scrollY > 24);
     update();
@@ -36,7 +35,7 @@ export function SiteHeader() {
 
   const authControl = session ? (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-      {canProfile ? <Link to="/profile" onClick={() => setOpen(false)} className="truncate text-sm" title={displayName}>{displayName}</Link> : <span className="truncate text-sm" title={displayName}>{displayName}</span>}
+      <span className="truncate text-sm" title={displayName}>{displayName}</span>
       <TooltipProvider><Tooltip><TooltipTrigger asChild>
         <Button variant="ghost" size="icon" className="shrink-0" onClick={() => void signOut()} aria-label={t("nav.sign_out")}><LogOut strokeWidth={1.25} /></Button>
       </TooltipTrigger><TooltipContent>{t("nav.sign_out")}</TooltipContent></Tooltip></TooltipProvider>
@@ -99,7 +98,6 @@ export function SiteHeader() {
                   {t("nav.admin")}
                 </Link>
               )}
-              {session && canProfile && <Link to="/profile" onClick={() => setOpen(false)} className="label-caps text-muted-foreground">{t("nav.my_profile")}</Link>}
               <div className="min-w-0 pt-4" onClick={() => setOpen(false)}>
                 {authControl}
               </div>

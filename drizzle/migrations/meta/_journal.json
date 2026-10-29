@@ -43,6 +43,13 @@
       "when": 1793240771789,
       "tag": "0005_validate_private_photo_content",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793242344191,
+      "tag": "0006_retire_guest_profile_photos",
+      "breakpoints": true
     }
   ]
 }

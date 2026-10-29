@@ -189,7 +189,6 @@ export type Database = {
         Returns: {
           display_name: string
           id: string
-          photo_url: string
         }[]
       }
       has_role: {
@@ -208,10 +207,8 @@ export type Database = {
         Args: never
         Returns: {
           display_name: string
-          photo_url: string
         }[]
       }
-      set_my_photo: { Args: { path?: string }; Returns: undefined }
       set_schedule_manager: {
         Args: { _enabled: boolean; _guest_id: string }
         Returns: undefined

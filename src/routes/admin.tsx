@@ -11,7 +11,6 @@ import { syncGuestAccounts } from "@/lib/guest-accounts.functions";
 import { FactsAdmin } from "@/components/site/FactsAdmin";
 import { useContent } from "@/lib/data";
 import { Button } from "@/components/ui/button";
-import { photoValidation, resizePhoto } from "@/lib/profile-photo";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -76,31 +75,23 @@ interface Guest {
   email: string;
   status: string;
   splitwise_name: string | null;
-  photo_url: string | null;
 }
 
 const emptyGuest = { full_name: "", display_name: "", email: "", status: "confirmed", splitwise_name: "" };
 
 function GuestsAdmin() {
   const qc = useQueryClient();
-  const { t } = useContent();
   const guestsQ = useQuery({
     queryKey: ["admin", "guests"],
     queryFn: async () => {
       const [g, ri] = await Promise.all([
-        supabase.from("guests").select("*").order("created_at"),
+        supabase.from("guests").select("id,user_id,full_name,display_name,email,status,splitwise_name").order("created_at"),
         supabase.from("role_invites").select("email,role").eq("role", "schedule_manager"),
       ]);
       if (g.error) throw g.error;
       const managers = new Set((ri.data ?? []).map((r) => r.email));
       const guests = (g.data ?? []) as Guest[];
-      const paths = guests.map((x) => x.photo_url).filter(Boolean) as string[];
-      const urls: Record<string, string> = {};
-      if (paths.length) {
-        const { data } = await supabase.storage.from("guest-photos").createSignedUrls(paths, 3600);
-        data?.forEach((d) => d.path && d.signedUrl && (urls[d.path] = d.signedUrl));
-      }
-      return { guests, managers, urls };
+      return { guests, managers };
     },
   });
   const [editing, setEditing] = useState<Guest | null>(null);
@@ -162,35 +153,6 @@ function GuestsAdmin() {
     refresh();
   };
 
-  const upload = async (g: Guest, file: File) => {
-    const invalid = photoValidation(file);
-    if (invalid) { toast.error(t(invalid === "type" ? "profile.invalid_type" : "profile.too_large")); return; }
-    try {
-      const blob = await resizePhoto(file);
-      const path = `${g.user_id ?? g.id}/${crypto.randomUUID()}.webp`;
-      const { error } = await supabase.storage.from("guest-photos").upload(path, blob, { contentType: "image/webp" });
-      if (error) throw error;
-      const { error: saveError } = await supabase.from("guests").update({ photo_url: path }).eq("id", g.id);
-      if (saveError) { await supabase.storage.from("guest-photos").remove([path]); throw saveError; }
-      if (g.photo_url) {
-        const { error: cleanup } = await supabase.storage.from("guest-photos").remove([g.photo_url]);
-        if (cleanup) toast.error(t("profile.cleanup_error"));
-      }
-      toast.success(t("profile.saved"));
-      refresh();
-      qc.invalidateQueries({ queryKey: ["my-profile"] });
-    } catch { toast.error(t("profile.error")); }
-  };
-  const removePhoto = async (g: Guest) => {
-    if (!g.photo_url) return;
-    const { error } = await supabase.from("guests").update({ photo_url: null }).eq("id", g.id);
-    if (error) { toast.error(t("profile.error")); return; }
-    const { error: cleanup } = await supabase.storage.from("guest-photos").remove([g.photo_url]);
-    if (cleanup) toast.error(t("profile.cleanup_error"));
-    refresh();
-    qc.invalidateQueries({ queryKey: ["my-profile"] });
-  };
-
   return (
     <div className="space-y-10">
       <form onSubmit={save} className="grid gap-3 border bg-card p-5 md:grid-cols-2">
@@ -226,11 +188,6 @@ function GuestsAdmin() {
       <ul className="divide-y border-y">
         {guestsQ.data?.guests.map((g) => (
           <li key={g.id} className="flex flex-wrap items-center gap-4 py-4">
-            {g.photo_url && guestsQ.data.urls[g.photo_url] ? (
-              <img src={guestsQ.data.urls[g.photo_url]} alt="" className="h-12 w-12 rounded-full border object-cover" />
-            ) : (
-              <div className="h-12 w-12 rounded-full border bg-paper" />
-            )}
             <div className="min-w-0 flex-1">
               <p className="font-display-light text-xl">
                 {g.display_name} <span className="text-sm text-muted-foreground">· {g.full_name}</span>
@@ -248,11 +205,6 @@ function GuestsAdmin() {
               />
               Schedule manager
             </label>
-            <label className="btn-pill !px-3 !py-1.5 cursor-pointer">
-              Photo
-              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void upload(g, file); e.target.value = ""; }} />
-            </label>
-            {g.photo_url && <Button variant="pill" className="!px-3 !py-1.5" onClick={() => void removePhoto(g)}>{t("profile.remove")}</Button>}
             <button className="btn-pill !px-3 !py-1.5" onClick={() => setEditing(g)}>
               Edit
             </button>

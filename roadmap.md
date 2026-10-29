@@ -2,5 +2,6 @@
 - [x] Add unseeded public active facts with host management and CSV import.
 - [x] Store all new copy in editable content and verify access and flows.
 - [x] Apply listed home, header, mobile spacing and back-to-top changes.
-- [x] Add private own-photo management and verify ownership restrictions.
+- [x] Remove profile-photo UI, storage, functions and copy; clear and retire guest photo field; verify removal and run security scans.
+- [ ] Delete retired guests.photo_url column — blocked by “Execute backward incompatible database migrations” permission set to Never allow; requires user permission change.
 - [x] Gate code entry with otp_enabled, default off; verify and run basic security scan.
