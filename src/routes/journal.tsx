@@ -32,7 +32,7 @@ function Journal() {
     else { setTab(next); void navigate({ to: "/journal" }); }
   };
   return (
-    <PageShell titleKey="journal.title" introKey="journal.intro">
+    <PageShell titleKey={isReflections ? "journal.reflections.title" : "journal.title"} introKey="journal.intro">
       <SubTabs tabs={ids.map((id) => ({ id, label: t(`journal.tab.${id}`) }))} value={current} onChange={changeTab} />
       {isReflections ? <Outlet /> : <ComingSoon />}
     </PageShell>
