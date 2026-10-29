@@ -45,6 +45,7 @@ export function useChapters() {
       const { data, error } = await supabase
         .from("chapters")
         .select("number,date,title,summary,sort_order")
+        .eq("visible", true)
         .order("sort_order");
       if (error) throw error;
       return data ?? [];

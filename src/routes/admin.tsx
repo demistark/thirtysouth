@@ -9,6 +9,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { normalizeEmail } from "@/lib/email";
 import { syncGuestAccounts } from "@/lib/guest-accounts.functions";
 import { FactsAdmin } from "@/components/site/FactsAdmin";
+import { ItineraryAdmin } from "@/components/site/ItineraryAdmin";
 import { useContent } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 
@@ -26,14 +27,16 @@ export const Route = createFileRoute("/admin")({
   component: Admin,
 });
 
-type Tab = "guests" | "content" | "chapters" | "settings" | "facts";
+type Tab = "guests" | "content" | "itinerary" | "settings" | "facts";
 
 function Admin() {
-  const { isHost, loading } = useAuth();
+  const { isHost, roles, loading } = useAuth();
   const { t } = useContent();
+  const isManager = roles.includes("schedule_manager");
   const [tab, setTab] = useState<Tab>("guests");
+  const active: Tab = isHost ? tab : "itinerary";
   if (loading) return <main className="mx-auto max-w-5xl px-5 pt-20"><div className="h-48 border bg-card" /></main>;
-  if (!isHost)
+  if (!isHost && !isManager)
     return (
       <main className="mx-auto max-w-md px-5 pt-24 text-center">
         <p className="eyebrow">Admin</p>
@@ -45,21 +48,21 @@ function Admin() {
       <h1 className="font-display-light text-5xl">Admin</h1>
       <div className="mt-8">
         <SubTabs
-          tabs={[
+          tabs={isHost ? [
             { id: "guests", label: "Guests" },
             { id: "content", label: "Content" },
-            { id: "chapters", label: "Chapters" },
+            { id: "itinerary", label: t("admin.tab.itinerary") },
             { id: "settings", label: "Settings" },
             { id: "facts", label: t("admin.tab.facts") },
-          ]}
-          value={tab}
+          ] : [{ id: "itinerary", label: t("admin.tab.itinerary") }]}
+          value={active}
           onChange={setTab}
         />
-        {tab === "guests" && <GuestsAdmin />}
-        {tab === "content" && <ContentAdmin />}
-        {tab === "chapters" && <ChaptersAdmin />}
-        {tab === "settings" && <SettingsAdmin />}
-        {tab === "facts" && <FactsAdmin />}
+        {active === "guests" && <GuestsAdmin />}
+        {active === "content" && <ContentAdmin />}
+        {active === "itinerary" && <ItineraryAdmin />}
+        {active === "settings" && <SettingsAdmin />}
+        {active === "facts" && <FactsAdmin />}
       </div>
     </main>
   );
@@ -264,84 +267,6 @@ function ContentRow({ k, initial }: { k: string; initial: string }) {
       <button className="btn-pill mt-2 !px-3 !py-1.5" disabled={value === initial} onClick={save}>
         Save
       </button>
-    </li>
-  );
-}
-
-/* ---------------- Chapters ---------------- */
-
-interface ChapterFull {
-  number: number;
-  date: string;
-  title: string;
-  summary: string;
-  scripture_ref: string;
-  scripture_text: string;
-}
-
-function ChaptersAdmin() {
-  const q = useQuery({
-    queryKey: ["admin", "chapters"],
-    queryFn: async (): Promise<ChapterFull[]> => {
-      const [basic, scr] = await Promise.all([
-        supabase.from("chapters").select("number,date,title,summary").order("sort_order"),
-        supabase.rpc("chapter_scriptures"),
-      ]);
-      if (basic.error) throw basic.error;
-      const m = new Map((scr.data ?? []).map((s) => [s.number, s]));
-      return (basic.data ?? []).map((c) => ({
-        ...c,
-        scripture_ref: m.get(c.number)?.scripture_ref ?? "",
-        scripture_text: m.get(c.number)?.scripture_text ?? "",
-      }));
-    },
-  });
-  return <ul className="space-y-6">{q.data?.map((c) => <ChapterRow key={c.number} c={c} />)}</ul>;
-}
-
-function ChapterRow({ c }: { c: ChapterFull }) {
-  const qc = useQueryClient();
-  const [f, setF] = useState(c);
-  const save = async () => {
-    const { error } = await supabase
-      .from("chapters")
-      .update({
-        date: f.date,
-        title: f.title,
-        summary: f.summary,
-        scripture_ref: f.scripture_ref || null,
-        scripture_text: f.scripture_text || null,
-      })
-      .eq("number", c.number);
-    if (error) { toast.error(error.message); return; }
-    toast.success(`Chapter ${c.number} saved`);
-    qc.invalidateQueries({ queryKey: ["chapters"] });
-  };
-  return (
-    <li className="grid gap-3 border bg-card p-5 md:grid-cols-2">
-      <p className="eyebrow md:col-span-2">Chapter {c.number}</p>
-      <Field label="Date">
-        <input type="date" className="field" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} />
-      </Field>
-      <Field label="Title">
-        <input className="field" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
-      </Field>
-      <div className="md:col-span-2">
-        <Field label="Summary">
-          <textarea className="field" value={f.summary} onChange={(e) => setF({ ...f, summary: e.target.value })} />
-        </Field>
-      </div>
-      <Field label="Scripture reference">
-        <input className="field" value={f.scripture_ref} onChange={(e) => setF({ ...f, scripture_ref: e.target.value })} />
-      </Field>
-      <Field label="Scripture text">
-        <textarea className="field" value={f.scripture_text} onChange={(e) => setF({ ...f, scripture_text: e.target.value })} />
-      </Field>
-      <div>
-        <button className="btn-pill" onClick={save}>
-          Save
-        </button>
-      </div>
     </li>
   );
 }
