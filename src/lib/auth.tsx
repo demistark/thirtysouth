@@ -12,6 +12,7 @@ interface AuthState {
   isHost: boolean;
   isFriend: boolean;
   initial: string;
+  displayName: string;
   signOut: () => Promise<void>;
 }
 
@@ -42,12 +43,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ["roles", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId!);
+      if (!userId) return [];
+      const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId);
       if (error) throw error;
       return (data ?? []).map((r) => r.role as Role);
     },
   });
   const roles = userId ? (rolesQ.data ?? []) : [];
+  const profileQ = useQuery({
+    queryKey: ["my-profile", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("my_profile");
+      if (error) throw error;
+      return data?.[0] ?? null;
+    },
+  });
+  const displayName = (userId ? profileQ.data?.display_name : null) || session?.user.email?.split("@")[0] || "";
 
   const isHost = roles.includes("host");
   const isFriend = isHost || roles.includes("trip_guest");
@@ -58,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     queryClient.removeQueries({ queryKey: ["roles"] });
     queryClient.removeQueries({ queryKey: ["admin"] });
+    queryClient.removeQueries({ queryKey: ["my-profile"] });
   };
 
   return (
@@ -69,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isHost,
         isFriend,
         initial,
+        displayName,
         signOut,
       }}
     >

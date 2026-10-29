@@ -57,7 +57,10 @@ function HomeBefore() {
           <div className="fade-in border bg-card px-6 py-10 text-center md:px-16 md:py-14">
             <p className="label-caps text-muted-foreground">{t("home.hero.welcome")}</p>
             <h1 className="wordmark mt-5 text-5xl !tracking-[0.18em] sm:text-7xl md:text-8xl">30° South</h1>
-            <p className="label-caps mt-6 text-foreground">{t("home.hero.place")}</p>
+            <p className="label-caps mt-6 text-foreground">
+              <span className="hidden sm:inline">{t("home.hero.place")}</span>
+              <span className="sm:hidden">{t("home.hero.place").split(/\s*·\s*/).map((line, i) => <span key={i} className="block">{line}</span>)}</span>
+            </p>
             <div className="mx-auto mt-8 h-px w-16 bg-border" />
             <p className="mt-6 font-display-light text-3xl">
               <span className="text-primary">{daysToGo}</span>{" "}
@@ -78,11 +81,12 @@ function HomeBefore() {
   );
 }
 
-function CardFrame({ band, children }: { band: "sage" | "tan"; children: React.ReactNode }) {
+function CardFrame({ band, children, textOnly = false }: { band: "sage" | "tan"; children: React.ReactNode; textOnly?: boolean }) {
   return (
     <section
       className={cn(
-        "grid gap-8 border p-6 md:grid-cols-[1.1fr_1fr] md:items-center md:p-12",
+        "grid gap-8 border p-6 md:items-center md:p-12",
+        !textOnly && "md:grid-cols-[1.1fr_1fr]",
         band === "sage" ? "bg-band-sage" : "bg-band-tan",
       )}
     >
@@ -140,16 +144,16 @@ function SectionCard({
   const { t } = useContent();
   const k = (s: string) => t(`home.card${n}.${s}`);
   return (
-    <CardFrame band={band}>
+    <CardFrame band={band} textOnly={n === 2 || n === 4}>
       <div>
         <p className="eyebrow">{k("eyebrow")}</p>
         <h2 className="font-display-light mt-4 text-4xl md:text-5xl">{k("headline")}</h2>
-        <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground">{k("sentence")}</p>
+        <p className={cn("mt-4 text-sm leading-relaxed text-muted-foreground", n !== 2 && n !== 4 && "max-w-md")}>{k("sentence")}</p>
         <Link to={to} className="btn-pill mt-8">
           {k("button")}
         </Link>
       </div>
-      {polaroid ? (
+      {n === 2 || n === 4 ? null : polaroid ? (
         <div className="relative mx-auto w-full max-w-sm py-6">
           <figure className="rotate-[-3deg] bg-card p-3 pb-4 shadow-[var(--shadow-polaroid)]">
             <PhotoSlot className="aspect-square w-full" caption="" />

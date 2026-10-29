@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { useContent } from "@/lib/data";
+import { useContent, useSettings } from "@/lib/data";
+import { isOtpEnabled } from "@/lib/profile-photo";
+import { Button } from "@/components/ui/button";
 import { normalizeEmail } from "@/lib/email";
 
 export const Route = createFileRoute("/auth")({
@@ -22,6 +24,8 @@ export const Route = createFileRoute("/auth")({
 function SignIn() {
   const { t } = useContent();
   const { session } = useAuth();
+  const { data: settings } = useSettings();
+  const otpEnabled = isOtpEnabled(settings);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "sent" | "not_found" | "error">("idle");
@@ -73,8 +77,8 @@ function SignIn() {
       <p className="caption-serif mt-3">{t("signin.intro")}</p>
       {state === "sent" ? (
         <div className="fade-in mt-10 space-y-6 border bg-card p-6">
-          <p className="text-sm">{t("signin.sent")}</p>
-          <form onSubmit={verify} className="space-y-3">
+          <p className="text-sm">{t(otpEnabled ? "signin.sent" : "signin.sent_link")}</p>
+          {otpEnabled && <form onSubmit={verify} className="space-y-3">
             <label className="label-caps block text-muted-foreground" htmlFor="code">
               {t("signin.code_label")}
             </label>
@@ -89,13 +93,13 @@ function SignIn() {
               onChange={(e) => setCode(e.target.value)}
             />
             {codeState === "bad" && <p className="text-sm text-rust">{t("signin.code_bad")}</p>}
-            <button className="btn-pill btn-pill-solid w-full" disabled={codeState === "checking"}>
+            <Button variant="pill" className="btn-pill-solid w-full" disabled={codeState === "checking"}>
               {t("signin.code_button")}
-            </button>
-          </form>
-          <button type="button" className="label-caps text-muted-foreground underline" onClick={send}>
+            </Button>
+          </form>}
+          <Button variant="link" type="button" className="label-caps text-muted-foreground underline" onClick={send}>
             {t("signin.resend")}
-          </button>
+          </Button>
         </div>
       ) : (
         <form onSubmit={submit} className="mt-10 space-y-4">

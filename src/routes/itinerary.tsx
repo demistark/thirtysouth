@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ComingSoon, PageShell, SubTabs } from "@/components/site/Blocks";
 import { RecordingLockout } from "@/components/site/Lockouts";
 import { useAuth } from "@/lib/auth";
 import { canViewScenes } from "@/lib/locked-areas";
 import { formatChapterDate, useChapters, useContent } from "@/lib/data";
-import { useTripClock } from "@/lib/trip-clock";
 
 export const Route = createFileRoute("/itinerary")({
   head: () => ({
@@ -25,12 +24,9 @@ type Tab = "script" | "scenes" | "wardrobe";
 
 function Itinerary() {
   const { t } = useContent();
-  const { phase } = useTripClock();
   const { roles, loading } = useAuth();
-  const order: Tab[] = phase === "during" ? ["scenes", "wardrobe", "script"] : ["script", "scenes", "wardrobe"];
-  const firstTab: Tab = phase === "during" ? "scenes" : "script";
-  const [tab, setTab] = useState<Tab>(firstTab);
-  useEffect(() => setTab(firstTab), [firstTab]);
+  const order: Tab[] = ["script", "scenes", "wardrobe"];
+  const [tab, setTab] = useState<Tab>("script");
 
   return (
     <PageShell titleKey="itinerary.title" introKey="itinerary.intro">
