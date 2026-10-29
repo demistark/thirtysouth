@@ -1,3 +1,6 @@
 - [x] Restyle area-specific lockouts and rename Reflections.
 - [x] Add unseeded public active facts with host management and CSV import.
 - [x] Store all new copy in editable content and verify access and flows.
+- [ ] Apply listed home, header, mobile spacing and back-to-top changes.
+- [ ] Add private own-photo management and verify ownership restrictions.
+- [ ] Gate code entry with otp_enabled, default off; verify and scan security.
