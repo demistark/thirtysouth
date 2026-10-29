@@ -261,6 +261,18 @@
   padding: 5rem 1.5rem;
   text-align: center;
   min-height: 20rem;
+  /* Small text on sea/sand bands stays ink (slate fails AA there). */
+  --muted-foreground: var(--ink);
+}
+
+/* Coloured bands (Seafoam, Sandstone/tan): small text uses ink, not slate. */
+@utility band-ink {
+  --muted-foreground: var(--ink);
+}
+
+/* The one site gradient: quiet sky-to-sea behind the Home hero. */
+@utility hero-sky {
+  background: var(--gradient-hero);
 }
 .recording-dot { animation: recording-blink 1.4s ease-in-out infinite; }
 @keyframes recording-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }

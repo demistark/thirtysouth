@@ -31,7 +31,7 @@ export function SiteHeader() {
 
   const linkCls =
     "label-caps py-1 border-b border-transparent text-muted-foreground transition-colors hover:text-foreground";
-  const activeCls = "!text-foreground !border-primary";
+  const activeCls = "!text-foreground !border-apricot";
 
   const authControl = session ? (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
@@ -48,7 +48,7 @@ export function SiteHeader() {
 
   return (
     <div className={home ? "site-header-space" : "site-header-space sticky top-0 z-40"}>
-    <header className="site-header border-b bg-background" data-compact={compact}>
+    <header className="site-header band-ink border-b bg-seafoam" data-compact={compact}>
       <div className="site-header-bar mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-5 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <Link to="/" className="site-wordmark wordmark min-w-0 whitespace-nowrap text-base text-foreground">
           30° South
@@ -87,7 +87,7 @@ export function SiteHeader() {
                   to={n.to}
                   onClick={() => setOpen(false)}
                   className="font-display-light text-2xl text-muted-foreground"
-                  activeProps={{ className: "!text-primary underline underline-offset-8 decoration-1" }}
+                  activeProps={{ className: "!text-foreground underline underline-offset-8 decoration-1 decoration-apricot" }}
                   activeOptions={{ exact: n.to === "/" }}
                 >
                   {t(n.key)}
@@ -113,7 +113,7 @@ export function SiteHeader() {
 export function SiteFooter() {
   const { t } = useContent();
   return (
-    <footer className="mt-24 border-t">
+    <footer className="band-ink mt-24 border-t bg-band-tan">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-10 text-center">
         <span className="wordmark text-sm">30° South</span>
         <span className="label-caps text-muted-foreground">{t("footer.line")}</span>
