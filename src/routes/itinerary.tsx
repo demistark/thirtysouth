@@ -98,7 +98,7 @@ function shortDate(d: string) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, day)));
 }
 
-function ChapterStrip({ chapters, value, today, onChange }: { chapters: ChapterBasic[]; value: number; today?: number; onChange: (n: number) => void }) {
+function ChapterStrip({ chapters, value, today, onChange }: { chapters: ChapterBasic[]; value: number; today?: number | undefined; onChange: (n: number) => void }) {
   const { t } = useContent();
   return (
     <div className="-mx-5 mb-8 flex gap-2 overflow-x-auto px-5 pb-2" role="tablist" aria-label={t("itinerary.chapter")}>
@@ -157,7 +157,7 @@ function SceneCard({ s, open, onToggle, look, onWear }: { s: Scene; open: boolea
   );
 }
 
-function Wardrobe({ chapter, focus }: { chapter: number; focus?: string }) {
+function Wardrobe({ chapter, focus }: { chapter: number; focus?: string | undefined }) {
   const { t } = useContent();
   const looksQ = useLooks(true);
   const looks = (looksQ.data ?? []).filter((l) => l.chapter_number === chapter);

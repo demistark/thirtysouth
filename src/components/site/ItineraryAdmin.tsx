@@ -102,7 +102,7 @@ function ChaptersPanel() {
   </div>;
 }
 
-function ChapterRow({ c, isNew, onDone }: { c: Chapter; isNew?: boolean; onDone?: () => void }) {
+function ChapterRow({ c, isNew, onDone }: { c: Chapter; isNew?: boolean; onDone?: (() => void) | undefined }) {
   const { t } = useContent();
   const refresh = useRefresh();
   const [f, setF] = useState(c);
@@ -126,7 +126,7 @@ function ChapterRow({ c, isNew, onDone }: { c: Chapter; isNew?: boolean; onDone?
   </li>;
 }
 
-function Actions({ visible, onVisible, onSave, onDelete }: { visible: boolean; onVisible: (v: boolean) => void; onSave: () => void; onDelete?: () => void }) {
+function Actions({ visible, onVisible, onSave, onDelete }: { visible: boolean; onVisible: (v: boolean) => void; onSave: () => void; onDelete?: (() => void) | undefined }) {
   const { t } = useContent();
   return <div className="flex flex-wrap items-center gap-3 md:col-span-2">
     <label className="label-caps flex items-center gap-2 text-muted-foreground"><input type="checkbox" checked={visible} onChange={(e) => onVisible(e.target.checked)} />{t("admin.itin.visible")}</label>
@@ -164,7 +164,7 @@ function ChapterPicker({ chapters, value, onChange }: { chapters: Chapter[]; val
   </select>;
 }
 
-function SceneRow({ s, isNew, onDone }: { s: Scene; isNew?: boolean; onDone?: () => void }) {
+function SceneRow({ s, isNew, onDone }: { s: Scene; isNew?: boolean; onDone?: (() => void) | undefined }) {
   const { t } = useContent();
   const refresh = useRefresh();
   const [f, setF] = useState(s);
@@ -220,7 +220,7 @@ function WardrobePanel() {
   </div>;
 }
 
-function LookRow({ l, isNew, onDone }: { l: WardrobeLook; isNew?: boolean; onDone?: () => void }) {
+function LookRow({ l, isNew, onDone }: { l: WardrobeLook; isNew?: boolean; onDone?: (() => void) | undefined }) {
   const { t } = useContent();
   const refresh = useRefresh();
   const [f, setF] = useState(l);
