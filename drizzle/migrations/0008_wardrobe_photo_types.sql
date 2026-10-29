@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Editors upload wardrobe photos" ON storage.objects;
+CREATE POLICY "Editors upload wardrobe photos" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'wardrobe-photos' AND public.can_edit_itinerary(auth.uid()) AND lower(storage.extension(name)) IN ('jpg','jpeg','png','webp'));
