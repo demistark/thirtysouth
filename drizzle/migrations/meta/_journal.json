@@ -36,6 +36,13 @@
       "when": 1793240460125,
       "tag": "0004_own_private_profile_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793240771789,
+      "tag": "0005_validate_private_photo_content",
+      "breakpoints": true
     }
   ]
 }

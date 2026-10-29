@@ -23,3 +23,4 @@
 - Share client photo validation and resizing between profile and admin; keep user uploads in user-id folders in the private bucket and delete replaced objects. Why: consistent limits and isolated friend writes while retaining host management.
 - Keep header scroll behavior in SiteHeader with a stable reserved height and global anchor offset. Why: compacting cannot move or obscure page content.
 - Treat otp_enabled as an exact-string opt-in setting checked by shared isOtpEnabled. Why: unavailable email codes remain hidden by default.
+- Keep phase-independent itinerary ordering in itinerary-tabs and its regression test. Why: date overrides must not reshuffle tabs.

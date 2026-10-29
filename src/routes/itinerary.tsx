@@ -5,6 +5,7 @@ import { RecordingLockout } from "@/components/site/Lockouts";
 import { useAuth } from "@/lib/auth";
 import { canViewScenes } from "@/lib/locked-areas";
 import { formatChapterDate, useChapters, useContent } from "@/lib/data";
+import { itineraryTabs } from "@/lib/itinerary-tabs";
 
 export const Route = createFileRoute("/itinerary")({
   head: () => ({
@@ -25,7 +26,7 @@ type Tab = "script" | "scenes" | "wardrobe";
 function Itinerary() {
   const { t } = useContent();
   const { roles, loading } = useAuth();
-  const order: Tab[] = ["script", "scenes", "wardrobe"];
+  const order = itineraryTabs();
   const [tab, setTab] = useState<Tab>("script");
 
   return (
