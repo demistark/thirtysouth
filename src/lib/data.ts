@@ -20,7 +20,7 @@ export function useContent() {
 export function useSettings() {
   return useQuery({
     queryKey: ["settings"],
-    queryFn: async (): Promise<TripSettings> => {
+    queryFn: async (): Promise<TripSettings & { otp_enabled?: string }> => {
       const { data, error } = await supabase.from("settings").select("key,value");
       if (error) throw error;
       const m = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]));
