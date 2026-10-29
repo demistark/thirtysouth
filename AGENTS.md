@@ -16,3 +16,6 @@
 - Chapter scripture is public (like title/summary); `chapter_scriptures()` is executable by anon and authenticated.
 - Accounts are invite-only: public sign-up is disabled; the host-only `syncGuestAccounts` server fn creates unconfirmed accounts for guests, and sign-in uses `shouldCreateUser: false`. Why: nobody can claim an invited friend's email first.
 - Roles are granted only after `email_confirmed_at` is set (trigger on INSERT OR UPDATE OF email_confirmed_at). Emails are matched with `normalizeEmail()` / lower(trim()) and unique on lower(email). Why: an unproven or differently-cased email never gets access.
+- Area-specific lockouts live in the shared Lockouts module; itinerary access is checked through canViewScenes, independently of other friends-only sections. Why: broader itinerary access must not expose travel or purse.
+- Reflections is the nested /journal/reflections route, rendered through Journal's Outlet; other Journal tabs remain public. Why: its URL and page identity stay consistent with its name.
+- Travel facts use fun_facts with active-only public reads and host-scoped full access; CSV parsing uses Papa Parse and validates the entire import before writing. Why: hidden facts remain private and quoted CSV text imports reliably.

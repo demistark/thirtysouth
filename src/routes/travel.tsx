@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon, FriendsOnly, PageShell } from "@/components/site/Blocks";
+import { ComingSoon, PageShell } from "@/components/site/Blocks";
+import { TravelLockout } from "@/components/site/Lockouts";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/travel")({
   head: () => ({
@@ -12,11 +14,14 @@ export const Route = createFileRoute("/travel")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: () => (
-    <PageShell titleKey="travel.title" introKey="travel.intro">
-      <FriendsOnly>
-        <ComingSoon />
-      </FriendsOnly>
-    </PageShell>
-  ),
+  component: Travel,
 });
+
+function Travel() {
+  const { isFriend, loading } = useAuth();
+  return (
+    <PageShell titleKey="travel.title" introKey="travel.intro">
+      {loading ? <div className="min-h-80 bg-band-sage" /> : isFriend ? <ComingSoon /> : <TravelLockout />}
+    </PageShell>
+  );
+}

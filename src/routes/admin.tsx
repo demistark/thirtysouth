@@ -8,6 +8,8 @@ import { useAuth } from "@/lib/auth";
 import { useServerFn } from "@tanstack/react-start";
 import { normalizeEmail } from "@/lib/email";
 import { syncGuestAccounts } from "@/lib/guest-accounts.functions";
+import { FactsAdmin } from "@/components/site/FactsAdmin";
+import { useContent } from "@/lib/data";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -23,10 +25,11 @@ export const Route = createFileRoute("/admin")({
   component: Admin,
 });
 
-type Tab = "guests" | "content" | "chapters" | "settings";
+type Tab = "guests" | "content" | "chapters" | "settings" | "facts";
 
 function Admin() {
   const { isHost, loading } = useAuth();
+  const { t } = useContent();
   const [tab, setTab] = useState<Tab>("guests");
   if (loading) return <main className="mx-auto max-w-5xl px-5 pt-20"><div className="h-48 border bg-card" /></main>;
   if (!isHost)
@@ -46,6 +49,7 @@ function Admin() {
             { id: "content", label: "Content" },
             { id: "chapters", label: "Chapters" },
             { id: "settings", label: "Settings" },
+            { id: "facts", label: t("admin.tab.facts") },
           ]}
           value={tab}
           onChange={setTab}
@@ -54,6 +58,7 @@ function Admin() {
         {tab === "content" && <ContentAdmin />}
         {tab === "chapters" && <ChaptersAdmin />}
         {tab === "settings" && <SettingsAdmin />}
+        {tab === "facts" && <FactsAdmin />}
       </div>
     </main>
   );

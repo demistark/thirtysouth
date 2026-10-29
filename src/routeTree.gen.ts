@@ -16,6 +16,7 @@ import { Route as ItineraryRouteImport } from './routes/itinerary'
 import { Route as JournalRouteImport } from './routes/journal'
 import { Route as PurseRouteImport } from './routes/purse'
 import { Route as TravelRouteImport } from './routes/travel'
+import { Route as JournalReflectionsRouteImport } from './routes/journal.reflections'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 
@@ -54,6 +55,11 @@ const TravelRoute = TravelRouteImport.update({
   path: '/travel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JournalReflectionsRoute = JournalReflectionsRouteImport.update({
+  id: '/reflections',
+  path: '/reflections',
+  getParentRoute: () => JournalRoute,
+} as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   id: '/lovable/email/auth/preview',
   path: '/lovable/email/auth/preview',
@@ -70,9 +76,10 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/itinerary': typeof ItineraryRoute
-  '/journal': typeof JournalRoute
+  '/journal': typeof JournalRouteWithChildren
   '/purse': typeof PurseRoute
   '/travel': typeof TravelRoute
+  '/journal/reflections': typeof JournalReflectionsRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -81,9 +88,10 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/itinerary': typeof ItineraryRoute
-  '/journal': typeof JournalRoute
+  '/journal': typeof JournalRouteWithChildren
   '/purse': typeof PurseRoute
   '/travel': typeof TravelRoute
+  '/journal/reflections': typeof JournalReflectionsRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -93,9 +101,10 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/itinerary': typeof ItineraryRoute
-  '/journal': typeof JournalRoute
+  '/journal': typeof JournalRouteWithChildren
   '/purse': typeof PurseRoute
   '/travel': typeof TravelRoute
+  '/journal/reflections': typeof JournalReflectionsRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/purse'
     | '/travel'
+    | '/journal/reflections'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/purse'
     | '/travel'
+    | '/journal/reflections'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   id:
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/purse'
     | '/travel'
+    | '/journal/reflections'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   fileRoutesById: FileRoutesById
@@ -140,7 +152,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
   ItineraryRoute: typeof ItineraryRoute
-  JournalRoute: typeof JournalRoute
+  JournalRoute: typeof JournalRouteWithChildren
   PurseRoute: typeof PurseRoute
   TravelRoute: typeof TravelRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -198,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TravelRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/journal/reflections': {
+      id: '/journal/reflections'
+      path: '/reflections'
+      fullPath: '/journal/reflections'
+      preLoaderRoute: typeof JournalReflectionsRouteImport
+      parentRoute: typeof JournalRoute
+    }
     '/lovable/email/auth/preview': {
       id: '/lovable/email/auth/preview'
       path: '/lovable/email/auth/preview'
@@ -215,12 +234,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface JournalRouteChildren {
+  JournalReflectionsRoute: typeof JournalReflectionsRoute
+}
+
+const JournalRouteChildren: JournalRouteChildren = {
+  JournalReflectionsRoute: JournalReflectionsRoute,
+}
+
+const JournalRouteWithChildren =
+  JournalRoute._addFileChildren(JournalRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
   ItineraryRoute: ItineraryRoute,
-  JournalRoute: JournalRoute,
+  JournalRoute: JournalRouteWithChildren,
   PurseRoute: PurseRoute,
   TravelRoute: TravelRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,

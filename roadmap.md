@@ -1,0 +1,3 @@
+- [x] Restyle area-specific lockouts and rename Reflections.
+- [x] Add unseeded public active facts with host management and CSV import.
+- [x] Store all new copy in editable content and verify access and flows.

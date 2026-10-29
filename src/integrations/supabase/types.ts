@@ -47,6 +47,27 @@ export type Database = {
         }
         Relationships: []
       }
+      fun_facts: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          text: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          text: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          text?: string
+        }
+        Relationships: []
+      }
       guests: {
         Row: {
           created_at: string

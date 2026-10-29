@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ComingSoon, FriendsOnly, PageShell, SubTabs } from "@/components/site/Blocks";
+import { ComingSoon, PageShell, SubTabs } from "@/components/site/Blocks";
+import { PurseLockout } from "@/components/site/Lockouts";
+import { useAuth } from "@/lib/auth";
 import { useContent } from "@/lib/data";
 import { useTripClock } from "@/lib/trip-clock";
 
@@ -23,15 +25,14 @@ type Tab = "experiences" | "expenses" | "sum";
 function Purse() {
   const { t } = useContent();
   const { phase } = useTripClock();
+  const { isFriend, loading } = useAuth();
   const ids: Tab[] = phase === "after" ? ["experiences", "expenses", "sum"] : ["experiences", "expenses"];
   const [tab, setTab] = useState<Tab>("experiences");
   const current = ids.includes(tab) ? tab : "experiences";
   return (
     <PageShell titleKey="purse.title" introKey="purse.intro">
       <SubTabs tabs={ids.map((id) => ({ id, label: t(`purse.tab.${id}`) }))} value={current} onChange={setTab} />
-      <FriendsOnly>
-        <ComingSoon />
-      </FriendsOnly>
+      {loading ? <div className="min-h-80 bg-band-tan" /> : isFriend ? <ComingSoon /> : <PurseLockout />}
     </PageShell>
   );
 }

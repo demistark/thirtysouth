@@ -1,8 +1,8 @@
-import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import { useContent } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import { SignInLink } from "./Lockouts";
 
 export function PhotoSlot({ className, caption }: { className?: string; caption?: string }) {
   const { t } = useContent();
@@ -32,12 +32,9 @@ export function ComingSoon() {
 export function FriendsGate() {
   const { t } = useContent();
   return (
-    <div className="fade-in border bg-card px-6 py-14 text-center">
-      <p className="eyebrow">{t("gate.title")}</p>
-      <p className="font-display-light mx-auto mt-4 max-w-md text-2xl">{t("gate.body")}</p>
-      <Link to="/auth" className="label-caps mt-6 inline-block border-b border-primary pb-0.5 text-primary">
-        {t("gate.link")}
-      </Link>
+    <div className="lockout-band bg-band-tan">
+      <p className="font-display-light text-4xl">{t("lockout.friends")}</p>
+      <SignInLink />
     </div>
   );
 }
