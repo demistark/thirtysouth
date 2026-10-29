@@ -89,12 +89,14 @@
   --apricot: oklch(0.81 0.096 72);         /* #e8b77a — thin accents only */
   --apricot-deep: oklch(0.571 0.1 64);     /* #a06a32 — large numerals (AA-safe apricot shade) */
 
-  /* The site's single gradient: quiet sky-to-sea behind the Home hero. */
+  /* The site's single gradient: quiet sky-to-sea behind the Home hero,
+     easing into the cream page background over its last ~35%. */
   --gradient-hero: linear-gradient(
     180deg,
     color-mix(in oklab, var(--seafoam) 55%, var(--cream)) 0%,
-    var(--seafoam) 55%,
-    color-mix(in oklab, var(--apricot) 32%, var(--seafoam)) 100%
+    var(--seafoam) 40%,
+    color-mix(in oklab, var(--apricot) 32%, var(--seafoam)) 65%,
+    var(--cream) 100%
   );
 
   /* semantic */
@@ -195,7 +197,7 @@
   letter-spacing: 0.2em;
   font-size: 0.6875rem;
   font-weight: 500;
-  color: var(--rust);
+  color: var(--ember-deep);
 }
 
 @utility caption-serif {
@@ -285,6 +287,16 @@
 /* The one site gradient: quiet sky-to-sea behind the Home hero. */
 @utility hero-sky {
   background: var(--gradient-hero);
+}
+
+/* Footer golden-hour glow: sandstone easing into a faint ember tint at the
+   bottom edge. The one allowed exception to the single-gradient rule. */
+@utility footer-glow {
+  background: linear-gradient(
+    180deg,
+    var(--sandstone) 0%,
+    color-mix(in oklab, var(--ember) 13%, var(--sandstone)) 100%
+  );
 }
 .recording-dot { animation: recording-blink 1.4s ease-in-out infinite; }
 @keyframes recording-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
