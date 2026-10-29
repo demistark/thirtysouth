@@ -76,7 +76,7 @@ export function SubTabs<T extends string>({
           onClick={() => onChange(tab.id)}
           className={cn(
             "label-caps whitespace-nowrap border-b py-3 transition-colors",
-            value === tab.id ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+            value === tab.id ? "border-apricot text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >
           {tab.label}

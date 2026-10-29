@@ -113,7 +113,7 @@ function MomentsCard() {
               onClick={() => setTab(p)}
               className={cn(
                 "label-caps -mb-px border-b py-2 transition-colors",
-                tab === p ? "border-primary text-foreground" : "border-transparent text-muted-foreground",
+                tab === p ? "border-apricot text-foreground" : "border-transparent text-muted-foreground",
               )}
             >
               {p}
