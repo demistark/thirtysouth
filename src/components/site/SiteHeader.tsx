@@ -1,7 +1,9 @@
-import { Link } from "@tanstack/react-router";
-import { Menu } from "lucide-react";
-import { useState } from "react";
+import { Link, useLocation } from "@tanstack/react-router";
+import { LogOut, Menu } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/lib/auth";
 import { useContent } from "@/lib/data";
 
@@ -15,20 +17,30 @@ const NAV = [
 
 export function SiteHeader() {
   const { t } = useContent();
-  const { session, initial, signOut, isHost } = useAuth();
+  const { session, displayName, signOut, isHost, roles } = useAuth();
   const [open, setOpen] = useState(false);
+  const [compact, setCompact] = useState(false);
+  const { pathname } = useLocation();
+  const home = pathname === "/";
+  const canProfile = roles.some((role) => ["host", "trip_guest", "friend_afar"].includes(role));
+  useEffect(() => {
+    const update = () => setCompact(window.scrollY > 24);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, [pathname]);
 
   const linkCls =
     "label-caps py-1 border-b border-transparent text-muted-foreground transition-colors hover:text-foreground";
   const activeCls = "!text-foreground !border-primary";
 
   const authControl = session ? (
-    <button onClick={signOut} className="btn-pill !px-2 !py-1.5 !pr-4" aria-label="Sign out">
-      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[0.7rem] text-primary-foreground">
-        {initial}
-      </span>
-      {t("nav.sign_out")}
-    </button>
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+      {canProfile ? <Link to="/profile" onClick={() => setOpen(false)} className="truncate text-sm" title={displayName}>{displayName}</Link> : <span className="truncate text-sm" title={displayName}>{displayName}</span>}
+      <TooltipProvider><Tooltip><TooltipTrigger asChild>
+        <Button variant="ghost" size="icon" className="shrink-0" onClick={() => void signOut()} aria-label={t("nav.sign_out")}><LogOut strokeWidth={1.25} /></Button>
+      </TooltipTrigger><TooltipContent>{t("nav.sign_out")}</TooltipContent></Tooltip></TooltipProvider>
+    </div>
   ) : (
     <Link to="/auth" className="btn-pill">
       {t("nav.sign_in")}
@@ -36,12 +48,13 @@ export function SiteHeader() {
   );
 
   return (
-    <header className="border-b bg-background">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
-        <Link to="/" className="wordmark text-base text-foreground">
+    <div className={home ? "site-header-space" : "site-header-space sticky top-0 z-40"}>
+    <header className="site-header border-b bg-background" data-compact={compact}>
+      <div className="site-header-bar mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-5 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <Link to="/" className="site-wordmark wordmark min-w-0 whitespace-nowrap text-base text-foreground">
           30° South
         </Link>
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="site-nav hidden items-center gap-5 md:flex lg:gap-8">
           {NAV.map((n) => (
             <Link
               key={n.to}
@@ -54,16 +67,16 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="site-auth hidden min-w-0 items-center justify-end gap-2 md:flex">
           {isHost && (
             <Link to="/admin" className="label-caps text-muted-foreground hover:text-foreground">
-              Admin
+              {t("nav.admin")}
             </Link>
           )}
-          {authControl}
+          <div className="min-w-0 max-w-full">{authControl}</div>
         </div>
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger className="md:hidden" aria-label="Open menu">
+          <SheetTrigger className="site-menu shrink-0 md:hidden" aria-label={t("nav.open_menu")}>
             <Menu className="h-5 w-5" strokeWidth={1.25} />
           </SheetTrigger>
           <SheetContent side="right" className="w-72 bg-background">
@@ -83,10 +96,11 @@ export function SiteHeader() {
               ))}
               {isHost && (
                 <Link to="/admin" onClick={() => setOpen(false)} className="label-caps text-muted-foreground">
-                  Admin
+                  {t("nav.admin")}
                 </Link>
               )}
-              <div className="pt-4" onClick={() => setOpen(false)}>
+              {session && canProfile && <Link to="/profile" onClick={() => setOpen(false)} className="label-caps text-muted-foreground">{t("nav.my_profile")}</Link>}
+              <div className="min-w-0 pt-4" onClick={() => setOpen(false)}>
                 {authControl}
               </div>
             </nav>
@@ -94,6 +108,7 @@ export function SiteHeader() {
         </Sheet>
       </div>
     </header>
+    </div>
   );
 }
 
@@ -104,6 +119,7 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-10 text-center">
         <span className="wordmark text-sm">30° South</span>
         <span className="label-caps text-muted-foreground">{t("footer.line")}</span>
+        <Button variant="pill" className="mt-5 !px-4 !py-2" aria-label={t("common.back_to_top")} title={t("common.back_to_top")} onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })}><span aria-hidden="true">↑</span></Button>
       </div>
     </footer>
   );

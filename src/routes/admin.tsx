@@ -10,6 +10,8 @@ import { normalizeEmail } from "@/lib/email";
 import { syncGuestAccounts } from "@/lib/guest-accounts.functions";
 import { FactsAdmin } from "@/components/site/FactsAdmin";
 import { useContent } from "@/lib/data";
+import { Button } from "@/components/ui/button";
+import { photoValidation, resizePhoto } from "@/lib/profile-photo";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -81,6 +83,7 @@ const emptyGuest = { full_name: "", display_name: "", email: "", status: "confir
 
 function GuestsAdmin() {
   const qc = useQueryClient();
+  const { t } = useContent();
   const guestsQ = useQuery({
     queryKey: ["admin", "guests"],
     queryFn: async () => {
@@ -160,13 +163,32 @@ function GuestsAdmin() {
   };
 
   const upload = async (g: Guest, file: File) => {
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${g.id}-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("guest-photos").upload(path, file);
-    if (error) { toast.error(error.message); return; }
-    await supabase.from("guests").update({ photo_url: path }).eq("id", g.id);
-    toast.success("Photo uploaded");
+    const invalid = photoValidation(file);
+    if (invalid) { toast.error(t(invalid === "type" ? "profile.invalid_type" : "profile.too_large")); return; }
+    try {
+      const blob = await resizePhoto(file);
+      const path = `${g.user_id ?? g.id}/${crypto.randomUUID()}.webp`;
+      const { error } = await supabase.storage.from("guest-photos").upload(path, blob, { contentType: "image/webp" });
+      if (error) throw error;
+      const { error: saveError } = await supabase.from("guests").update({ photo_url: path }).eq("id", g.id);
+      if (saveError) { await supabase.storage.from("guest-photos").remove([path]); throw saveError; }
+      if (g.photo_url) {
+        const { error: cleanup } = await supabase.storage.from("guest-photos").remove([g.photo_url]);
+        if (cleanup) toast.error(t("profile.cleanup_error"));
+      }
+      toast.success(t("profile.saved"));
+      refresh();
+      qc.invalidateQueries({ queryKey: ["my-profile"] });
+    } catch { toast.error(t("profile.error")); }
+  };
+  const removePhoto = async (g: Guest) => {
+    if (!g.photo_url) return;
+    const { error } = await supabase.from("guests").update({ photo_url: null }).eq("id", g.id);
+    if (error) { toast.error(t("profile.error")); return; }
+    const { error: cleanup } = await supabase.storage.from("guest-photos").remove([g.photo_url]);
+    if (cleanup) toast.error(t("profile.cleanup_error"));
     refresh();
+    qc.invalidateQueries({ queryKey: ["my-profile"] });
   };
 
   return (
@@ -228,8 +250,9 @@ function GuestsAdmin() {
             </label>
             <label className="btn-pill !px-3 !py-1.5 cursor-pointer">
               Photo
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && upload(g, e.target.files[0])} />
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void upload(g, file); e.target.value = ""; }} />
             </label>
+            {g.photo_url && <Button variant="pill" className="!px-3 !py-1.5" onClick={() => void removePhoto(g)}>{t("profile.remove")}</Button>}
             <button className="btn-pill !px-3 !py-1.5" onClick={() => setEditing(g)}>
               Edit
             </button>
@@ -381,6 +404,7 @@ const DATE_KEYS = [
 
 function SettingsAdmin() {
   const qc = useQueryClient();
+  const { t } = useContent();
   const q = useQuery({
     queryKey: ["admin", "settings"],
     queryFn: async () => {
@@ -395,10 +419,10 @@ function SettingsAdmin() {
   }, [q.data]);
 
   const save = async () => {
-    const rows = DATE_KEYS.map((d) => ({ key: d.key, value: f[d.key] ?? "" }));
+    const rows = [...DATE_KEYS.map((d) => ({ key: d.key, value: f[d.key] ?? "" })), { key: "otp_enabled", value: f["otp_enabled"] === "true" ? "true" : "false" }];
     const { error } = await supabase.from("settings").upsert(rows);
     if (error) { toast.error(error.message); return; }
-    toast.success("Dates saved");
+    toast.success(t("admin.settings.saved"));
     qc.invalidateQueries({ queryKey: ["settings"] });
   };
 
@@ -410,10 +434,12 @@ function SettingsAdmin() {
         </Field>
       ))}
       <p className="caption-serif text-sm">All dates are read in {f["timezone"] ?? "Africa/Johannesburg"} time.</p>
+      <label className="flex items-center gap-3 text-sm">
+        <input type="checkbox" checked={f["otp_enabled"] === "true"} onChange={(e) => setF({ ...f, otp_enabled: e.target.checked ? "true" : "false" })} />
+        {t("admin.settings.otp")}
+      </label>
       <div>
-        <button className="btn-pill btn-pill-solid" onClick={save}>
-          Save dates
-        </button>
+        <Button variant="pill" className="btn-pill-solid" onClick={save}>{t("admin.settings.save")}</Button>
       </div>
     </div>
   );

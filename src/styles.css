@@ -87,6 +87,10 @@
   --ring: var(--green);
 
   --shadow-polaroid: 0 1px 0 var(--line), 0 8px 20px -14px color-mix(in oklab, var(--ink) 40%, transparent);
+  --shadow-header: 0 3px 8px color-mix(in oklab, var(--ink) 5%, transparent);
+  --header-height: 4rem;
+  --header-compact-height: 2.875rem;
+  --header-safe-top: env(safe-area-inset-top, 0px);
 }
 
 @layer base {
@@ -95,6 +99,7 @@
   }
   html {
     -webkit-text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-height) + var(--header-safe-top) + 1rem);
   }
   body {
     background-color: var(--color-background);
@@ -103,6 +108,32 @@
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
   }
+}
+
+.site-header-space { height: calc(var(--header-height) + var(--header-safe-top) + 1px); }
+.site-header { padding-top: var(--header-safe-top); transition: box-shadow 250ms ease-out; }
+.site-header-bar {
+  height: var(--header-height);
+  padding-top: .5rem;
+  padding-bottom: .5rem;
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  transition: height 250ms ease-out, padding 250ms ease-out;
+}
+.site-wordmark, .site-menu, .site-nav, .site-auth { transition: transform 250ms ease-out, letter-spacing 250ms ease-out; }
+.site-wordmark { transform-origin: left center; }
+.site-menu, .site-auth { transform-origin: right center; }
+.site-header[data-compact="true"] { box-shadow: var(--shadow-header); }
+.site-header[data-compact="true"] .site-header-bar { height: var(--header-compact-height); padding-top: .375rem; padding-bottom: .375rem; }
+.site-header[data-compact="true"] .site-wordmark { transform: scale(.83); letter-spacing: .24em; }
+.site-header[data-compact="true"] .site-menu { transform: scale(.85); }
+.site-header[data-compact="true"] .site-nav, .site-header[data-compact="true"] .site-auth { transform: scale(.93); }
+@media (min-width: 640px) {
+  .site-header-bar { padding-left: 1.25rem; padding-right: 1.25rem; }
+}
+@media (max-width: 639px) {
+  /* Preserve wider layouts while reducing existing phone page gutters by 4px. */
+  main.px-5, main .px-5, footer .px-5 { padding-left: 1rem; padding-right: 1rem; }
 }
 
 @utility font-display-light {
