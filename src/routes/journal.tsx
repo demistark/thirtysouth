@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ComingSoon, FriendsOnly, PageShell, SubTabs } from "@/components/site/Blocks";
+import { ComingSoon, PageShell, SubTabs } from "@/components/site/Blocks";
 import { useContent } from "@/lib/data";
 
 export const Route = createFileRoute("/journal")({
@@ -17,22 +17,24 @@ export const Route = createFileRoute("/journal")({
   component: Journal,
 });
 
-type Tab = "commons" | "personal" | "heart";
+type Tab = "commons" | "reflections" | "heart";
 
 function Journal() {
   const { t } = useContent();
   const [tab, setTab] = useState<Tab>("commons");
-  const ids: Tab[] = ["commons", "personal", "heart"];
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isReflections = location.pathname === "/journal/reflections";
+  const current = isReflections ? "reflections" : tab;
+  const ids: Tab[] = ["commons", "reflections", "heart"];
+  const changeTab = (next: Tab) => {
+    if (next === "reflections") void navigate({ to: "/journal/reflections" });
+    else { setTab(next); void navigate({ to: "/journal" }); }
+  };
   return (
     <PageShell titleKey="journal.title" introKey="journal.intro">
-      <SubTabs tabs={ids.map((id) => ({ id, label: t(`journal.tab.${id}`) }))} value={tab} onChange={setTab} />
-      {tab === "personal" ? (
-        <FriendsOnly>
-          <ComingSoon />
-        </FriendsOnly>
-      ) : (
-        <ComingSoon />
-      )}
+      <SubTabs tabs={ids.map((id) => ({ id, label: t(`journal.tab.${id}`) }))} value={current} onChange={changeTab} />
+      {isReflections ? <Outlet /> : <ComingSoon />}
     </PageShell>
   );
 }
