@@ -17,6 +17,6 @@ describe("travel fact rotation", () => {
 });
 describe("facts CSV", () => {
   it("imports text and active, including quoted commas and newlines", () => expect(parseFactsCsv('text,active\n"A fact, with a comma",true\n"Two\nlines",false')).toEqual([{ text: "A fact, with a comma", active: true }, { text: "Two\nlines", active: false }]));
-  it("defaults a blank active field to true", () => expect(parseFactsCsv("text,active\nFact,"))[0]?.active).toBe(true));
+  it("defaults a blank active field to true", () => expect(parseFactsCsv("text,active\nFact,")[0]?.active).toBe(true));
   it("rejects invalid active values and empty text before importing", () => { expect(() => parseFactsCsv("text,active\nFact,maybe")).toThrow(); expect(() => parseFactsCsv("text,active\n,true")).toThrow(); });
 });

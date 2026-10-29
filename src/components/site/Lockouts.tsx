@@ -6,6 +6,8 @@ import { useContent } from "@/lib/data";
 import { factsOptions } from "@/lib/facts";
 import { FACT_ROTATION_MS, nextFactIndex, shouldRotateFacts } from "@/lib/locked-areas";
 
+const EMPTY_FACTS: { id: string; text: string }[] = [];
+
 export function SignInLink() {
   const { t } = useContent();
   return <Button variant="pill" asChild><Link to="/auth">{t("gate.link")}</Link></Button>;
@@ -34,7 +36,7 @@ export function ReflectionsLockout() {
 }
 
 export function TravelLockout() {
-  const { data = [] } = useQuery(factsOptions);
+  const { data = EMPTY_FACTS } = useQuery(factsOptions);
   const [currentId, setCurrentId] = useState<string>();
   const [previousId, setPreviousId] = useState<string>();
   useEffect(() => {
