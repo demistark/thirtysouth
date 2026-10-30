@@ -94,6 +94,8 @@ function ChaptersPanel() {
   const refresh = useRefresh();
   const q = useAdminChapters();
   const [adding, setAdding] = useState(false);
+  if (q.isPending) return <div className="h-64 border bg-card" />;
+  if (q.error) return <p role="alert">{q.error.message}</p>;
   return <div>
     <div className="mb-3 flex justify-end"><Button variant="pill" onClick={() => {
       const url = URL.createObjectURL(new Blob([exportChaptersCsv(q.data ?? [])], { type: "text/csv;charset=utf-8" }));
