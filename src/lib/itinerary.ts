@@ -11,6 +11,9 @@ export interface PaletteItem { name: string; hex: string }
 
 export const ALIGNMENTS = ["left", "center", "right"] as const;
 export type ScriptAlignment = (typeof ALIGNMENTS)[number];
+export function scriptAlignment(value: string | null | undefined): ScriptAlignment | null {
+  return value === "left" || value === "center" || value === "right" ? value : null;
+}
 export interface ScriptFields {
   layout?: ScriptAlignment | null; heading_before?: string | null; heading_before_align?: ScriptAlignment | null;
   transition_after?: string | null; transition_after_align?: ScriptAlignment | null;

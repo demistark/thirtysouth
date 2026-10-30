@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_SETTINGS, type TripSettings } from "./phase";
-import type { ScriptFields } from "./itinerary";
+import { scriptAlignment, type ScriptFields } from "./itinerary";
 
 export function useContent() {
   const q = useQuery({
@@ -49,7 +49,7 @@ export function useChapters() {
         .eq("visible", true)
         .order("sort_order");
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []).map((c) => ({ ...c, layout: scriptAlignment(c.layout), heading_before_align: scriptAlignment(c.heading_before_align), transition_after_align: scriptAlignment(c.transition_after_align) }));
     },
     staleTime: 60_000,
   });

@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useContent, type ChapterBasic } from "@/lib/data";
 
-export function ItineraryDays({ chapters, value, today, onChange }: { chapters: ChapterBasic[]; value: number; today?: number; onChange: (n: number) => void }) {
+export function ItineraryDays({ chapters, value, today, onChange }: { chapters: ChapterBasic[]; value: number; today?: number | undefined; onChange: (n: number) => void }) {
   const { t } = useContent();
   const row = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ left: false, right: false });
