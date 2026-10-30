@@ -118,7 +118,7 @@ function ChapterRow({ c, isNew, onDone }: { c: Chapter; isNew?: boolean; onDone?
   const refresh = useRefresh();
   const [f, setF] = useState(c);
   useEffect(() => setF(c), [c]);
-  const alignment = (key: "layout" | "heading_before_align" | "transition_after_align", fallback: ScriptAlignment) => <F label={t(`admin.itin.${key}`)}><select className="field" value={f[key] ?? fallback} onChange={(e) => setF({ ...f, [key]: e.target.value as ScriptAlignment })}>{ALIGNMENTS.map((a) => <option key={a} value={a}>{t(`admin.itin.align.${a}`)}</option>)}</select></F>;
+  const alignment = (key: "layout" | "heading_before_align" | "transition_after_align", fallback: ScriptAlignment) => <F label={t(`admin.itin.${key}`)}><select aria-label={t(`admin.itin.${key}`)} className="field" value={f[key] ?? fallback} onChange={(e) => setF({ ...f, [key]: e.target.value as ScriptAlignment })}>{ALIGNMENTS.map((a) => <option key={a} value={a}>{t(`admin.itin.align.${a}`)}</option>)}</select></F>;
   const save = async () => {
     const row = { ...f, sort_order: f.number };
     const { error } = isNew ? await supabase.from("chapters").insert(row) : await supabase.from("chapters").update(row).eq("number", c.number);
