@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { canViewScenes } from "@/lib/locked-areas";
-import { CSV_MAX_ROWS, TIME_RE, canEditItinerary, initialItineraryView, parseChaptersCsv, parsePalette, parseScenesCsv, parseWardrobeCsv, type Chapter, type Scene } from "@/lib/itinerary";
+import { CSV_MAX_ROWS, TIME_RE, canEditItinerary, exportChaptersCsv, initialItineraryView, parseChaptersCsv, parsePalette, parseScenesCsv, parseWardrobeCsv, type Chapter, type Scene } from "@/lib/itinerary";
 
 const ch = (n: number, date: string): Chapter => ({ number: n, date, title: `T${n}`, summary: "S", visible: true, sort_order: n });
 const chapters = [ch(1, "2026-11-20"), ch(2, "2026-11-21")];
@@ -22,6 +22,20 @@ describe("times", () => {
 });
 
 describe("CSV import", () => {
+  it("round-trips the five Script fields", () => {
+    const chapter: Chapter = { ...ch(5, "2026-11-24"), layout: "right", heading_before: "EXT: VILLA TERRACE - MORNING", heading_before_align: "center", transition_after: "FADE TO BLACK", transition_after_align: "right" };
+    expect(parseChaptersCsv(exportChaptersCsv([chapter]), []).rows[0]).toEqual(chapter);
+  });
+  it("blank Script cells preserve existing values", () => {
+    const chapter: Chapter = { ...ch(8, "2026-11-27"), layout: "center", heading_before: "EXT: TERRACE", heading_before_align: "right", transition_after: "JUMP CUT TO:", transition_after_align: "left" };
+    expect(parseChaptersCsv("chapter,date,title,summary,layout,heading_before,heading_before_align,transition_after,transition_after_align\n8,,,,,,,,", [chapter]).rows[0]).toEqual(chapter);
+  });
+  it("rejects alignment outside left, center and right", () => {
+    expect(parseChaptersCsv("chapter,date,title,summary,layout\n1,2026-11-20,Title,,justify", []).rows).toEqual([]);
+  });
+  it("keeps legacy chapter CSV compatible and defaults new alignments", () => {
+    expect(parseChaptersCsv("chapter,date,title,summary\n1,2026-11-20,Title,", []).rows[0]).toMatchObject({ layout: "left", heading_before_align: "center", transition_after_align: "right" });
+  });
   it("parses quoted multi-line details with commas and emoji", () => {
     const r = parseScenesCsv('chapter,scene_order,title,location,kind,leave_at,start,end,summary,details,experience_card,wardrobe_look\n1,1,Hike,"Table Mountain, Cape Town",flex,,7:00 AM,1:00 AM,,"Bring water, hat 🧢\nSunscreen",,2', [], [1, 2]);
     expect(r.errors).toEqual([]);
