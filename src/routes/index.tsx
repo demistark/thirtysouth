@@ -56,7 +56,7 @@ function HomeBefore() {
         <div className="mx-auto -mt-28 max-w-5xl px-5 md:-mt-36">
           <div className="fade-in border bg-card px-6 py-10 text-center md:px-16 md:py-14">
             <p className="label-caps text-muted-foreground">{t("home.hero.welcome")}</p>
-            <h1 className="home-hero-wordmark wordmark mt-3 whitespace-nowrap text-[3rem] !tracking-[0.12em] sm:mt-5 sm:text-7xl sm:!tracking-[0.18em] md:text-8xl">30° South</h1>
+            <h1 className="home-hero-wordmark wordmark mt-3 whitespace-nowrap text-[3rem] !tracking-[0] sm:mt-5 sm:text-7xl sm:!tracking-[0.18em] md:text-8xl">30° South</h1>
             <p className="label-caps mt-4 text-foreground sm:mt-6">
               <span className="hidden sm:inline">{t("home.hero.place")}</span>
               <span className="sm:hidden">{t("home.hero.place").split(/\s*·\s*/).map((line, i) => <span key={i} className="block">{line}</span>)}</span>
