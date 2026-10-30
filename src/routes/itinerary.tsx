@@ -63,7 +63,7 @@ function Itinerary() {
       ) : loading ? (
         <div className="min-h-80 bg-band-sage" />
       ) : !allowed ? (
-        <RecordingLockout />
+        <div className="itinerary-recording"><RecordingLockout /></div>
       ) : (
         <>
           <ItineraryDays chapters={chapters} value={chapter} today={todayChapter} onChange={setChapter} />
