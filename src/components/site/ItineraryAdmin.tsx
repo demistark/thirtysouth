@@ -20,7 +20,7 @@ function useRefresh() {
   return () => Promise.all(["chapters", "scenes", "wardrobe_looks", "admin"].map((k) => qc.invalidateQueries({ queryKey: [k] })));
 }
 
-const useAdminChapters = () => useQuery({ queryKey: ["admin", "itin-chapters"], queryFn: fetchAllChapters });
+const useAdminChapters = () => useQuery({ queryKey: ["admin", "itin-chapters"], queryFn: () => fetchAllChapters() });
 const useAdminScenes = () => useQuery({ queryKey: ["admin", "itin-scenes"], queryFn: async () => {
   const { data, error } = await supabase.from("scenes").select("*").order("chapter_number").order("scene_order");
   if (error) throw error; return (data ?? []).map(toScene);
