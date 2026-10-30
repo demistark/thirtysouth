@@ -61,7 +61,7 @@ function Itinerary() {
       {tab === "script" ? (
         <ItineraryScript chapters={chapters} loading={chaptersQ.isLoading} />
       ) : loading ? (
-        <div className="min-h-80 bg-band-sage" />
+        <div className="min-h-80 bg-card" />
       ) : !allowed ? (
         <div className="itinerary-recording"><RecordingLockout /></div>
       ) : (
