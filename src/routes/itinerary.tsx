@@ -11,6 +11,10 @@ import { useLooks, usePhotoUrls, useScenes } from "@/lib/itinerary-data";
 import { useTripClock } from "@/lib/trip-clock";
 import { zonedDate } from "@/lib/phase";
 import { cn } from "@/lib/utils";
+import { ItineraryDays } from "@/components/site/ItineraryDays";
+import { ItineraryScript } from "@/components/site/ItineraryScript";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp, MapPin, Shirt } from "lucide-react";
 
 export const Route = createFileRoute("/itinerary")({
   head: () => ({
@@ -49,82 +53,40 @@ function Itinerary() {
     setTab(v.tab); setChapter(v.chapter);
   }, [loading, chaptersQ.data, allowed, today]);
 
-  const open = (n: number) => { setChapter(n); setTab("scenes"); };
   const wear = (look: WardrobeLook) => { setFocusLook(look.id); setTab("wardrobe"); };
 
   return (
     <PageShell titleKey="itinerary.title" introKey="itinerary.intro">
       <SubTabs tabs={itineraryTabs().map((id) => ({ id, label: t(`itinerary.tab.${id}`) }))} value={tab} onChange={setTab} />
       {tab === "script" ? (
-        <Script chapters={chapters} loading={chaptersQ.isLoading} onOpen={open} />
+        <ItineraryScript chapters={chapters} loading={chaptersQ.isLoading} />
       ) : loading ? (
         <div className="min-h-80 bg-band-sage" />
       ) : !allowed ? (
         <RecordingLockout />
       ) : (
         <>
-          <ChapterStrip chapters={chapters} value={chapter} today={todayChapter} onChange={setChapter} />
-          {tab === "scenes" ? <Scenes chapter={chapter} onWear={wear} /> : <Wardrobe chapter={chapter} focus={focusLook} />}
+          <ItineraryDays chapters={chapters} value={chapter} today={todayChapter} onChange={setChapter} />
+          {tab === "scenes" && <div className="mb-7"><p className="label-caps text-slate">{t("itinerary.chapter")} {chapter} · {formatChapterDate(chapters.find((c) => c.number === chapter)?.date ?? today)}</p><h2 className="font-display-light mt-2 text-3xl text-deep-atlantic md:text-4xl">{chapters.find((c) => c.number === chapter)?.title}</h2></div>}
+          {tab === "scenes" ? <Scenes key={`${chapter}-${todayChapter}`} chapter={chapter} isToday={chapter === todayChapter} onWear={wear} /> : <Wardrobe chapter={chapter} focus={focusLook} />}
         </>
       )}
     </PageShell>
   );
 }
 
-function Script({ chapters, loading, onOpen }: { chapters: ChapterBasic[]; loading: boolean; onOpen: (n: number) => void }) {
-  if (loading) return <div className="h-64 border bg-card" />;
-  return (
-    <ol className="fade-in divide-y border-y">
-      {chapters.map((c) => (
-        <li key={c.number} className="band-ink bg-background odd:bg-olive-wash">
-          <button onClick={() => onOpen(c.number)} className="grid w-full gap-2 px-4 py-6 text-left md:grid-cols-[8rem_1fr] md:gap-8 md:px-6">
-            <div>
-              <p className="eyebrow">Chapter {c.number}</p>
-              <p className="label-caps mt-1 text-muted-foreground">{formatChapterDate(c.date)}</p>
-            </div>
-            <div>
-              <h3 className="font-display-light text-2xl text-deep-atlantic md:text-3xl">{c.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{c.summary}</p>
-            </div>
-          </button>
-        </li>
-      ))}
-    </ol>
-  );
-}
-
-function shortDate(d: string) {
-  const [y = 0, m = 1, day = 1] = d.split("-").map(Number);
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, day)));
-}
-
-function ChapterStrip({ chapters, value, today, onChange }: { chapters: ChapterBasic[]; value: number; today?: number | undefined; onChange: (n: number) => void }) {
-  const { t } = useContent();
-  return (
-    <div className="-mx-5 mb-8 flex gap-2 overflow-x-auto px-5 pb-2" role="tablist" aria-label={t("itinerary.chapter")}>
-      {chapters.map((c) => (
-        <button key={c.number} role="tab" aria-selected={value === c.number} onClick={() => onChange(c.number)}
-          className={cn("shrink-0 border px-3 py-2 text-left transition-colors", value === c.number ? "border-ember bg-card" : "border-border bg-background hover:bg-card")}>
-          <span className="label-caps block whitespace-nowrap">{t("itinerary.chapter")} {c.number}</span>
-          <span className="caption-serif block whitespace-nowrap text-xs">{shortDate(c.date)}{today === c.number && <span className="label-caps ml-2 text-ember-deep">{t("itinerary.today")}</span>}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function Scenes({ chapter, onWear }: { chapter: number; onWear: (l: WardrobeLook) => void }) {
+function Scenes({ chapter, isToday, onWear }: { chapter: number; isToday: boolean; onWear: (l: WardrobeLook) => void }) {
   const { t } = useContent();
   const scenesQ = useScenes(true);
   const looksQ = useLooks(true);
-  const [openId, setOpenId] = useState<string>();
+  const [openId, setOpenId] = useState<string | null>();
   const scenes = (scenesQ.data ?? []).filter((s) => s.chapter_number === chapter);
   if (scenesQ.isLoading) return <div className="h-64 border bg-card" />;
   if (!scenes.length) return <p className="caption-serif border bg-card px-6 py-12 text-center text-lg">{t("itinerary.scenes_empty")}</p>;
   return (
-    <ul className="fade-in space-y-3">
-      {scenes.map((s) => (
-        <SceneCard key={s.id} s={s} open={openId === s.id} onToggle={() => setOpenId(openId === s.id ? undefined : s.id)}
+    <ul className="scene-timeline fade-in">
+      {scenes.map((s, i) => (
+        <SceneCard key={s.id} s={s} open={openId === undefined ? isToday && i === 0 : openId === s.id} onToggle={() => setOpenId((openId === undefined ? isToday && i === 0 : openId === s.id) ? null : s.id)}
           look={s.wardrobe_look != null ? (looksQ.data ?? []).find((l) => l.chapter_number === chapter && l.look_order === s.wardrobe_look) : undefined}
           onWear={onWear} />
       ))}
@@ -135,24 +97,27 @@ function Scenes({ chapter, onWear }: { chapter: number; onWear: (l: WardrobeLook
 function SceneCard({ s, open, onToggle, look, onWear }: { s: Scene; open: boolean; onToggle: () => void; look?: WardrobeLook | undefined; onWear: (l: WardrobeLook) => void }) {
   const { t } = useContent();
   const time = [s.start_time, s.end_time].filter(Boolean).join(" – ");
+  const experienceUrl = (() => { try { const url = new URL(s.experience_card ?? ""); return ["https:", "http:"].includes(url.protocol) ? url.href : undefined; } catch { return undefined; } })();
   return (
-    <li className="border bg-card">
-      <button onClick={onToggle} aria-expanded={open} className="block w-full px-4 py-5 text-left md:px-6">
-        <div className="flex items-center gap-3">
-          {time && <p className="label-caps text-muted-foreground">{time}</p>}
-          {s.kind !== "core" && <span className="label-caps border px-2 py-0.5 text-[0.625rem] text-muted-foreground">{t(`itinerary.kind.${s.kind}`)}</span>}
+    <li className="scene-timeline-item">
+      <article className="scene-card" onClick={onToggle}>
+        {time && <p className="scene-time">{time}</p>}
+        <div className="scene-title-row">
+          <span className="scene-timeline-dot" aria-hidden="true" />
+          <h3 className="scene-title">{s.title}</h3>
+          <Button variant="ghost" size="icon" className="scene-chevron" aria-label={s.title} aria-expanded={open} aria-controls={`scene-details-${s.id}`} onClick={(e) => { e.stopPropagation(); onToggle(); }}>{open ? <ChevronUp /> : <ChevronDown />}</Button>
         </div>
-        <h3 className="font-display-light mt-2 text-2xl text-deep-atlantic">{s.title}</h3>
-        {s.location && <p className="caption-serif text-sm">{s.location}</p>}
-        {s.summary && <p className="mt-2 text-sm text-muted-foreground">{s.summary}</p>}
-      </button>
-      {open && (
-        <div className="fade-in space-y-3 border-t px-4 py-5 md:px-6">
-          {s.details && <p className="whitespace-pre-line text-sm leading-relaxed">{s.details}</p>}
-          {s.leave_at && <p className="label-caps text-ember-deep">{t("itinerary.leave_at")} {s.leave_at}</p>}
-          {look && <button onClick={() => onWear(look)} className="btn-pill !px-3 !py-1.5">{t("itinerary.wear")} {look.title}</button>}
+        {s.location && <p className="scene-location"><MapPin aria-hidden="true" />{s.location}</p>}
+        {look && <Button variant="ghost" className="scene-wardrobe" onClick={(e) => { e.stopPropagation(); onWear(look); }}><Shirt aria-hidden="true" /><span>{look.title}</span></Button>}
+        {s.summary && <p className="scene-summary">{s.summary}</p>}
+        <div id={`scene-details-${s.id}`} className="scene-expansion" data-open={open} inert={!open} aria-hidden={!open}>
+          <div className="scene-expansion-inner"><div className="scene-details">
+            {s.leave_at && <p className="scene-leave">{t("itinerary.leave_at")} {s.leave_at}</p>}
+            {s.details && <p className="whitespace-pre-line text-sm leading-relaxed">{s.details}</p>}
+            {experienceUrl && <a className="scene-experience" href={experienceUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{t("itinerary.experience_card")}</a>}
+          </div></div>
         </div>
-      )}
+      </article>
     </li>
   );
 }

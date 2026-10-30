@@ -36,7 +36,7 @@ export function SiteHeader() {
   }, [pathname, home]);
 
   const linkCls =
-    "label-caps pt-1 pb-2 border-b-[3px] border-transparent text-muted-foreground transition-colors hover:text-foreground";
+    "label-caps pt-1 pb-2 border-b-[2.5px] border-transparent text-muted-foreground transition-colors hover:text-foreground";
   const activeCls = "!text-foreground !border-ember";
 
   const authControl = session ? (
@@ -96,7 +96,7 @@ export function SiteHeader() {
                   to={n.to}
                   onClick={() => setOpen(false)}
                   className="font-display-light text-3xl text-foreground"
-                  activeProps={{ className: "underline underline-offset-[10px] decoration-[3px] decoration-ember" }}
+                  activeProps={{ className: "underline underline-offset-[10px] decoration-[2.5px] decoration-ember" }}
                   activeOptions={{ exact: n.to === "/" }}
                 >
                   {t(n.key)}
