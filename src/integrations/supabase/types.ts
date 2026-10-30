@@ -17,6 +17,9 @@ export type Database = {
       chapters: {
         Row: {
           date: string
+          heading_before: string | null
+          heading_before_align: string | null
+          layout: string | null
           number: number
           photo_url: string | null
           scripture_ref: string | null
@@ -24,10 +27,15 @@ export type Database = {
           sort_order: number
           summary: string
           title: string
+          transition_after: string | null
+          transition_after_align: string | null
           visible: boolean
         }
         Insert: {
           date: string
+          heading_before?: string | null
+          heading_before_align?: string | null
+          layout?: string | null
           number: number
           photo_url?: string | null
           scripture_ref?: string | null
@@ -35,10 +43,15 @@ export type Database = {
           sort_order?: number
           summary?: string
           title: string
+          transition_after?: string | null
+          transition_after_align?: string | null
           visible?: boolean
         }
         Update: {
           date?: string
+          heading_before?: string | null
+          heading_before_align?: string | null
+          layout?: string | null
           number?: number
           photo_url?: string | null
           scripture_ref?: string | null
@@ -46,6 +59,8 @@ export type Database = {
           sort_order?: number
           summary?: string
           title?: string
+          transition_after?: string | null
+          transition_after_align?: string | null
           visible?: boolean
         }
         Relationships: []

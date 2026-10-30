@@ -64,6 +64,13 @@
       "when": 1793308656958,
       "tag": "0008_wardrobe_photo_types",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793335537337,
+      "tag": "0009_chapter_screenplay_fields",
+      "breakpoints": true
     }
   ]
 }
