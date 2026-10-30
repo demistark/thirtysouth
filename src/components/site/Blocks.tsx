@@ -75,7 +75,7 @@ export function SubTabs<T extends string>({
           aria-selected={value === tab.id}
           onClick={() => onChange(tab.id)}
           className={cn(
-            "label-caps whitespace-nowrap border-b-[3px] pb-4 pt-3 transition-colors",
+            "label-caps whitespace-nowrap border-b-[2.5px] pb-4 pt-3 transition-colors",
             value === tab.id ? "border-ember text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >

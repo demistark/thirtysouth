@@ -56,13 +56,13 @@ function HomeBefore() {
         <div className="mx-auto -mt-28 max-w-5xl px-5 md:-mt-36">
           <div className="fade-in border bg-card px-6 py-10 text-center md:px-16 md:py-14">
             <p className="label-caps text-muted-foreground">{t("home.hero.welcome")}</p>
-            <h1 className="wordmark mt-5 whitespace-nowrap text-[clamp(2rem,10.5vw,3rem)] !tracking-[0.12em] sm:text-7xl sm:!tracking-[0.18em] md:text-8xl">30° South</h1>
-            <p className="label-caps mt-6 text-foreground">
+            <h1 className="home-hero-wordmark wordmark mt-3 whitespace-nowrap text-[3rem] !tracking-[0] sm:mt-5 sm:text-7xl sm:!tracking-[0.18em] md:text-8xl">30° South</h1>
+            <p className="label-caps mt-4 text-foreground sm:mt-6">
               <span className="hidden sm:inline">{t("home.hero.place")}</span>
               <span className="sm:hidden">{t("home.hero.place").split(/\s*·\s*/).map((line, i) => <span key={i} className="block">{line}</span>)}</span>
             </p>
-            <div className="mx-auto mt-8 h-px w-16 bg-border" />
-            <p className="mt-6 font-display-light text-3xl">
+            <div className="mx-auto mt-5 h-px sm:mt-8 w-16 bg-border" />
+            <p className="mt-4 font-display-light text-3xl sm:mt-6">
               <span className="text-ember">{daysToGo}</span>{" "}
               {t(daysToGo === 1 ? "home.hero.day_to_go" : "home.hero.days_to_go")}
             </p>
@@ -112,7 +112,7 @@ function MomentsCard() {
               aria-selected={tab === p}
               onClick={() => setTab(p)}
               className={cn(
-                "label-caps -mb-px border-b-[3px] pb-3 pt-2 transition-colors",
+                "label-caps -mb-px border-b-[2.5px] pb-3 pt-2 transition-colors",
                 tab === p ? "border-ember text-foreground" : "border-transparent text-muted-foreground",
               )}
             >

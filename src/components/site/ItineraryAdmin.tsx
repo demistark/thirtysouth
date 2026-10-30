@@ -10,6 +10,8 @@ import {
 } from "@/lib/itinerary";
 import { fetchAllChapters, toLook, toScene, usePhotoUrls } from "@/lib/itinerary-data";
 import { photoExtension, preparePhoto } from "@/lib/image-resize";
+import { ALIGNMENTS, exportChaptersCsv, type ScriptAlignment } from "@/lib/itinerary";
+import { Button } from "@/components/ui/button";
 
 type Sub = "chapters" | "scenes" | "wardrobe";
 
@@ -18,7 +20,10 @@ function useRefresh() {
   return () => Promise.all(["chapters", "scenes", "wardrobe_looks", "admin"].map((k) => qc.invalidateQueries({ queryKey: [k] })));
 }
 
-const useAdminChapters = () => useQuery({ queryKey: ["admin", "itin-chapters"], queryFn: fetchAllChapters });
+const useAdminChapters = () => useQuery({ queryKey: ["admin", "itin-chapters"], queryFn: async () => {
+  const rows = await fetchAllChapters();
+  return rows;
+} });
 const useAdminScenes = () => useQuery({ queryKey: ["admin", "itin-scenes"], queryFn: async () => {
   const { data, error } = await supabase.from("scenes").select("*").order("chapter_number").order("scene_order");
   if (error) throw error; return (data ?? []).map(toScene);
@@ -92,7 +97,13 @@ function ChaptersPanel() {
   const refresh = useRefresh();
   const q = useAdminChapters();
   const [adding, setAdding] = useState(false);
+  if (q.isPending) return <div className="h-64 border bg-card" />;
+  if (q.error) return <p role="alert">{q.error.message}</p>;
   return <div>
+    <div className="mb-3 flex justify-end"><Button variant="pill" onClick={() => {
+      const url = URL.createObjectURL(new Blob([exportChaptersCsv(q.data ?? [])], { type: "text/csv;charset=utf-8" }));
+      const a = document.createElement("a"); a.href = url; a.download = "chapters.csv"; a.click(); URL.revokeObjectURL(url);
+    }}>{t("admin.itin.export")}</Button></div>
     <CsvImport kind="chapters" parse={(csv) => parseChaptersCsv(csv, q.data ?? [])} commit={async (rows) => {
       const { error } = await supabase.from("chapters").upsert(rows, { onConflict: "number" }); if (error) throw error; await refresh();
     }} />
@@ -106,6 +117,8 @@ function ChapterRow({ c, isNew, onDone }: { c: Chapter; isNew?: boolean; onDone?
   const { t } = useContent();
   const refresh = useRefresh();
   const [f, setF] = useState(c);
+  useEffect(() => setF(c), [c]);
+  const alignment = (key: "layout" | "heading_before_align" | "transition_after_align", fallback: ScriptAlignment) => <F label={t(`admin.itin.${key}`)}><select aria-label={t(`admin.itin.${key}`)} className="field" value={f[key] ?? fallback} onChange={(e) => setF({ ...f, [key]: e.target.value as ScriptAlignment })}>{ALIGNMENTS.map((a) => <option key={a} value={a}>{t(`admin.itin.align.${a}`)}</option>)}</select></F>;
   const save = async () => {
     const row = { ...f, sort_order: f.number };
     const { error } = isNew ? await supabase.from("chapters").insert(row) : await supabase.from("chapters").update(row).eq("number", c.number);
@@ -122,6 +135,11 @@ function ChapterRow({ c, isNew, onDone }: { c: Chapter; isNew?: boolean; onDone?
     <F label="Date"><input type="date" className="field" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></F>
     <F label="Title" wide><input className="field" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></F>
     <F label="Summary" wide><textarea className="field" value={f.summary} onChange={(e) => setF({ ...f, summary: e.target.value })} /></F>
+    {alignment("layout", "left")}
+    <F label={t("admin.itin.heading_before")} wide><input className="field" value={f.heading_before ?? ""} onChange={(e) => setF({ ...f, heading_before: e.target.value || null })} /></F>
+    {alignment("heading_before_align", "center")}
+    <F label={t("admin.itin.transition_after")} wide><input className="field" value={f.transition_after ?? ""} onChange={(e) => setF({ ...f, transition_after: e.target.value || null })} /></F>
+    {alignment("transition_after_align", "right")}
     <Actions visible={f.visible} onVisible={(v) => setF({ ...f, visible: v })} onSave={save} onDelete={isNew ? onDone : del} />
   </li>;
 }

@@ -23,3 +23,4 @@
 - Keep header scroll behavior in SiteHeader with a stable reserved height, global anchor offset and a Home first-card marker for the returning fixed header. Why: header transitions cannot move content or depend on guessed page heights.
 - Treat otp_enabled as an exact-string opt-in setting checked by shared isOtpEnabled. Why: unavailable email codes remain hidden by default.
 - Keep phase-independent itinerary ordering in itinerary-tabs and its regression test. Why: date overrides must not reshuffle tabs.
+- Share day navigation through ItineraryDays and render the screenplay through ItineraryScript using additive chapter fields; chapter CSV export/import lives with itinerary parsing. Why: Scenes/Wardrobe stay consistent and screenplay edits round-trip without changing access or photo flows.

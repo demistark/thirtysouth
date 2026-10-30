@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Chapter, PaletteItem, Scene, WardrobeLook } from "./itinerary";
+import { scriptAlignment, type Chapter, type PaletteItem, type Scene, type WardrobeLook } from "./itinerary";
 
 export const toScene = (r: Record<string, unknown>) => r as unknown as Scene;
 export const toLook = (r: Record<string, unknown>): WardrobeLook => ({
@@ -43,7 +43,7 @@ export function usePhotoUrls(paths: string[]) {
 }
 
 export async function fetchAllChapters(): Promise<Chapter[]> {
-  const { data, error } = await supabase.from("chapters").select("number,date,title,summary,visible,sort_order").order("sort_order");
+  const { data, error } = await supabase.from("chapters").select("number,date,title,summary,visible,sort_order,layout,heading_before,heading_before_align,transition_after,transition_after_align").order("sort_order");
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).map((c) => ({ ...c, layout: scriptAlignment(c.layout), heading_before_align: scriptAlignment(c.heading_before_align), transition_after_align: scriptAlignment(c.transition_after_align) }));
 }

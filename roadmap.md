@@ -8,3 +8,4 @@
 - [x] Apply compact footer, editable three-part text, glass back-to-top bubble, Home header return and Purse ember tint; verify desktop/phone, reduced motion, contrast and regressions.
 - [x] Change Script alternating tint to olive wash and tighten footer into one line at every size; verified 320px/390px/tablet/desktop and ink contrast above 10:1.
 - [x] Build Itinerary Scenes/Wardrobe with RLS, private wardrobe photos, admin editing and CSV import.
+- [x] Apply itinerary timeline/date-selector polish, screenplay fields and CSV, phone hero and 2.5px underlines; signed-in chapter save/read-back verified, scene interactions verified with browser-only examples because no scenes are saved yet.
