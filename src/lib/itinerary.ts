@@ -9,7 +9,13 @@ export const CSV_MAX_BYTES = 1024 * 1024;
 
 export interface PaletteItem { name: string; hex: string }
 
-export interface Chapter { number: number; date: string; title: string; summary: string; visible: boolean; sort_order: number }
+export const ALIGNMENTS = ["left", "center", "right"] as const;
+export type ScriptAlignment = (typeof ALIGNMENTS)[number];
+export interface ScriptFields {
+  layout?: ScriptAlignment | null; heading_before?: string | null; heading_before_align?: ScriptAlignment | null;
+  transition_after?: string | null; transition_after_align?: ScriptAlignment | null;
+}
+export interface Chapter extends ScriptFields { number: number; date: string; title: string; summary: string; visible: boolean; sort_order: number }
 export interface Scene {
   id?: string; chapter_number: number; scene_order: number; title: string; location: string; kind: SceneKind;
   leave_at: string | null; start_time: string | null; end_time: string | null; summary: string; details: string;
@@ -35,7 +41,7 @@ export function parsePalette(cell: string): PaletteItem[] {
 }
 
 export const CSV_COLUMNS = {
-  chapters: ["chapter", "date", "title", "summary"],
+  chapters: ["chapter", "date", "title", "summary", "layout", "heading_before", "heading_before_align", "transition_after", "transition_after_align"],
   scenes: ["chapter", "scene_order", "title", "location", "kind", "leave_at", "start", "end", "summary", "details", "experience_card", "wardrobe_look"],
   wardrobe: ["chapter", "look_order", "date_label", "look_label", "title", "description", "palette"],
 } as const;
@@ -43,6 +49,10 @@ export type CsvKind = keyof typeof CSV_COLUMNS;
 
 export function csvTemplate(kind: CsvKind) {
   return CSV_COLUMNS[kind].join(",") + "\n";
+}
+
+export function exportChaptersCsv(chapters: Chapter[]) {
+  return Papa.unparse({ fields: [...CSV_COLUMNS.chapters], data: chapters.map((c) => [c.number, c.date, c.title, c.summary, c.layout ?? "left", c.heading_before ?? "", c.heading_before_align ?? "center", c.transition_after ?? "", c.transition_after_align ?? "right"]) });
 }
 
 export interface RowError { row: number; message: string }
@@ -53,7 +63,8 @@ type Raw = Record<string, string>;
 function parseRaw(csv: string, kind: CsvKind): { data: Raw[]; errors: RowError[] } {
   const res = Papa.parse<Raw>(csv.replace(/^\uFEFF/, ""), { header: true, skipEmptyLines: "greedy", transformHeader: (h) => h.trim().toLowerCase() });
   const errors: RowError[] = res.errors.map((e) => ({ row: (e.row ?? 0) + 2, message: e.message }));
-  const missing = CSV_COLUMNS[kind].filter((c) => !res.meta.fields?.includes(c));
+  const required = kind === "chapters" ? CSV_COLUMNS.chapters.slice(0, 4) : CSV_COLUMNS[kind];
+  const missing = required.filter((c) => !res.meta.fields?.includes(c));
   if (missing.length) errors.push({ row: 1, message: `Missing columns: ${missing.join(", ")}` });
   if (!res.data.length) errors.push({ row: 1, message: "The file has no rows" });
   if (res.data.length > CSV_MAX_ROWS) errors.push({ row: 1, message: `More than ${CSV_MAX_ROWS} rows` });
@@ -92,7 +103,16 @@ export function parseChaptersCsv(csv: string, existing: Chapter[]): ImportResult
     const date = cell(r, "date"), title = cell(r, "title"), summary = cell(r, "summary");
     if (date && !validDate(date)) errors.push({ row, message: "date must be YYYY-MM-DD" });
     if (!old && (!date || !title)) { errors.push({ row, message: "A new chapter needs a date and title" }); return; }
-    out.push({ number: n, date: date || old!.date, title: title || old!.title, summary: summary || old?.summary || "", visible: old?.visible ?? true, sort_order: old?.sort_order ?? n });
+    const align = (key: "layout" | "heading_before_align" | "transition_after_align", fallback: ScriptAlignment) => {
+      const v = cell(r, key);
+      if (v && !ALIGNMENTS.includes(v as ScriptAlignment)) errors.push({ row, message: `${key} must be left, center or right` });
+      return v ? v as ScriptAlignment : old?.[key] ?? fallback;
+    };
+    out.push({ number: n, date: date || old?.date || "", title: title || old?.title || "", summary: summary || old?.summary || "", visible: old?.visible ?? true, sort_order: old?.sort_order ?? n,
+      layout: align("layout", "left"), heading_before: cell(r, "heading_before") || old?.heading_before || null,
+      heading_before_align: align("heading_before_align", "center"), transition_after: cell(r, "transition_after") || old?.transition_after || null,
+      transition_after_align: align("transition_after_align", "right"),
+    });
   });
   dupCheck(data.map((r) => cell(r, "chapter")), errors);
   return finish(out, errors);

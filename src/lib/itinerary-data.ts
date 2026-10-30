@@ -43,7 +43,7 @@ export function usePhotoUrls(paths: string[]) {
 }
 
 export async function fetchAllChapters(): Promise<Chapter[]> {
-  const { data, error } = await supabase.from("chapters").select("number,date,title,summary,visible,sort_order").order("sort_order");
+  const { data, error } = await supabase.from("chapters").select("number,date,title,summary,visible,sort_order,layout,heading_before,heading_before_align,transition_after,transition_after_align").order("sort_order");
   if (error) throw error;
   return data ?? [];
 }
