@@ -46,9 +46,9 @@ describe("CSV import", () => {
     expect(r.rows).toEqual([]); expect(r.errors[0]?.row).toBe(3);
   });
   it("keeps existing values for blank cells", () => {
-    const old: Scene = { id: "x", chapter_number: 1, scene_order: 1, title: "Old", location: "Here", kind: "optional", leave_at: "8:00 AM", start_time: null, end_time: null, summary: "keep", details: "d", experience_card: null, wardrobe_look: 1, visible: false };
+    const old: Scene = { id: "x", chapter_number: 1, scene_order: 1, title: "Old", location: "Here", kind: "optional", call_time: "8:00 AM", start_time: null, end_time: null, summary: "keep", details: "d", experience_card: null, wardrobe_look: 1, visible: false };
     const r = parseScenesCsv("chapter,scene_order,title,location,kind,leave_at,start,end,summary,details,experience_card,wardrobe_look\n1,1,New,,,,,,,,,", [old], [1]);
-    expect(r.rows[0]).toMatchObject({ title: "New", location: "Here", kind: "optional", leave_at: "8:00 AM", summary: "keep", wardrobe_look: 1, visible: false });
+    expect(r.rows[0]).toMatchObject({ title: "New", location: "Here", kind: "optional", call_time: "8:00 AM", summary: "keep", wardrobe_look: 1, visible: false });
   });
   it("rejects chapters outside 1 to 10 and bad dates", () => {
     expect(parseChaptersCsv("chapter,date,title,summary\n11,2026-11-20,X,", []).errors.length).toBe(1);

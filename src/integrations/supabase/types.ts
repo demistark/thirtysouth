@@ -139,14 +139,18 @@ export type Database = {
       }
       scenes: {
         Row: {
+          call_time: string | null
           chapter_number: number
           details: string
+          dot_color: string | null
+          dot_shape: string | null
           end_time: string | null
           experience_card: string | null
           id: string
           kind: string
           leave_at: string | null
           location: string
+          look_tag: string
           scene_order: number
           start_time: string | null
           summary: string
@@ -154,16 +158,21 @@ export type Database = {
           updated_at: string
           visible: boolean
           wardrobe_look: number | null
+          wrap_time: string | null
         }
         Insert: {
+          call_time?: string | null
           chapter_number: number
           details?: string
+          dot_color?: string | null
+          dot_shape?: string | null
           end_time?: string | null
           experience_card?: string | null
           id?: string
           kind?: string
           leave_at?: string | null
           location?: string
+          look_tag?: string
           scene_order: number
           start_time?: string | null
           summary?: string
@@ -171,16 +180,21 @@ export type Database = {
           updated_at?: string
           visible?: boolean
           wardrobe_look?: number | null
+          wrap_time?: string | null
         }
         Update: {
+          call_time?: string | null
           chapter_number?: number
           details?: string
+          dot_color?: string | null
+          dot_shape?: string | null
           end_time?: string | null
           experience_card?: string | null
           id?: string
           kind?: string
           leave_at?: string | null
           location?: string
+          look_tag?: string
           scene_order?: number
           start_time?: string | null
           summary?: string
@@ -188,6 +202,7 @@ export type Database = {
           updated_at?: string
           visible?: boolean
           wardrobe_look?: number | null
+          wrap_time?: string | null
         }
         Relationships: [
           {
@@ -328,6 +343,10 @@ export type Database = {
         Returns: {
           display_name: string
         }[]
+      }
+      save_itinerary_display: {
+        Args: { _grain: boolean; _indicator: string; _shadow: number }
+        Returns: undefined
       }
       set_schedule_manager: {
         Args: { _enabled: boolean; _guest_id: string }
