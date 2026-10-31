@@ -174,7 +174,7 @@
 .scene-timeline[data-shadow="3"] { --shadow-scene: var(--scene-shadow-3); }
 .scene-timeline[data-shadow="4"] { --shadow-scene: var(--scene-shadow-4); }
 .scene-timeline[data-shadow="5"] { --shadow-scene: var(--scene-shadow-5); }
-.scene-main { position: relative; padding: 18px 16px; border-radius: 13px; isolation: isolate; }
+.scene-main { position: relative; padding: 18px 16px; border-radius: 13px; isolation: isolate; background: var(--paper); }
 .scene-main::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1; opacity: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Cpath fill='%23808080' filter='url(%23n)' d='M0 0h160v160H0z'/%3E%3C/svg%3E"); mix-blend-mode: soft-light; }
 .scene-timeline[data-grain="true"] .scene-card[data-open="true"] .scene-main::before { opacity: .1; }
 .scene-timeline:not([data-indicator="arrow"]) .scene-card[data-expandable="true"] { border-bottom: 4px solid var(--scene-edge); }
