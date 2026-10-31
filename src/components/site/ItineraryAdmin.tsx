@@ -5,15 +5,17 @@ import { SubTabs } from "@/components/site/Blocks";
 import { supabase } from "@/integrations/supabase/client";
 import { useContent } from "@/lib/data";
 import {
-  CSV_MAX_BYTES, SCENE_KINDS, TIME_RE, csvTemplate, parseChaptersCsv, parseScenesCsv, parseWardrobeCsv,
+  CSV_MAX_BYTES, TIME_RE, csvTemplate, parseChaptersCsv, parseScenesCsv, parseWardrobeCsv,
   type Chapter, type CsvKind, type ImportResult, type RowError, type Scene, type WardrobeLook,
 } from "@/lib/itinerary";
 import { fetchAllChapters, toLook, toScene, usePhotoUrls } from "@/lib/itinerary-data";
 import { photoExtension, preparePhoto } from "@/lib/image-resize";
 import { ALIGNMENTS, exportChaptersCsv, type ScriptAlignment } from "@/lib/itinerary";
+import { ItineraryDisplayAdmin } from "./ItineraryDisplayAdmin";
+import { exportScenesCsv } from "@/lib/itinerary";
 import { Button } from "@/components/ui/button";
 
-type Sub = "chapters" | "scenes" | "wardrobe";
+type Sub = "chapters" | "scenes" | "wardrobe" | "display";
 
 function useRefresh() {
   const qc = useQueryClient();
@@ -37,10 +39,11 @@ export function ItineraryAdmin() {
   const { t } = useContent();
   const [sub, setSub] = useState<Sub>("chapters");
   return <div>
-    <SubTabs tabs={(["chapters", "scenes", "wardrobe"] as const).map((id) => ({ id, label: t(`admin.itin.${id}`) }))} value={sub} onChange={setSub} />
+    <SubTabs tabs={(["chapters", "scenes", "wardrobe", "display"] as const).map((id) => ({ id, label: t(`admin.itin.${id}`) }))} value={sub} onChange={setSub} />
     {sub === "chapters" && <ChaptersPanel />}
     {sub === "scenes" && <ScenesPanel />}
     {sub === "wardrobe" && <WardrobePanel />}
+    {sub === "display" && <ItineraryDisplayAdmin />}
   </div>;
 }
 
@@ -155,7 +158,7 @@ function Actions({ visible, onVisible, onSave, onDelete }: { visible: boolean; o
 
 /* ---------- Scenes ---------- */
 
-const blankScene = (chapter: number, order: number): Scene => ({ chapter_number: chapter, scene_order: order, title: "", location: "", kind: "core", leave_at: null, start_time: null, end_time: null, summary: "", details: "", experience_card: null, wardrobe_look: null, visible: true });
+const blankScene = (chapter: number, order: number): Scene => ({ chapter_number: chapter, scene_order: order, title: "", location: "", kind: "core", call_time: null, wrap_time: null, look_tag: "auto", dot_shape: null, dot_color: null, start_time: null, end_time: null, summary: "", details: "", experience_card: null, wardrobe_look: null, visible: true });
 
 function ScenesPanel() {
   const { t } = useContent();
@@ -166,6 +169,10 @@ function ScenesPanel() {
   const [adding, setAdding] = useState(false);
   const list = (q.data ?? []).filter((s) => s.chapter_number === chapter);
   return <div>
+    <div className="mb-3 flex justify-end"><Button variant="pill" onClick={() => {
+      const url = URL.createObjectURL(new Blob([exportScenesCsv(q.data ?? [])], {type:"text/csv;charset=utf-8"}));
+      const a = document.createElement("a"); a.href=url; a.download="scenes.csv"; a.click(); URL.revokeObjectURL(url);
+    }}>{t("admin.itin.export")}</Button></div>
     <CsvImport kind="scenes" parse={(csv) => parseScenesCsv(csv, q.data ?? [], chapters.map((c) => c.number))} commit={async (rows) => {
       const { error } = await supabase.from("scenes").upsert(rows.map(({ id: _id, ...r }) => r), { onConflict: "chapter_number,scene_order" }); if (error) throw error; await refresh();
     }} />
@@ -187,26 +194,30 @@ function SceneRow({ s, isNew, onDone }: { s: Scene; isNew?: boolean; onDone?: ((
   const refresh = useRefresh();
   const [f, setF] = useState(s);
   const set = <K extends keyof Scene>(k: K, v: Scene[K]) => setF({ ...f, [k]: v });
-  const time = (k: "leave_at" | "start_time" | "end_time", label: string) => <F label={label}><input className="field" placeholder="9:30 AM" value={f[k] ?? ""} onChange={(e) => set(k, e.target.value.trim() ? e.target.value : null)} /></F>;
+  const time = (k: "call_time" | "wrap_time" | "start_time" | "end_time", label: string) => <F label={label}><input className="field" placeholder="9:30 AM" value={f[k] ?? ""} onChange={(e) => set(k, e.target.value.trim() ? e.target.value : null)} /></F>;
   const save = async () => {
-    for (const k of ["leave_at", "start_time", "end_time"] as const) if (f[k] && !TIME_RE.test(f[k]!.trim())) { toast.error("Times must look like 9:30 AM"); return; }
+    for (const k of ["call_time", "wrap_time", "start_time", "end_time"] as const) if (f[k] && !TIME_RE.test((f[k] ?? "").trim())) { toast.error("Times must look like 9:30 AM"); return; }
     if (!f.title.trim()) { toast.error("A scene needs a title"); return; }
-    const { id: _id, ...row } = { ...f, leave_at: f.leave_at?.trim() || null, start_time: f.start_time?.trim() || null, end_time: f.end_time?.trim() || null };
-    const { error } = isNew ? await supabase.from("scenes").insert(row) : await supabase.from("scenes").update(row).eq("id", s.id!);
+    const { id: _id, ...row } = { ...f, call_time: f.call_time?.trim() || null, wrap_time: f.wrap_time?.trim() || null, start_time: f.start_time?.trim() || null, end_time: f.end_time?.trim() || null };
+    const { error } = isNew ? await supabase.from("scenes").insert(row) : await supabase.from("scenes").update(row).eq("id", s.id ?? "");
     if (error) { toast.error(error.message); return; }
     toast.success(t("admin.itin.saved")); onDone?.(); await refresh();
   };
   const del = async () => {
     if (!confirm(`Delete “${s.title}”?`)) return;
-    const { error } = await supabase.from("scenes").delete().eq("id", s.id!);
+    const { error } = await supabase.from("scenes").delete().eq("id", s.id ?? "");
     if (error) toast.error(error.message); else await refresh();
   };
   return <li className="grid gap-3 border bg-card p-5 md:grid-cols-2">
     <F label="Order"><input type="number" className="field" value={f.scene_order} onChange={(e) => set("scene_order", +e.target.value)} /></F>
-    <F label="Kind"><select className="field" value={f.kind} onChange={(e) => set("kind", e.target.value as Scene["kind"])}>{SCENE_KINDS.map((k) => <option key={k}>{k}</option>)}</select></F>
+
     <F label="Title"><input className="field" value={f.title} onChange={(e) => set("title", e.target.value)} /></F>
     <F label="Location"><input className="field" value={f.location} onChange={(e) => set("location", e.target.value)} /></F>
-    {time("start_time", "Start")}{time("end_time", "End")}{time("leave_at", "Leave at")}
+    {time("start_time", "Start")}{time("end_time", "End")}{time("call_time", t("admin.itin.call_time"))}{time("wrap_time", t("admin.itin.wrap_time"))}
+    {(["look_tag", "dot_shape", "dot_color"] as const).map(k => <F key={k} label={t(`admin.itin.${k}`)}><select className="field" value={f[k] ?? ""} onChange={e => set(k, (e.target.value || null) as Scene[typeof k])}>
+      {k !== "look_tag" && <option value="">{t("admin.itin.automatic")}</option>}
+      {(k === "look_tag" ? ["auto","show","hide"] : k === "dot_shape" ? ["circle","square","triangle"] : ["atlantic","olive","apricot"]).map(v => <option key={v} value={v}>{t(k === "look_tag" ? `admin.itin.look_tag.${v}` : `admin.itin.${v}`)}</option>)}
+    </select></F>)}
     <F label="Wardrobe look (number)"><input type="number" className="field" value={f.wardrobe_look ?? ""} onChange={(e) => set("wardrobe_look", e.target.value === "" ? null : +e.target.value)} /></F>
     <F label="Summary" wide><textarea className="field" value={f.summary} onChange={(e) => set("summary", e.target.value)} /></F>
     <F label="Details" wide><textarea className="field min-h-32" value={f.details} onChange={(e) => set("details", e.target.value)} /></F>
