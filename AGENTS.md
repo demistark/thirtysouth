@@ -24,3 +24,4 @@
 - Treat otp_enabled as an exact-string opt-in setting checked by shared isOtpEnabled. Why: unavailable email codes remain hidden by default.
 - Keep phase-independent itinerary ordering in itinerary-tabs and its regression test. Why: date overrides must not reshuffle tabs.
 - Share day navigation through ItineraryDays and render the screenplay through ItineraryScript using additive chapter fields; chapter CSV export/import lives with itinerary parsing. Why: Scenes/Wardrobe stay consistent and screenplay edits round-trip without changing access or photo flows.
+- Keep itinerary deep links in validated route search and rail/tag/expansion rules in itinerary-display; save display preferences through the narrowly validated editor-only save_itinerary_display RPC without widening settings RLS. Why: refresh preserves return anchors and schedule managers can change only itinerary appearance.
