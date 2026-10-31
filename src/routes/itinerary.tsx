@@ -84,7 +84,7 @@ function Itinerary() {
 }
 function LookTag({look,anchor}: {look:WardrobeLook;anchor:string}) {
   const {t}=useContent();
-  return <Link id={anchor} className="look-tag" to="/itinerary" search={{tab:"wardrobe",day:look.chapter_number,look:look.id,from:"scenes",anchor}}><span>{t("itinerary.look")} {lookNumber(look.chapter_number,look.look_order)} //</span><span className="text-deep-atlantic">{look.title}</span></Link>;
+  return <Link id={anchor} className="look-tag" to="/itinerary" search={{tab:"wardrobe",day:look.chapter_number,...(look.id ? {look:look.id} : {}),from:"scenes",anchor}}><span>{t("itinerary.look")} {lookNumber(look.chapter_number,look.look_order)} //</span><span className="text-deep-atlantic">{look.title}</span></Link>;
 }
 function Scenes({chapter,isToday,scenes,looks,loading}: {chapter:number;isToday:boolean;scenes:Scene[];looks:WardrobeLook[];loading:boolean}) {
   const {t}=useContent(); const [openId,setOpenId]=useState<string|null>(); const display=useItineraryDisplay().data ?? {indicator:"edge",shadow:3,grain:true};

@@ -149,7 +149,7 @@ export function parseScenesCsv(csv: string, existing: Scene[], chapterNumbers: n
       location: keep(cell(r, "location"), "location", ""),
       kind: keep(kind, "kind", "core"),
       call_time: keep(cell(r, "call_time") || cell(r, "leave_at"), "call_time", null),
-      wrap_time: keep(cell(r, "wrap_time"), "wrap_time", null),
+      wrap_time: keep(cell(r, "wrap_time"), "wrap_time", null) ?? null,
       look_tag: option(r, "look_tag", ["auto", "show", "hide"], old?.look_tag ?? "auto", row, errors) ?? "auto",
       dot_shape: option(r, "dot_shape", ["circle", "square", "triangle"], old?.dot_shape ?? null, row, errors),
       dot_color: option(r, "dot_color", ["atlantic", "olive", "apricot"], old?.dot_color ?? null, row, errors),
