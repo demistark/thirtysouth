@@ -21,7 +21,7 @@ export interface ScriptFields {
 export interface Chapter extends ScriptFields { number: number; date: string; title: string; summary: string; visible: boolean; sort_order: number }
 export interface Scene {
   id?: string; chapter_number: number; scene_order: number; title: string; location: string; kind: SceneKind;
-  leave_at: string | null; start_time: string | null; end_time: string | null; summary: string; details: string;
+  call_time: string | null; wrap_time?: string | null; look_tag?: "auto" | "show" | "hide"; dot_shape?: "circle" | "square" | "triangle" | null; dot_color?: "atlantic" | "olive" | "apricot" | null; start_time: string | null; end_time: string | null; summary: string; details: string;
   experience_card: string | null; wardrobe_look: number | null; visible: boolean;
 }
 export interface WardrobeLook {
@@ -45,7 +45,7 @@ export function parsePalette(cell: string): PaletteItem[] {
 
 export const CSV_COLUMNS = {
   chapters: ["chapter", "date", "title", "summary", "layout", "heading_before", "heading_before_align", "transition_after", "transition_after_align"],
-  scenes: ["chapter", "scene_order", "title", "location", "kind", "leave_at", "start", "end", "summary", "details", "experience_card", "wardrobe_look"],
+  scenes: ["chapter", "scene_order", "title", "location", "kind", "call_time", "start", "end", "summary", "details", "experience_card", "wardrobe_look", "wrap_time", "look_tag", "dot_shape", "dot_color"],
   wardrobe: ["chapter", "look_order", "date_label", "look_label", "title", "description", "palette"],
 } as const;
 export type CsvKind = keyof typeof CSV_COLUMNS;
@@ -66,7 +66,7 @@ type Raw = Record<string, string>;
 function parseRaw(csv: string, kind: CsvKind): { data: Raw[]; errors: RowError[] } {
   const res = Papa.parse<Raw>(csv.replace(/^\uFEFF/, ""), { header: true, skipEmptyLines: "greedy", transformHeader: (h) => h.trim().toLowerCase() });
   const errors: RowError[] = res.errors.map((e) => ({ row: (e.row ?? 0) + 2, message: e.message }));
-  const required = kind === "chapters" ? CSV_COLUMNS.chapters.slice(0, 4) : CSV_COLUMNS[kind];
+  const required = kind === "chapters" ? CSV_COLUMNS.chapters.slice(0, 4) : kind === "scenes" ? CSV_COLUMNS.scenes.filter((c) => !["call_time", "wrap_time", "look_tag", "dot_shape", "dot_color"].includes(c)) : CSV_COLUMNS[kind];
   const missing = required.filter((c) => !res.meta.fields?.includes(c));
   if (missing.length) errors.push({ row: 1, message: `Missing columns: ${missing.join(", ")}` });
   if (!res.data.length) errors.push({ row: 1, message: "The file has no rows" });
@@ -79,8 +79,9 @@ const isInt = (s: string) => /^\d+$/.test(s);
 function validDate(s: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
   const [y, m, d] = s.split("-").map(Number);
-  const dt = new Date(Date.UTC(y!, m! - 1, d!));
-  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m! - 1 && dt.getUTCDate() === d;
+  if (y === undefined || m === undefined || d === undefined) return false;
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
 }
 function chapterNo(r: Raw, row: number, errors: RowError[]) {
   const c = cell(r, "chapter");
@@ -133,7 +134,7 @@ export function parseScenesCsv(csv: string, existing: Scene[], chapterNumbers: n
     const old = existing.find((s) => s.chapter_number === n && s.scene_order === +ord);
     const kind = cell(r, "kind").toLowerCase();
     if (kind && !SCENE_KINDS.includes(kind as SceneKind)) errors.push({ row, message: "kind must be core, flex or optional" });
-    for (const [col, label] of [["leave_at", "leave_at"], ["start", "start"], ["end", "end"]] as const) {
+    for (const [col, label] of [["call_time", "call_time"], ["wrap_time", "wrap_time"], ["leave_at", "leave_at"], ["start", "start"], ["end", "end"]] as const) {
       const v = cell(r, col); if (v && !TIME_RE.test(v)) errors.push({ row, message: `${label} must look like 9:30 AM` });
     }
     const look = cell(r, "wardrobe_look");
@@ -144,10 +145,14 @@ export function parseScenesCsv(csv: string, existing: Scene[], chapterNumbers: n
     out.push({
       ...(old?.id ? { id: old.id } : {}),
       chapter_number: n, scene_order: +ord,
-      title: title || old!.title,
+      title: title || old?.title || "",
       location: keep(cell(r, "location"), "location", ""),
       kind: keep(kind, "kind", "core"),
-      leave_at: keep(cell(r, "leave_at"), "leave_at", null),
+      call_time: keep(cell(r, "call_time") || cell(r, "leave_at"), "call_time", null),
+      wrap_time: keep(cell(r, "wrap_time"), "wrap_time", null),
+      look_tag: option(r, "look_tag", ["auto", "show", "hide"], old?.look_tag ?? "auto", row, errors) ?? "auto",
+      dot_shape: option(r, "dot_shape", ["circle", "square", "triangle"], old?.dot_shape ?? null, row, errors),
+      dot_color: option(r, "dot_color", ["atlantic", "olive", "apricot"], old?.dot_color ?? null, row, errors),
       start_time: keep(cell(r, "start"), "start_time", null),
       end_time: keep(cell(r, "end"), "end_time", null),
       summary: keep(cell(r, "summary"), "summary", ""),
@@ -180,7 +185,7 @@ export function parseWardrobeCsv(csv: string, existing: WardrobeLook[], chapterN
       chapter_number: n, look_order: +ord,
       date_label: pick(cell(r, "date_label"), old?.date_label),
       look_label: pick(cell(r, "look_label"), old?.look_label),
-      title: title || old!.title,
+      title: title || old?.title || "",
       description: (r["description"] ?? "").trim() ? (r["description"] ?? "").replace(/\r\n/g, "\n").trim() : (old?.description ?? ""),
       palette: pal ? parsePalette(pal) : (old?.palette ?? []),
       photos: old?.photos ?? [],
@@ -189,4 +194,13 @@ export function parseWardrobeCsv(csv: string, existing: WardrobeLook[], chapterN
   });
   dupCheck(data.map((r) => `${cell(r, "chapter")}|${cell(r, "look_order")}`), errors);
   return finish(out, errors);
+}
+
+function option<T extends string>(r: Raw, key: string, choices: T[], fallback: T | null, row: number, errors: RowError[]): T | null {
+ const v = cell(r,key); if (!v) return fallback;
+ if (!choices.includes(v as T)) { errors.push({row,message: `${key} must be ${choices.join(", ")}`}); return fallback; }
+ return v as T;
+}
+export function exportScenesCsv(scenes: Scene[]) {
+ return Papa.unparse({fields:[...CSV_COLUMNS.scenes], data:scenes.map(s => [s.chapter_number,s.scene_order,s.title,s.location,s.kind,s.call_time ?? "",s.start_time ?? "",s.end_time ?? "",s.summary,s.details,s.experience_card ?? "",s.wardrobe_look ?? "",s.wrap_time ?? "",s.look_tag ?? "auto",s.dot_shape ?? "",s.dot_color ?? ""])});
 }

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { scriptAlignment, type Chapter, type PaletteItem, type Scene, type WardrobeLook } from "./itinerary";
 
-export const toScene = (r: Record<string, unknown>) => r as unknown as Scene;
+export const toScene = (r: Record<string, unknown>) => (({ leave_at: _deprecated, ...scene }) => scene as unknown as Scene)(r);
 export const toLook = (r: Record<string, unknown>): WardrobeLook => ({
   ...(r as unknown as WardrobeLook),
   palette: Array.isArray(r["palette"]) ? (r["palette"] as PaletteItem[]) : [],
