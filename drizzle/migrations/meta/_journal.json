@@ -71,6 +71,13 @@
       "when": 1793335537337,
       "tag": "0009_chapter_screenplay_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793434358555,
+      "tag": "0010_itinerary_scene_refinements",
+      "breakpoints": true
     }
   ]
 }
