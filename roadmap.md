@@ -8,5 +8,6 @@
 - [x] Apply compact footer, editable three-part text, glass back-to-top bubble, Home header return and Purse ember tint; verify desktop/phone, reduced motion, contrast and regressions.
 - [x] Change Script alternating tint to olive wash and tighten footer into one line at every size; verified 320px/390px/tablet/desktop and ink contrast above 10:1.
 - [x] Build Itinerary Scenes/Wardrobe with RLS, private wardrobe photos, admin editing and CSV import.
-- [ ] Apply look tags, call/wrap and Picnic correction, display controls, day headings and durable itinerary navigation; verify real data and phone/desktop.
+- [x] Apply look tags, call/wrap and Picnic correction, display controls, day headings and durable itinerary navigation; real signed-in scenes, display save/read-back, return refresh, 44 tests, all ten phone/desktop heading widths and neutral grain sampling verified.
+- [ ] Show chapter 1 and 10 Free Will look tags — waiting for the user's planned wardrobe CSV import.
 - [x] Apply itinerary timeline/date-selector polish, screenplay fields and CSV, phone hero and 2.5px underlines; signed-in chapter save/read-back verified, scene interactions verified with browser-only examples because no scenes are saved yet.
