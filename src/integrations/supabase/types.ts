@@ -65,6 +65,155 @@ export type Database = {
         }
         Relationships: []
       }
+      experience_rsvps: {
+        Row: {
+          choice: string | null
+          experience_id: string
+          guest_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          choice?: string | null
+          experience_id: string
+          guest_id: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          choice?: string | null
+          experience_id?: string
+          guest_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_rsvps_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experience_rsvps_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experience_scenes: {
+        Row: {
+          experience_id: string
+          scene_id: string
+        }
+        Insert: {
+          experience_id: string
+          scene_id: string
+        }
+        Update: {
+          experience_id?: string
+          scene_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_scenes_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experience_scenes_scene_id_fkey"
+            columns: ["scene_id"]
+            isOneToOne: false
+            referencedRelation: "scenes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experiences: {
+        Row: {
+          card: string
+          choices: string | null
+          created_at: string
+          default_status: string | null
+          details: string | null
+          id: string
+          level: string
+          location: string | null
+          parent_id: string | null
+          price_note: string | null
+          price_status: string | null
+          price_zar: number | null
+          rank: string
+          rsvp_deadline: string | null
+          rsvp_mode: string
+          show_host_note: boolean
+          sort_order: number
+          summary: string
+          updated_at: string
+          visible: boolean
+          when_text: string
+        }
+        Insert: {
+          card: string
+          choices?: string | null
+          created_at?: string
+          default_status?: string | null
+          details?: string | null
+          id?: string
+          level?: string
+          location?: string | null
+          parent_id?: string | null
+          price_note?: string | null
+          price_status?: string | null
+          price_zar?: number | null
+          rank?: string
+          rsvp_deadline?: string | null
+          rsvp_mode?: string
+          show_host_note?: boolean
+          sort_order?: number
+          summary?: string
+          updated_at?: string
+          visible?: boolean
+          when_text?: string
+        }
+        Update: {
+          card?: string
+          choices?: string | null
+          created_at?: string
+          default_status?: string | null
+          details?: string | null
+          id?: string
+          level?: string
+          location?: string | null
+          parent_id?: string | null
+          price_note?: string | null
+          price_status?: string | null
+          price_zar?: number | null
+          rank?: string
+          rsvp_deadline?: string | null
+          rsvp_mode?: string
+          show_host_note?: boolean
+          sort_order?: number
+          summary?: string
+          updated_at?: string
+          visible?: boolean
+          when_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experiences_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fun_facts: {
         Row: {
           active: boolean
@@ -611,8 +760,10 @@ export type Database = {
     }
     Functions: {
       can_edit_itinerary: { Args: { _user_id: string }; Returns: boolean }
+      can_edit_purse: { Args: { _user_id: string }; Returns: boolean }
       can_edit_travel: { Args: { _user_id: string }; Returns: boolean }
       can_view_itinerary: { Args: { _user_id: string }; Returns: boolean }
+      can_view_purse: { Args: { _user_id: string }; Returns: boolean }
       can_view_travel: { Args: { _user_id: string }; Returns: boolean }
       cast_list: {
         Args: never
@@ -653,6 +804,14 @@ export type Database = {
           display_name: string
         }[]
       }
+      participant_directory: {
+        Args: never
+        Returns: {
+          display_name: string
+          id: string
+        }[]
+      }
+      rsvp_open: { Args: { _experience_id: string }; Returns: boolean }
       save_itinerary_display: {
         Args: { _grain: boolean; _indicator: string; _shadow: number }
         Returns: undefined

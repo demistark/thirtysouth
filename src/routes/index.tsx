@@ -3,7 +3,9 @@ import { useState } from "react";
 import { PhotoSlot } from "@/components/site/Blocks";
 import { useAuth } from "@/lib/auth";
 import { useContent } from "@/lib/data";
-import { canViewTravel } from "@/lib/locked-areas";
+import { canViewPurse, canViewTravel, isTripParticipant } from "@/lib/locked-areas";
+import { needsReplyCount } from "@/lib/purse";
+import { useExperienceRsvps, useExperiences } from "@/lib/purse-data";
 import { formatLegDate, formatLegTime, nextLeg } from "@/lib/travel";
 import { useMyGuest, useTravelLegs } from "@/lib/travel-data";
 import { useTripClock } from "@/lib/trip-clock";
@@ -53,8 +55,9 @@ function HomePhasePlaceholder() {
 function HomeBefore() {
   const { t } = useContent();
   const { daysToGo } = useTripClock();
-  const { roles } = useAuth();
+  const { session, roles } = useAuth();
   const showTravel = canViewTravel(roles);
+  const showPurse = !session || canViewPurse(roles);
   return (
     <main>
       <section className="hero-sky relative pb-16 md:pb-20">
@@ -80,7 +83,7 @@ function HomeBefore() {
         <MomentsCard />
         <SectionCard n={2} to="/itinerary" tint="bg-sandstone" />
         {showTravel && <SectionCard n={3} to="/travel" tint="bg-tint-ember" hash="flights" live={<TravelLiveLine />} />}
-        <SectionCard n={4} to="/purse" tint="bg-tint-ember" />
+        {showPurse && <SectionCard n={4} to="/purse" tint="bg-tint-ember" live={<PurseLiveLine />} />}
         <SectionCard n={5} to="/journal" tint="bg-tint-teal" polaroid />
       </div>
     </main>
@@ -148,6 +151,22 @@ function TravelLiveLine() {
   return (
     <p className="label-caps mt-4 text-ember-deep">
       {t(leg.direction === "arrival" ? "home.card3.live_arrival" : "home.card3.live_departure")}: {formatLegDate(leg.cpt_time)}, {formatLegTime(leg.cpt_time)}
+    </p>
+  );
+}
+
+function PurseLiveLine() {
+  const { t } = useContent();
+  const { session, roles } = useAuth();
+  const allowed = !!session && isTripParticipant(roles);
+  const myGuest = useMyGuest(allowed);
+  const exps = useExperiences(allowed);
+  const rsvps = useExperienceRsvps(allowed);
+  const count = needsReplyCount(exps.data ?? [], rsvps.data ?? [], myGuest.data);
+  if (!count) return null;
+  return (
+    <p className="label-caps mt-4 text-ember-deep">
+      {count} {t(count === 1 ? "home.card4.live_reply_one" : "home.card4.live_reply")}
     </p>
   );
 }
