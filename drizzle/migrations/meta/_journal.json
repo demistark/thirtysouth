@@ -85,6 +85,13 @@
       "when": 1793532017510,
       "tag": "0011_honorary_guest_role",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793532180299,
+      "tag": "0012_travel_page_and_honorary_guest",
+      "breakpoints": true
     }
   ]
 }
