@@ -10,6 +10,7 @@ import { normalizeEmail } from "@/lib/email";
 import { syncGuestAccounts } from "@/lib/guest-accounts.functions";
 import { FactsAdmin } from "@/components/site/FactsAdmin";
 import { ItineraryAdmin } from "@/components/site/ItineraryAdmin";
+import { TravelAdmin } from "@/components/site/TravelAdmin";
 import { useContent } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 
@@ -27,14 +28,14 @@ export const Route = createFileRoute("/admin")({
   component: Admin,
 });
 
-type Tab = "guests" | "content" | "itinerary" | "settings" | "facts";
+type Tab = "guests" | "content" | "itinerary" | "travel" | "settings" | "facts";
 
 function Admin() {
   const { isHost, roles, loading } = useAuth();
   const { t } = useContent();
   const isManager = roles.includes("schedule_manager");
   const [tab, setTab] = useState<Tab>("guests");
-  const active: Tab = isHost ? tab : "itinerary";
+  const active: Tab = isHost ? tab : tab === "travel" ? "travel" : "itinerary";
   if (loading) return <main className="mx-auto max-w-5xl px-5 pt-20"><div className="h-48 border bg-card" /></main>;
   if (!isHost && !isManager)
     return (
@@ -52,15 +53,20 @@ function Admin() {
             { id: "guests", label: "Guests" },
             { id: "content", label: "Content" },
             { id: "itinerary", label: t("admin.tab.itinerary") },
+            { id: "travel", label: t("admin.tab.travel") },
             { id: "settings", label: "Settings" },
             { id: "facts", label: t("admin.tab.facts") },
-          ] : [{ id: "itinerary", label: t("admin.tab.itinerary") }]}
+          ] : [
+            { id: "itinerary", label: t("admin.tab.itinerary") },
+            { id: "travel", label: t("admin.tab.travel") },
+          ]}
           value={active}
           onChange={setTab}
         />
         {active === "guests" && <GuestsAdmin />}
         {active === "content" && <ContentAdmin />}
         {active === "itinerary" && <ItineraryAdmin />}
+        {active === "travel" && <TravelAdmin />}
         {active === "settings" && <SettingsAdmin />}
         {active === "facts" && <FactsAdmin />}
       </div>
@@ -89,14 +95,16 @@ function GuestsAdmin() {
     queryFn: async () => {
       const [g, ri] = await Promise.all([
         supabase.from("guests").select("id,user_id,full_name,display_name,email,status,splitwise_name").order("created_at"),
-        supabase.from("role_invites").select("email,role").eq("role", "schedule_manager"),
+        supabase.from("role_invites").select("email,role"),
       ]);
       if (g.error) throw g.error;
-      const managers = new Set((ri.data ?? []).map((r) => r.email));
+      const managers = new Set((ri.data ?? []).filter((r) => r.role === "schedule_manager").map((r) => r.email));
+      const baseRoles = new Map((ri.data ?? []).filter((r) => r.role !== "schedule_manager").map((r) => [r.email, r.role as string]));
       const guests = (g.data ?? []) as Guest[];
-      return { guests, managers };
+      return { guests, managers, baseRoles };
     },
   });
+  const [roleFilter, setRoleFilter] = useState("all");
   const [editing, setEditing] = useState<Guest | null>(null);
   const [form, setForm] = useState(emptyGuest);
   const refresh = () => qc.invalidateQueries({ queryKey: ["admin", "guests"] });
@@ -156,6 +164,15 @@ function GuestsAdmin() {
     refresh();
   };
 
+  const baseRoleOf = (email: string) => guestsQ.data?.baseRoles.get(email) ?? "trip_guest";
+  const setBaseRole = async (g: Guest, role: string) => {
+    const { error } = await supabase.rpc("set_guest_role", { _guest_id: g.id, _role: role as "trip_guest" | "friend_afar" | "honorary_guest" });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Saved");
+    refresh();
+  };
+  const visibleGuests = (guestsQ.data?.guests ?? []).filter((g) => roleFilter === "all" || baseRoleOf(g.email) === roleFilter);
+
   return (
     <div className="space-y-10">
       <form onSubmit={save} className="grid gap-3 border bg-card p-5 md:grid-cols-2">
@@ -188,8 +205,16 @@ function GuestsAdmin() {
         </div>
       </form>
 
+      <div className="flex justify-end">
+        <select className="field max-w-56" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} aria-label="Filter by role">
+          <option value="all">Everyone</option>
+          <option value="trip_guest">On the trip</option>
+          <option value="friend_afar">Afar</option>
+          <option value="honorary_guest">Honorary guest</option>
+        </select>
+      </div>
       <ul className="divide-y border-y">
-        {guestsQ.data?.guests.map((g) => (
+        {visibleGuests.map((g) => (
           <li key={g.id} className="flex flex-wrap items-center gap-4 py-4">
             <div className="min-w-0 flex-1">
               <p className="font-display-light text-xl">
@@ -200,10 +225,20 @@ function GuestsAdmin() {
                 {g.splitwise_name ? ` · Splitwise: ${g.splitwise_name}` : ""} · {g.user_id ? "signed in before" : "not signed in yet"}
               </p>
             </div>
+            <select
+              className="field !w-auto !py-1.5 text-xs"
+              value={baseRoleOf(g.email)}
+              onChange={(e) => void setBaseRole(g, e.target.value)}
+              aria-label={`Role for ${g.display_name}`}
+            >
+              <option value="trip_guest">On the trip</option>
+              <option value="friend_afar">Afar</option>
+              <option value="honorary_guest">Honorary guest</option>
+            </select>
             <label className="label-caps flex items-center gap-2 text-muted-foreground">
               <input
                 type="checkbox"
-                checked={guestsQ.data.managers.has(g.email)}
+                checked={guestsQ.data?.managers.has(g.email) ?? false}
                 onChange={(e) => toggleManager(g, e.target.checked)}
               />
               Schedule manager

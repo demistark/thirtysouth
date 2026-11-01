@@ -88,39 +88,140 @@ export type Database = {
       }
       guests: {
         Row: {
+          cast_order: number | null
+          cast_role_override: string | null
           created_at: string
           display_name: string
           email: string
           full_name: string
           id: string
           photo_url: string | null
+          pronoun_form: string | null
           splitwise_name: string | null
           status: string
           user_id: string | null
         }
         Insert: {
+          cast_order?: number | null
+          cast_role_override?: string | null
           created_at?: string
           display_name: string
           email: string
           full_name: string
           id?: string
           photo_url?: string | null
+          pronoun_form?: string | null
           splitwise_name?: string | null
           status?: string
           user_id?: string | null
         }
         Update: {
+          cast_order?: number | null
+          cast_role_override?: string | null
           created_at?: string
           display_name?: string
           email?: string
           full_name?: string
           id?: string
           photo_url?: string | null
+          pronoun_form?: string | null
           splitwise_name?: string | null
           status?: string
           user_id?: string | null
         }
         Relationships: []
+      }
+      packing_categories: {
+        Row: {
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      packing_checks: {
+        Row: {
+          checked_at: string
+          item_id: string
+          user_id: string
+        }
+        Insert: {
+          checked_at?: string
+          item_id: string
+          user_id: string
+        }
+        Update: {
+          checked_at?: string
+          item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packing_checks_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "packing_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      packing_items: {
+        Row: {
+          category_id: string
+          chapter_number: number | null
+          id: string
+          look_order: number | null
+          name: string
+          note: string | null
+          sort_order: number
+          visible: boolean
+        }
+        Insert: {
+          category_id: string
+          chapter_number?: number | null
+          id?: string
+          look_order?: number | null
+          name: string
+          note?: string | null
+          sort_order?: number
+          visible?: boolean
+        }
+        Update: {
+          category_id?: string
+          chapter_number?: number | null
+          id?: string
+          look_order?: number | null
+          name?: string
+          note?: string | null
+          sort_order?: number
+          visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packing_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "packing_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "packing_items_chapter_number_fkey"
+            columns: ["chapter_number"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["number"]
+          },
+        ]
       }
       role_invites: {
         Row: {
@@ -136,6 +237,36 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
         }
         Relationships: []
+      }
+      room_assignments: {
+        Row: {
+          guest_id: string
+          room_id: string
+        }
+        Insert: {
+          guest_id: string
+          room_id: string
+        }
+        Update: {
+          guest_id?: string
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_assignments_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: true
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_assignments_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "villa_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scenes: {
         Row: {
@@ -247,6 +378,138 @@ export type Database = {
         }
         Relationships: []
       }
+      transfers: {
+        Row: {
+          direction: string
+          driver_contact: string | null
+          id: string
+          included_with_villa: boolean
+          label: string
+          meet_time: string | null
+          meeting_point: string | null
+          notes: string | null
+          provider: string | null
+          sort_order: number
+          visible: boolean
+        }
+        Insert: {
+          direction: string
+          driver_contact?: string | null
+          id?: string
+          included_with_villa?: boolean
+          label: string
+          meet_time?: string | null
+          meeting_point?: string | null
+          notes?: string | null
+          provider?: string | null
+          sort_order?: number
+          visible?: boolean
+        }
+        Update: {
+          direction?: string
+          driver_contact?: string | null
+          id?: string
+          included_with_villa?: boolean
+          label?: string
+          meet_time?: string | null
+          meeting_point?: string | null
+          notes?: string | null
+          provider?: string | null
+          sort_order?: number
+          visible?: boolean
+        }
+        Relationships: []
+      }
+      travel_images: {
+        Row: {
+          alt: string
+          caption: string | null
+          focal_x: number
+          focal_y: number
+          slot: string
+          storage_path: string
+        }
+        Insert: {
+          alt?: string
+          caption?: string | null
+          focal_x?: number
+          focal_y?: number
+          slot: string
+          storage_path: string
+        }
+        Update: {
+          alt?: string
+          caption?: string | null
+          focal_x?: number
+          focal_y?: number
+          slot?: string
+          storage_path?: string
+        }
+        Relationships: []
+      }
+      travel_legs: {
+        Row: {
+          airline: string
+          cpt_time: string
+          created_at: string
+          direction: string
+          flight_number: string
+          guest_id: string
+          id: string
+          notes: string | null
+          other_airport: string
+          terminal: string | null
+          transfer_id: string | null
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          airline?: string
+          cpt_time: string
+          created_at?: string
+          direction: string
+          flight_number?: string
+          guest_id: string
+          id?: string
+          notes?: string | null
+          other_airport?: string
+          terminal?: string | null
+          transfer_id?: string | null
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          airline?: string
+          cpt_time?: string
+          created_at?: string
+          direction?: string
+          flight_number?: string
+          guest_id?: string
+          id?: string
+          notes?: string | null
+          other_airport?: string
+          terminal?: string | null
+          transfer_id?: string | null
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_legs_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_legs_transfer_id_fkey"
+            columns: ["transfer_id"]
+            isOneToOne: false
+            referencedRelation: "transfers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -262,6 +525,36 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      villa_rooms: {
+        Row: {
+          bed_config: string
+          id: string
+          label: string
+          level: string | null
+          notes: string | null
+          sleeps: number
+          sort_order: number
+        }
+        Insert: {
+          bed_config?: string
+          id?: string
+          label: string
+          level?: string | null
+          notes?: string | null
+          sleeps?: number
+          sort_order?: number
+        }
+        Update: {
+          bed_config?: string
+          id?: string
+          label?: string
+          level?: string | null
+          notes?: string | null
+          sleeps?: number
+          sort_order?: number
         }
         Relationships: []
       }
@@ -318,7 +611,21 @@ export type Database = {
     }
     Functions: {
       can_edit_itinerary: { Args: { _user_id: string }; Returns: boolean }
+      can_edit_travel: { Args: { _user_id: string }; Returns: boolean }
       can_view_itinerary: { Args: { _user_id: string }; Returns: boolean }
+      can_view_travel: { Args: { _user_id: string }; Returns: boolean }
+      cast_list: {
+        Args: never
+        Returns: {
+          cast_order: number
+          cast_role_override: string
+          display_name: string
+          full_name: string
+          id: string
+          pronoun_form: string
+        }[]
+      }
+      ensure_cast_order: { Args: never; Returns: undefined }
       guest_directory: {
         Args: never
         Returns: {
@@ -334,10 +641,12 @@ export type Database = {
         Returns: boolean
       }
       is_invited: { Args: { _email: string }; Returns: boolean }
+      is_trip_participant: { Args: { _user_id: string }; Returns: boolean }
       link_guest: {
         Args: { _email: string; _user_id: string }
         Returns: undefined
       }
+      my_guest: { Args: never; Returns: string }
       my_profile: {
         Args: never
         Returns: {
@@ -348,13 +657,26 @@ export type Database = {
         Args: { _grain: boolean; _indicator: string; _shadow: number }
         Returns: undefined
       }
+      set_guest_role: {
+        Args: {
+          _guest_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: undefined
+      }
       set_schedule_manager: {
         Args: { _enabled: boolean; _guest_id: string }
         Returns: undefined
       }
+      travel_share_all: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "host" | "schedule_manager" | "trip_guest" | "friend_afar"
+      app_role:
+        | "host"
+        | "schedule_manager"
+        | "trip_guest"
+        | "friend_afar"
+        | "honorary_guest"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -482,7 +804,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["host", "schedule_manager", "trip_guest", "friend_afar"],
+      app_role: [
+        "host",
+        "schedule_manager",
+        "trip_guest",
+        "friend_afar",
+        "honorary_guest",
+      ],
     },
   },
 } as const

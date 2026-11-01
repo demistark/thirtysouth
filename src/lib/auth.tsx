@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type Role = "host" | "schedule_manager" | "trip_guest" | "friend_afar";
+type Role = "host" | "schedule_manager" | "trip_guest" | "friend_afar" | "honorary_guest";
 
 interface AuthState {
   session: Session | null;

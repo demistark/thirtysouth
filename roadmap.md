@@ -11,3 +11,6 @@
 - [x] Apply look tags, call/wrap and Picnic correction, display controls, day headings and durable itinerary navigation; real signed-in scenes, display save/read-back, return refresh, 44 tests, all ten phone/desktop heading widths and neutral grain sampling verified.
 - [ ] Show chapter 1 and 10 Free Will look tags — waiting for the user's planned wardrobe CSV import.
 - [x] Apply itinerary timeline/date-selector polish, screenplay fields and CSV, phone hero and 2.5px underlines; signed-in chapter save/read-back verified, scene interactions verified with browser-only examples because no scenes are saved yet.
+- [x] Build Travel as one flowing page (Cast, Villa, Flights, Packing) with the Honorary guest role, action-gate dialogs, travel images bucket, room assignments, transfers, packing checks, Admin › Travel tabs and CSV imports; 71 tests pass.
+- [ ] Import the packing starter CSV yourself in Admin › Travel › Packing (per your note, not seeded).
+- [ ] Add real flight legs and transfer details in Admin › Travel when bookings are final.

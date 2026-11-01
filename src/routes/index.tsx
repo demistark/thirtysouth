@@ -1,9 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { PhotoSlot } from "@/components/site/Blocks";
+import { useAuth } from "@/lib/auth";
 import { useContent } from "@/lib/data";
+import { canViewTravel } from "@/lib/locked-areas";
+import { formatLegDate, formatLegTime, nextLeg } from "@/lib/travel";
+import { useMyGuest, useTravelLegs } from "@/lib/travel-data";
 import { useTripClock } from "@/lib/trip-clock";
-import type { Phase } from "@/lib/phase";
+import { zonedDate, type Phase } from "@/lib/phase";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -49,6 +53,8 @@ function HomePhasePlaceholder() {
 function HomeBefore() {
   const { t } = useContent();
   const { daysToGo } = useTripClock();
+  const { roles } = useAuth();
+  const showTravel = canViewTravel(roles);
   return (
     <main>
       <section className="hero-sky relative pb-16 md:pb-20">
@@ -73,7 +79,7 @@ function HomeBefore() {
       <div data-home-first-card className="mx-auto mt-20 flex max-w-6xl flex-col gap-6 px-5">
         <MomentsCard />
         <SectionCard n={2} to="/itinerary" tint="bg-sandstone" />
-        <SectionCard n={3} to="/travel" tint="bg-tint-ember" />
+        {showTravel && <SectionCard n={3} to="/travel" tint="bg-tint-ember" hash="flights" live={<TravelLiveLine />} />}
         <SectionCard n={4} to="/purse" tint="bg-tint-ember" />
         <SectionCard n={5} to="/journal" tint="bg-tint-teal" polaroid />
       </div>
@@ -130,16 +136,36 @@ function MomentsCard() {
   );
 }
 
+function TravelLiveLine() {
+  const { t } = useContent();
+  const { session, roles } = useAuth();
+  const { now, settings } = useTripClock();
+  const allowed = !!session && canViewTravel(roles);
+  const myGuest = useMyGuest(allowed);
+  const legs = useTravelLegs(allowed);
+  const leg = nextLeg(legs.data ?? [], myGuest.data, zonedDate(now, settings.timezone));
+  if (!leg) return null;
+  return (
+    <p className="label-caps mt-4 text-ember-deep">
+      {t(leg.direction === "arrival" ? "home.card3.live_arrival" : "home.card3.live_departure")}: {formatLegDate(leg.cpt_time)}, {formatLegTime(leg.cpt_time)}
+    </p>
+  );
+}
+
 function SectionCard({
   n,
   to,
   tint,
   polaroid,
+  hash,
+  live,
 }: {
   n: number;
   to: "/itinerary" | "/travel" | "/purse" | "/journal";
   tint: string;
   polaroid?: boolean;
+  hash?: string;
+  live?: React.ReactNode;
 }) {
   const { t } = useContent();
   const k = (s: string) => t(`home.card${n}.${s}`);
@@ -149,7 +175,8 @@ function SectionCard({
         <p className="eyebrow">{k("eyebrow")}</p>
         <h2 className="font-display-light mt-4 text-4xl md:text-5xl">{k("headline")}</h2>
         <p className={cn("mt-4 text-sm leading-relaxed text-muted-foreground", n !== 2 && n !== 4 && "max-w-md")}>{k("sentence")}</p>
-        <Link to={to} className="btn-pill mt-8">
+        {live}
+        <Link to={to} {...(hash ? { hash } : {})} className="btn-pill mt-8">
           {k("button")}
         </Link>
       </div>

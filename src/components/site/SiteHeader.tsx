@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/lib/auth";
 import { useContent } from "@/lib/data";
+import { canViewTravel } from "@/lib/locked-areas";
 
 const NAV = [
   { to: "/", key: "nav.home" },
@@ -17,7 +18,8 @@ const NAV = [
 
 export function SiteHeader() {
   const { t } = useContent();
-  const { session, displayName, signOut, isHost } = useAuth();
+  const { session, displayName, signOut, isHost, roles } = useAuth();
+  const nav = NAV.filter((n) => n.to !== "/travel" || canViewTravel(roles));
   const [open, setOpen] = useState(false);
   const [compact, setCompact] = useState(false);
   const [homeHeaderReturned, setHomeHeaderReturned] = useState(false);
@@ -60,7 +62,7 @@ export function SiteHeader() {
           30° South
         </Link>
         <nav className="site-nav hidden items-center gap-5 md:flex lg:gap-8">
-          {NAV.map((n) => (
+          {nav.map((n) => (
             <Link
               key={n.to}
               to={n.to}
@@ -90,7 +92,7 @@ export function SiteHeader() {
           >
             <SheetTitle className="wordmark text-sm">30° South</SheetTitle>
             <nav className="mt-14 flex flex-col gap-8">
-              {NAV.map((n) => (
+              {nav.map((n) => (
                 <Link
                   key={n.to}
                   to={n.to}
