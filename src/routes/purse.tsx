@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ComingSoon, PageShell, SubTabs } from "@/components/site/Blocks";
+import { Experiences } from "@/components/site/Experiences";
 import { PurseLockout } from "@/components/site/Lockouts";
 import { useAuth } from "@/lib/auth";
 import { useContent } from "@/lib/data";
+import { canViewPurse } from "@/lib/locked-areas";
 import { useTripClock } from "@/lib/trip-clock";
 
 export const Route = createFileRoute("/purse")({
@@ -25,14 +27,26 @@ type Tab = "experiences" | "expenses" | "sum";
 function Purse() {
   const { t } = useContent();
   const { phase } = useTripClock();
-  const { isFriend, loading } = useAuth();
+  const { session, roles, loading } = useAuth();
+  const allowed = !!session && canViewPurse(roles);
   const ids: Tab[] = phase === "after" ? ["experiences", "expenses", "sum"] : ["experiences", "expenses"];
   const [tab, setTab] = useState<Tab>("experiences");
   const current = ids.includes(tab) ? tab : "experiences";
   return (
     <PageShell titleKey="purse.title" introKey="purse.intro">
       <SubTabs tabs={ids.map((id) => ({ id, label: t(`purse.tab.${id}`) }))} value={current} onChange={setTab} />
-      {loading ? <div className="min-h-80 bg-tint-ember" /> : isFriend ? <ComingSoon /> : <PurseLockout />}
+      {loading ? (
+        <div className="min-h-80 bg-tint-ember" />
+      ) : !allowed ? (
+        <PurseLockout />
+      ) : current === "experiences" ? (
+        <>
+          {t("purse_experiences_deck") && <p className="caption-serif mb-8 text-lg">{t("purse_experiences_deck")}</p>}
+          <Experiences />
+        </>
+      ) : (
+        <ComingSoon />
+      )}
     </PageShell>
   );
 }
