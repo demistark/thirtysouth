@@ -614,6 +614,18 @@ export type Database = {
       can_edit_travel: { Args: { _user_id: string }; Returns: boolean }
       can_view_itinerary: { Args: { _user_id: string }; Returns: boolean }
       can_view_travel: { Args: { _user_id: string }; Returns: boolean }
+      cast_list: {
+        Args: never
+        Returns: {
+          cast_order: number
+          cast_role_override: string
+          display_name: string
+          full_name: string
+          id: string
+          pronoun_form: string
+        }[]
+      }
+      ensure_cast_order: { Args: never; Returns: undefined }
       guest_directory: {
         Args: never
         Returns: {
