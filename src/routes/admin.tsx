@@ -10,6 +10,7 @@ import { normalizeEmail } from "@/lib/email";
 import { syncGuestAccounts } from "@/lib/guest-accounts.functions";
 import { FactsAdmin } from "@/components/site/FactsAdmin";
 import { ItineraryAdmin } from "@/components/site/ItineraryAdmin";
+import { PurseAdmin } from "@/components/site/PurseAdmin";
 import { TravelAdmin } from "@/components/site/TravelAdmin";
 import { useContent } from "@/lib/data";
 import { Button } from "@/components/ui/button";
@@ -28,14 +29,14 @@ export const Route = createFileRoute("/admin")({
   component: Admin,
 });
 
-type Tab = "guests" | "content" | "itinerary" | "travel" | "settings" | "facts";
+type Tab = "guests" | "content" | "itinerary" | "travel" | "purse" | "settings" | "facts";
 
 function Admin() {
   const { isHost, roles, loading } = useAuth();
   const { t } = useContent();
   const isManager = roles.includes("schedule_manager");
   const [tab, setTab] = useState<Tab>("guests");
-  const active: Tab = isHost ? tab : tab === "travel" ? "travel" : "itinerary";
+  const active: Tab = isHost ? tab : tab === "travel" || tab === "purse" ? tab : "itinerary";
   if (loading) return <main className="mx-auto max-w-5xl px-5 pt-20"><div className="h-48 border bg-card" /></main>;
   if (!isHost && !isManager)
     return (
@@ -54,11 +55,13 @@ function Admin() {
             { id: "content", label: "Content" },
             { id: "itinerary", label: t("admin.tab.itinerary") },
             { id: "travel", label: t("admin.tab.travel") },
+            { id: "purse", label: t("admin.tab.purse") },
             { id: "settings", label: "Settings" },
             { id: "facts", label: t("admin.tab.facts") },
           ] : [
             { id: "itinerary", label: t("admin.tab.itinerary") },
             { id: "travel", label: t("admin.tab.travel") },
+            { id: "purse", label: t("admin.tab.purse") },
           ]}
           value={active}
           onChange={setTab}
@@ -67,6 +70,7 @@ function Admin() {
         {active === "content" && <ContentAdmin />}
         {active === "itinerary" && <ItineraryAdmin />}
         {active === "travel" && <TravelAdmin />}
+        {active === "purse" && <PurseAdmin />}
         {active === "settings" && <SettingsAdmin />}
         {active === "facts" && <FactsAdmin />}
       </div>
