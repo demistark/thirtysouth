@@ -325,7 +325,7 @@ function RsvpsPanel() {
   const { t } = useContent();
   const refresh = useRefresh();
   const expsQ = useQuery({
-    queryKey: ["admin", "purse-experiences"],
+    queryKey: ["admin", "purse-rsvp-experiences"],
     queryFn: async () => {
       const { data, error } = await supabase.from("experiences").select("*").order("sort_order");
       if (error) throw error;
