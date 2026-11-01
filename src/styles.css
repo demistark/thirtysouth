@@ -520,3 +520,44 @@
 /* Action gate dialog */
 .gate-overlay { position: fixed; inset: 0; z-index: 60; background: color-mix(in oklab, var(--ink) 32%, transparent); display: grid; place-items: center; padding: 20px; }
 .gate-dialog { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--scene-shadow-3); max-width: 24rem; width: 100%; padding: 28px; }
+
+/* ---------- Purse: Shared Experiences (reuses the scene-card look) ---------- */
+.exp-list { display: flex; flex-direction: column; gap: 14px; }
+.exp-list[data-shadow="1"] { --shadow-scene: var(--scene-shadow-1); }
+.exp-list[data-shadow="2"] { --shadow-scene: var(--scene-shadow-2); }
+.exp-list[data-shadow="3"] { --shadow-scene: var(--scene-shadow-3); }
+.exp-list[data-shadow="4"] { --shadow-scene: var(--scene-shadow-4); }
+.exp-list[data-shadow="5"] { --shadow-scene: var(--scene-shadow-5); }
+.exp-list:not([data-indicator="arrow"]) .scene-card[data-expandable="true"] { border-bottom: 4px solid var(--scene-edge); }
+.exp-list[data-indicator="edge"] .scene-chevron { display: none; }
+.exp-list[data-grain="true"] .scene-card[data-open="true"] .scene-main::before { opacity: .1; }
+.exp-list[data-grain="false"] .scene-card .scene-main::before { opacity: 0; }
+.exp-when { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 11px; font-weight: 500; letter-spacing: .10em; color: var(--ember-deep); margin-bottom: 5px; text-transform: uppercase; }
+.exp-needs-reply { display: inline-flex; align-items: center; gap: 6px; color: var(--ember); }
+.exp-needs-reply::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ember); }
+.exp-price { margin-top: 10px; font-size: 14px; color: var(--ink); display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.exp-price-usd { color: var(--slate); font-size: 13px; }
+.exp-price-status { font-size: 10px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--ember-deep); }
+.exp-host-note { margin-top: 10px; font-family: var(--font-serif); font-style: italic; font-size: 15px; color: var(--slate); }
+.exp-rsvp { margin-top: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.exp-rsvp-pill { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--paper); }
+.exp-rsvp-pill button { min-height: 40px; padding: 0 18px; font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--slate); background: transparent; border: 0; cursor: pointer; }
+.exp-rsvp-pill button + button { border-left: 1px solid var(--line); }
+.exp-rsvp-pill button[aria-pressed="true"][data-status="going"] { background: var(--scene-olive); color: var(--cream); }
+.exp-rsvp-pill button[aria-pressed="true"][data-status="maybe"] { background: var(--scene-apricot); color: var(--ink); }
+.exp-rsvp-pill button[aria-pressed="true"][data-status="not_going"] { background: var(--ember-deep); color: var(--cream); }
+.exp-rsvp-pill[data-locked="true"] button { cursor: default; }
+.exp-rsvp-hint { font-size: 12px; color: var(--slate); }
+.exp-rsvp-deadline { font-size: 12px; color: var(--slate); }
+.exp-rsvp-summary { font-size: 12px; letter-spacing: .04em; color: var(--slate); }
+.exp-rsvp-choice { margin-top: 2px; }
+.exp-sub-rail { margin-left: 20px; padding-left: 16px; border-left: 1px solid var(--line); display: flex; flex-direction: column; gap: 14px; }
+.exp-names { display: flex; flex-direction: column; gap: 8px; }
+.exp-names-group { font-size: 14px; color: var(--ink); }
+.exp-names-group .label-caps { display: block; margin-bottom: 2px; color: var(--ember-deep); }
+.exp-anchor-highlight { animation: exp-highlight 2.4s ease-out 1; }
+@keyframes exp-highlight {
+  0%, 60% { box-shadow: var(--shadow-scene), 0 0 0 3px color-mix(in oklab, var(--ember) 55%, transparent); }
+  100% { box-shadow: var(--shadow-scene), 0 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) { .exp-anchor-highlight { animation: none; } }
