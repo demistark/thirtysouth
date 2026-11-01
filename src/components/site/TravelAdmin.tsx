@@ -135,7 +135,7 @@ function CastPanel() {
     const confirmed = (q.data ?? []).filter((g) => g.status === "confirmed");
     const orders = shuffledCastOrders(confirmed.map((g) => g.id));
     for (const g of confirmed) {
-      const { error } = await supabase.from("guests").update({ cast_order: orders.get(g.id) }).eq("id", g.id);
+      const { error } = await supabase.from("guests").update({ cast_order: orders.get(g.id) ?? null }).eq("id", g.id);
       if (error) { toast.error(error.message); return; }
     }
     toast.success(t("admin.itin.saved"));
