@@ -120,10 +120,13 @@ describe("flights CSV", () => {
     expect(r.rows).toEqual([]);
     expect(r.errors[0]!.message).toContain("Nobody");
   });
-  it("rejects bad dates, times and directions", () => {
-    const r = parseFlightsCsv(`${header}\nDemi,sideways,QR,1369,DOH,20-11-2026,25:00,,,`, guests, [], transfers);
-    expect(r.rows).toEqual([]);
-    expect(r.errors.length).toBeGreaterThanOrEqual(3);
+  it("rejects bad directions, dates and times", () => {
+    const badDir = parseFlightsCsv(`${header}\nDemi,sideways,QR,1369,DOH,2026-11-20,4:40 PM,,,`, guests, [], transfers);
+    expect(badDir.rows).toEqual([]);
+    expect(badDir.errors[0]!.message).toContain("arrival or departure");
+    const badDateTime = parseFlightsCsv(`${header}\nDemi,arrival,QR,1369,DOH,20-11-2026,25:00,,,`, guests, [], transfers);
+    expect(badDateTime.rows).toEqual([]);
+    expect(badDateTime.errors.length).toBeGreaterThanOrEqual(2);
   });
   it("blank cells keep existing values on upsert", () => {
     const old: TravelLeg = { id: "l1", guest_id: "g1", direction: "arrival", airline: "QR", flight_number: "1369", other_airport: "DOH", cpt_time: "2026-11-20T16:40:00", terminal: "T1", notes: "Window seat", transfer_id: null, visible: true };
