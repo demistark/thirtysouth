@@ -667,7 +667,7 @@ function ImagesPanel() {
       let urls: Record<string, string> = {};
       if (rows.length) {
         const { data: signed } = await supabase.storage.from("travel-images").createSignedUrls(rows.map((r) => r.storage_path), 3600);
-        urls = Object.fromEntries((signed ?? []).map((d) => [d.path ?? "", d.signedUrl]));
+        urls = Object.fromEntries((signed ?? []).filter((d) => d.signedUrl).map((d) => [d.path ?? "", d.signedUrl!]));
       }
       return { rows, urls };
     },
@@ -682,7 +682,7 @@ function ImagesPanel() {
   );
 }
 
-function ImageSlot({ slot, image, url, onDone, label }: { slot: TravelSlot; image?: import("@/lib/travel").TravelImage; url?: string; onDone: () => Promise<unknown>; label: string }) {
+function ImageSlot({ slot, image, url, onDone, label }: { slot: TravelSlot; image?: import("@/lib/travel").TravelImage | undefined; url?: string | undefined; onDone: () => Promise<unknown>; label: string }) {
   const { t } = useContent();
   const input = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);

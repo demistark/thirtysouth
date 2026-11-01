@@ -47,7 +47,7 @@ export function useTravelImages(enabled: boolean) {
       if (paths.length) {
         const { data: signed, error: sErr } = await supabase.storage.from("travel-images").createSignedUrls(paths, 3600);
         if (sErr) throw sErr;
-        urls = Object.fromEntries((signed ?? []).map((d) => [d.path ?? "", d.signedUrl]));
+        urls = Object.fromEntries((signed ?? []).filter((d) => d.signedUrl).map((d) => [d.path ?? "", d.signedUrl!]));
       }
       return { images: rows, urls };
     },
