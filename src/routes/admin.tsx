@@ -10,6 +10,7 @@ import { normalizeEmail } from "@/lib/email";
 import { syncGuestAccounts } from "@/lib/guest-accounts.functions";
 import { FactsAdmin } from "@/components/site/FactsAdmin";
 import { ItineraryAdmin } from "@/components/site/ItineraryAdmin";
+import { TravelAdmin } from "@/components/site/TravelAdmin";
 import { useContent } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/admin")({
   component: Admin,
 });
 
-type Tab = "guests" | "content" | "itinerary" | "settings" | "facts";
+type Tab = "guests" | "content" | "itinerary" | "travel" | "settings" | "facts";
 
 function Admin() {
   const { isHost, roles, loading } = useAuth();
@@ -52,15 +53,20 @@ function Admin() {
             { id: "guests", label: "Guests" },
             { id: "content", label: "Content" },
             { id: "itinerary", label: t("admin.tab.itinerary") },
+            { id: "travel", label: t("admin.tab.travel") },
             { id: "settings", label: "Settings" },
             { id: "facts", label: t("admin.tab.facts") },
-          ] : [{ id: "itinerary", label: t("admin.tab.itinerary") }]}
+          ] : [
+            { id: "itinerary", label: t("admin.tab.itinerary") },
+            { id: "travel", label: t("admin.tab.travel") },
+          ]}
           value={active}
           onChange={setTab}
         />
         {active === "guests" && <GuestsAdmin />}
         {active === "content" && <ContentAdmin />}
         {active === "itinerary" && <ItineraryAdmin />}
+        {active === "travel" && <TravelAdmin />}
         {active === "settings" && <SettingsAdmin />}
         {active === "facts" && <FactsAdmin />}
       </div>
