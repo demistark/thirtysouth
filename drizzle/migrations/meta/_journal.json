@@ -78,6 +78,13 @@
       "when": 1793434358555,
       "tag": "0010_itinerary_scene_refinements",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793532017510,
+      "tag": "0011_honorary_guest_role",
+      "breakpoints": true
     }
   ]
 }
