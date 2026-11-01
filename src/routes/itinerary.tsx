@@ -7,6 +7,8 @@ import { canViewScenes } from "@/lib/locked-areas";
 import { formatChapterDate, useChapters, useContent } from "@/lib/data";
 import { itineraryTabs } from "@/lib/itinerary-tabs";
 import { initialItineraryView, type Scene, type WardrobeLook } from "@/lib/itinerary";
+import { useExperiences } from "@/lib/purse-data";
+import type { Experience } from "@/lib/purse";
 import { useLooks, usePhotoUrls, useScenes } from "@/lib/itinerary-data";
 import { useTripClock } from "@/lib/trip-clock";
 import { zonedDate } from "@/lib/phase";
@@ -88,6 +90,7 @@ function LookTag({look,anchor}: {look:WardrobeLook;anchor:string}) {
 }
 function Scenes({chapter,isToday,scenes,looks,loading}: {chapter:number;isToday:boolean;scenes:Scene[];looks:WardrobeLook[];loading:boolean}) {
   const {t}=useContent(); const [openId,setOpenId]=useState<string|null>(); const display=useItineraryDisplay().data ?? {indicator:"edge",shadow:3,grain:true};
+  const experiences=useExperiences(true).data ?? [];
   const dots=railDots(chapter,scenes);
   if(loading) return <div className="h-64 border bg-card" />;
   if(!scenes.length) return <div>{looks.map(l => <LookTag key={l.id} look={l} anchor={`tag-${l.id}`} />)}<p className="py-12 text-center text-sm">{t("itinerary.scenes_empty")}</p></div>;
@@ -96,14 +99,14 @@ function Scenes({chapter,isToday,scenes,looks,loading}: {chapter:number;isToday:
       const open = expandable(s) && (openId === undefined ? isToday && i === 0 : openId === s.id);
       return <li key={s.id} className="scene-timeline-item">
         {tagsForScene(scenes,looks,i).map(l => <LookTag key={l.id} look={l} anchor={`tag-${s.id}-${l.look_order}`} />)}
-        <SceneCard s={s} open={open} dot={dots[i] ?? {shape:"circle",color:"atlantic"}} onToggle={() => setOpenId(open ? null : s.id)} />
+        <SceneCard s={s} open={open} dot={dots[i] ?? {shape:"circle",color:"atlantic"}} onToggle={() => setOpenId(open ? null : s.id)} experiences={experiences} />
       </li>;
     })}
   </ul>;
 }
-function SceneCard({s,open,onToggle,dot}: {s:Scene;open:boolean;onToggle:()=>void;dot:Dot}) {
+function SceneCard({s,open,onToggle,dot,experiences}: {s:Scene;open:boolean;onToggle:()=>void;dot:Dot;experiences:Experience[]}) {
   const {t}=useContent(); const canExpand=expandable(s); const time=[s.start_time,s.end_time].filter(Boolean).join(" – ");
-  const experienceUrl=(() => {try {const url=new URL(s.experience_card ?? ""); return ["http:","https:"].includes(url.protocol) ? url.href : undefined;} catch {return undefined;}})();
+  const experience=experiences.find(e => e.card === (s.experience_card ?? "").trim());
   return <article id={`scene-${s.id}`} className="scene-card" data-expandable={canExpand} data-open={open}>
     <div className="scene-main">
       {time && <p className="scene-time">{time}</p>}
@@ -119,7 +122,7 @@ function SceneCard({s,open,onToggle,dot}: {s:Scene;open:boolean;onToggle:()=>voi
       {s.details && <p className="whitespace-pre-line text-sm leading-relaxed">{s.details}</p>}
       {s.call_time && <p className="scene-call">{t("itinerary.call_time")} {s.call_time}</p>}
       {s.wrap_time && <p className="scene-call">{t("itinerary.wrap_time")} {s.wrap_time}</p>}
-      {experienceUrl && <a className="scene-experience" href={experienceUrl} target="_blank" rel="noopener noreferrer">{t("itinerary.experience_card")}</a>}
+      {experience?.id && <Link className="look-tag !m-0" to="/purse" hash={`experience-${experience.id}`}><span>{t("purse.experience_tag")} //</span><span className="text-deep-atlantic">{experience.card}</span></Link>}
     </div></div></div>}
   </article>;
 }
