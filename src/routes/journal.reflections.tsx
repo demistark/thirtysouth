@@ -15,7 +15,8 @@ export const Route = createFileRoute("/journal/reflections")({
 });
 
 function Reflections() {
-  const { isFriend, loading } = useAuth();
+  const { isFriend, roles, loading } = useAuth();
   if (loading) return <div className="min-h-80 bg-paper" />;
-  return isFriend ? <section className="lockout-band bg-paper"><ReflectionsDescription /></section> : <ReflectionsLockout />;
+  const allowed = isFriend || roles.includes("honorary_guest");
+  return allowed ? <section className="lockout-band bg-paper"><ReflectionsDescription /></section> : <ReflectionsLockout />;
 }

@@ -1,7 +1,17 @@
-export type SiteRole = "host" | "trip_guest" | "friend_afar" | "schedule_manager";
+export type SiteRole = "host" | "trip_guest" | "friend_afar" | "schedule_manager" | "honorary_guest";
 
 export function canViewScenes(roles: readonly SiteRole[]) {
-  return roles.some((role) => role === "host" || role === "trip_guest" || role === "friend_afar");
+  return roles.some((role) => role === "host" || role === "trip_guest" || role === "friend_afar" || role === "honorary_guest");
+}
+
+/** Travel (Cast, Villa, Flights, Packing): everyone except friends afar. */
+export function canViewTravel(roles: readonly SiteRole[]) {
+  return roles.some((role) => role === "host" || role === "schedule_manager" || role === "trip_guest" || role === "honorary_guest");
+}
+
+/** Only people actually on the trip may RSVP, post in Our Commons, or share expenses. */
+export function isTripParticipant(roles: readonly SiteRole[]) {
+  return roles.some((role) => role === "host" || role === "schedule_manager" || role === "trip_guest");
 }
 
 export function nextFactIndex(length: number, current: number, random = Math.random()) {
