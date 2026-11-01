@@ -225,6 +225,16 @@ function GuestsAdmin() {
                 {g.splitwise_name ? ` · Splitwise: ${g.splitwise_name}` : ""} · {g.user_id ? "signed in before" : "not signed in yet"}
               </p>
             </div>
+            <select
+              className="field !w-auto !py-1.5 text-xs"
+              value={baseRoleOf(g.email)}
+              onChange={(e) => void setBaseRole(g, e.target.value)}
+              aria-label={`Role for ${g.display_name}`}
+            >
+              <option value="trip_guest">On the trip</option>
+              <option value="friend_afar">Afar</option>
+              <option value="honorary_guest">Honorary guest</option>
+            </select>
             <label className="label-caps flex items-center gap-2 text-muted-foreground">
               <input
                 type="checkbox"
