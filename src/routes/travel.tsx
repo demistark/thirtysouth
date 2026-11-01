@@ -193,7 +193,7 @@ function TravelSection({ slot, deck, media, intro, below, eager }: {
   );
 }
 
-function SectionMedia({ slot, media, eager }: { slot: TravelSlot; media: { image: TravelImage | undefined; url: string | undefined }; eager?: boolean }) {
+function SectionMedia({ slot, media, eager }: { slot: TravelSlot; media: { image: TravelImage | undefined; url: string | undefined }; eager?: boolean | undefined }) {
   const { t } = useContent();
   const { image, url } = media;
   if (image && url)

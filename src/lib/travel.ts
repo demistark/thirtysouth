@@ -49,7 +49,7 @@ export function castRole(g: Pick<CastGuest, "pronoun_form" | "cast_role_override
   return (g.pronoun_form ?? "themselves").toUpperCase();
 }
 /** Random cast order assigned once (1..n shuffled); never reshuffles existing orders. */
-export function shuffledCastOrders(ids: string[], random = Math.random()): Map<string, number> {
+export function shuffledCastOrders(ids: string[], random: () => number = Math.random): Map<string, number> {
   const shuffled = [...ids];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.min(Math.max(random(), 0), 0.999999) * (i + 1));
