@@ -113,7 +113,7 @@ describe("home live line", () => {
   ];
   it("counts unanswered must_reply experiences for the signed-in guest", () => {
     expect(needsReplyCount(list, [], "g1")).toBe(1);
-    expect(needsReplyCount(list, [{ experience_id: "a", guest_id: "g1", status: "going", choice: null }], "g1")).toBe(0);
+    expect(needsReplyCount(list, [{ experience_id: "a", guest_id: "g1" }], "g1")).toBe(0);
   });
   it("never counts for a guest without a row or for hidden/group cards", () => {
     expect(needsReplyCount(list, [], null)).toBe(0);
