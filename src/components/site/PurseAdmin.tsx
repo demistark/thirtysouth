@@ -191,7 +191,7 @@ function ExperiencesPanel() {
         commit={commit}
       />
       <div className="flex justify-end">
-        <button className="btn-pill" onClick={exportCsv}>{t("admin.itin.export")}</button>
+        <button className="btn-pill" onClick={exportCsv}>{t("admin.purse.export")}</button>
       </div>
 
       <form onSubmit={save} className="grid gap-3 border bg-card p-5 md:grid-cols-2">
@@ -387,7 +387,7 @@ function RsvpsPanel() {
         <select className="field max-w-72" value={exp?.id ?? ""} onChange={(e) => setSelected(e.target.value)} aria-label="Experience">
           {experiences.map((e) => <option key={e.id} value={e.id}>{e.card}</option>)}
         </select>
-        <button className="btn-pill" onClick={exportCsv}>{t("admin.itin.export")}</button>
+        <button className="btn-pill" onClick={exportCsv}>{t("admin.purse.export")}</button>
       </div>
 
       {awaiting.length > 0 && (
