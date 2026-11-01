@@ -114,16 +114,26 @@ export function needsReplyCount(
 }
 
 /** RSVP writes close at the deadline (Cape Town local) or under the global lock. */
-export function rsvpOpen(deadline: string | null | undefined, globalLock: boolean, nowCpt: Date) {
+export function rsvpOpen(deadline: string | null | undefined, globalLock: boolean, nowCpt: string) {
   if (globalLock) return false;
   if (!deadline) return true;
-  const end = new Date(deadline.replace(" ", "T"));
-  return nowCpt.getTime() < end.getTime();
+  return deadline > nowCpt;
+}
+
+/** Current Cape Town wall time as "YYYY-MM-DD HH:MM", comparable to stored deadlines. */
+export function capeTownNow(now: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Johannesburg", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  }).formatToParts(now);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}`;
 }
 
 export function formatDeadline(deadline: string) {
-  const d = new Date(deadline.replace(" ", "T"));
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(d);
+  const [d] = deadline.split(" ");
+  const [y = 1970, m = 1, day = 1] = (d ?? "").split("-").map(Number);
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, day)));
 }
 
 /* ---------------- CSV ---------------- */
