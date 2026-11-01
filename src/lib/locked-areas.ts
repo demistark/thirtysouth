@@ -14,6 +14,16 @@ export function isTripParticipant(roles: readonly SiteRole[]) {
   return roles.some((role) => role === "host" || role === "schedule_manager" || role === "trip_guest");
 }
 
+/** Purse: everyone on or around the trip; friends afar are excluded. */
+export function canViewPurse(roles: readonly SiteRole[]) {
+  return roles.some((role) => role === "host" || role === "schedule_manager" || role === "trip_guest" || role === "honorary_guest");
+}
+
+/** Purse editing (experiences, settings, anyone's RSVP): host and schedule manager. */
+export function canEditPurse(roles: readonly SiteRole[]) {
+  return roles.some((role) => role === "host" || role === "schedule_manager");
+}
+
 export function nextFactIndex(length: number, current: number, random = Math.random()) {
   if (length < 2) return 0;
   const offset = 1 + Math.floor(Math.min(Math.max(random, 0), 0.999999) * (length - 1));
