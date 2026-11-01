@@ -176,7 +176,7 @@ function SectionCard({
         <h2 className="font-display-light mt-4 text-4xl md:text-5xl">{k("headline")}</h2>
         <p className={cn("mt-4 text-sm leading-relaxed text-muted-foreground", n !== 2 && n !== 4 && "max-w-md")}>{k("sentence")}</p>
         {live}
-        <Link to={to} hash={hash} className="btn-pill mt-8">
+        <Link to={to} {...(hash ? { hash } : {})} className="btn-pill mt-8">
           {k("button")}
         </Link>
       </div>
