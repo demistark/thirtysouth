@@ -1,9 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { PhotoSlot } from "@/components/site/Blocks";
+import { useAuth } from "@/lib/auth";
 import { useContent } from "@/lib/data";
+import { canViewTravel } from "@/lib/locked-areas";
+import { formatLegDate, formatLegTime, nextLeg } from "@/lib/travel";
+import { useMyGuest, useTravelLegs } from "@/lib/travel-data";
 import { useTripClock } from "@/lib/trip-clock";
-import type { Phase } from "@/lib/phase";
+import { zonedDate, type Phase } from "@/lib/phase";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -49,6 +53,8 @@ function HomePhasePlaceholder() {
 function HomeBefore() {
   const { t } = useContent();
   const { daysToGo } = useTripClock();
+  const { roles } = useAuth();
+  const showTravel = canViewTravel(roles);
   return (
     <main>
       <section className="hero-sky relative pb-16 md:pb-20">
