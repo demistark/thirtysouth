@@ -14,3 +14,5 @@
 - [x] Build Travel as one flowing page (Cast, Villa, Flights, Packing) with the Honorary guest role, action-gate dialogs, travel images bucket, room assignments, transfers, packing checks, Admin › Travel tabs and CSV imports; 71 tests pass.
 - [ ] Import the packing starter CSV yourself in Admin › Travel › Packing (per your note, not seeded).
 - [ ] Add real flight legs and transfer details in Admin › Travel when bookings are final.
+- [ ] Build Purse Shared Experiences: experiences/RSVP schema and RLS, cards with price and RSVP modes, Admin › Purse tabs with CSV import, Scenes experience tag, Home live reply line, tests.
+- [ ] Import experiences.csv yourself in Admin › Purse › Experiences (per spec, not seeded).
