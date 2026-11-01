@@ -35,7 +35,7 @@ function Admin() {
   const { t } = useContent();
   const isManager = roles.includes("schedule_manager");
   const [tab, setTab] = useState<Tab>("guests");
-  const active: Tab = isHost ? tab : "itinerary";
+  const active: Tab = isHost ? tab : tab === "travel" ? "travel" : "itinerary";
   if (loading) return <main className="mx-auto max-w-5xl px-5 pt-20"><div className="h-48 border bg-card" /></main>;
   if (!isHost && !isManager)
     return (
@@ -95,14 +95,16 @@ function GuestsAdmin() {
     queryFn: async () => {
       const [g, ri] = await Promise.all([
         supabase.from("guests").select("id,user_id,full_name,display_name,email,status,splitwise_name").order("created_at"),
-        supabase.from("role_invites").select("email,role").eq("role", "schedule_manager"),
+        supabase.from("role_invites").select("email,role"),
       ]);
       if (g.error) throw g.error;
-      const managers = new Set((ri.data ?? []).map((r) => r.email));
+      const managers = new Set((ri.data ?? []).filter((r) => r.role === "schedule_manager").map((r) => r.email));
+      const baseRoles = new Map((ri.data ?? []).filter((r) => r.role !== "schedule_manager").map((r) => [r.email, r.role as string]));
       const guests = (g.data ?? []) as Guest[];
-      return { guests, managers };
+      return { guests, managers, baseRoles };
     },
   });
+  const [roleFilter, setRoleFilter] = useState("all");
   const [editing, setEditing] = useState<Guest | null>(null);
   const [form, setForm] = useState(emptyGuest);
   const refresh = () => qc.invalidateQueries({ queryKey: ["admin", "guests"] });
