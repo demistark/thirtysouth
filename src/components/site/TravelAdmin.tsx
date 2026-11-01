@@ -316,12 +316,12 @@ function FlightsPanel() {
   const legsQ = useQuery({ queryKey: ["admin", "travel-legs"], queryFn: async (): Promise<TravelLeg[]> => {
     const { data, error } = await supabase.from("travel_legs").select("*").order("cpt_time");
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []) as TravelLeg[];
   } });
   const transfersQ = useQuery({ queryKey: ["admin", "travel-transfers"], queryFn: async (): Promise<Transfer[]> => {
     const { data, error } = await supabase.from("transfers").select("*").order("sort_order");
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []) as Transfer[];
   } });
   const [dirFilter, setDirFilter] = useState("");
   const [guestFilter, setGuestFilter] = useState("");
@@ -441,7 +441,7 @@ function TransfersPanel() {
   const q = useQuery({ queryKey: ["admin", "travel-transfers"], queryFn: async (): Promise<Transfer[]> => {
     const { data, error } = await supabase.from("transfers").select("*").order("sort_order");
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []) as Transfer[];
   } });
   const [adding, setAdding] = useState(false);
   return (

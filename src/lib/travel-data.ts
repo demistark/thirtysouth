@@ -82,7 +82,7 @@ export function useTravelLegs(enabled: boolean) {
     queryFn: async (): Promise<TravelLeg[]> => {
       const { data, error } = await supabase.from("travel_legs").select("*").order("cpt_time");
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as TravelLeg[];
     },
   });
 }
@@ -93,7 +93,7 @@ export function useTransfers(enabled: boolean) {
     queryFn: async (): Promise<Transfer[]> => {
       const { data, error } = await supabase.from("transfers").select("*").order("sort_order").order("meet_time");
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as Transfer[];
     },
   });
 }
