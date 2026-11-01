@@ -164,6 +164,15 @@ function GuestsAdmin() {
     refresh();
   };
 
+  const baseRoleOf = (email: string) => guestsQ.data?.baseRoles.get(email) ?? "trip_guest";
+  const setBaseRole = async (g: Guest, role: string) => {
+    const { error } = await supabase.rpc("set_guest_role", { _guest_id: g.id, _role: role as "trip_guest" | "friend_afar" | "honorary_guest" });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Saved");
+    refresh();
+  };
+  const visibleGuests = (guestsQ.data?.guests ?? []).filter((g) => roleFilter === "all" || baseRoleOf(g.email) === roleFilter);
+
   return (
     <div className="space-y-10">
       <form onSubmit={save} className="grid gap-3 border bg-card p-5 md:grid-cols-2">
@@ -196,8 +205,16 @@ function GuestsAdmin() {
         </div>
       </form>
 
+      <div className="flex justify-end">
+        <select className="field max-w-56" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} aria-label="Filter by role">
+          <option value="all">Everyone</option>
+          <option value="trip_guest">On the trip</option>
+          <option value="friend_afar">Afar</option>
+          <option value="honorary_guest">Honorary guest</option>
+        </select>
+      </div>
       <ul className="divide-y border-y">
-        {guestsQ.data?.guests.map((g) => (
+        {visibleGuests.map((g) => (
           <li key={g.id} className="flex flex-wrap items-center gap-4 py-4">
             <div className="min-w-0 flex-1">
               <p className="font-display-light text-xl">
