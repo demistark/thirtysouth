@@ -179,7 +179,7 @@ export function parseFlightsCsv(
     const transferLabel = cell(r, "transfer_label").toLowerCase();
     const transfer = transferLabel ? transfers.find((tr) => tr.label.toLowerCase() === transferLabel) : undefined;
     if (transferLabel && !transfer) errors.push({ row, message: `No transfer called “${cell(r, "transfer_label")}”` });
-    const keep = (v: string, o: string | null | undefined) => (v ? v : (old ? o : null));
+    const keep = (v: string, o: string | null | undefined) => (v ? v : (old ? (o ?? null) : null));
     out.push({
       ...(old?.id ? { id: old.id } : {}),
       guest_id: guest.id, direction,

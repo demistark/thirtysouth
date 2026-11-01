@@ -238,7 +238,7 @@ function GuestsAdmin() {
             <label className="label-caps flex items-center gap-2 text-muted-foreground">
               <input
                 type="checkbox"
-                checked={guestsQ.data.managers.has(g.email)}
+                checked={guestsQ.data?.managers.has(g.email) ?? false}
                 onChange={(e) => toggleManager(g, e.target.checked)}
               />
               Schedule manager
