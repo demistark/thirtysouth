@@ -646,6 +646,7 @@ export type Database = {
         Args: { _email: string; _user_id: string }
         Returns: undefined
       }
+      my_guest: { Args: never; Returns: string }
       my_profile: {
         Args: never
         Returns: {
