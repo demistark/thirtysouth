@@ -2,12 +2,24 @@ export const PHOTO_MAX_EDGE = 2000;
 export const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
 export const PHOTO_QUALITY = 0.88;
 
+export interface PreparePhotoOptions {
+  maxEdge?: number;
+  quality?: number;
+  maxBytes?: number;
+  /** Reject the original file above this size before any processing (clear message). */
+  maxSourceBytes?: number;
+}
+
 function isHeic(file: File) {
   return /hei[cf]$/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
 }
 
-/** Converts HEIC, resizes to 2000px longest side (keeping phone rotation), returns JPEG/PNG/WebP. Size cap is checked after resizing. */
-export async function preparePhoto(file: File): Promise<Blob> {
+/** Converts HEIC, resizes to the max edge (keeping phone rotation), strips EXIF/GPS via canvas, returns JPEG/PNG/WebP. Size cap is checked after resizing. */
+export async function preparePhoto(file: File, opts: PreparePhotoOptions = {}): Promise<Blob> {
+  const maxEdge = opts.maxEdge ?? PHOTO_MAX_EDGE;
+  const quality = opts.quality ?? PHOTO_QUALITY;
+  const maxBytes = opts.maxBytes ?? PHOTO_MAX_BYTES;
+  if (opts.maxSourceBytes && file.size > opts.maxSourceBytes) throw new Error("source_size");
   let source: Blob = file;
   if (isHeic(file)) {
     const { default: heic2any } = await import("heic2any");
@@ -18,7 +30,7 @@ export async function preparePhoto(file: File): Promise<Blob> {
   }
   // createImageBitmap applies EXIF orientation with imageOrientation: "from-image".
   const bmp = await createImageBitmap(source, { imageOrientation: "from-image" });
-  const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(bmp.width, bmp.height));
+  const scale = Math.min(1, maxEdge / Math.max(bmp.width, bmp.height));
   const w = Math.round(bmp.width * scale), h = Math.round(bmp.height * scale);
   const canvas = document.createElement("canvas");
   canvas.width = w; canvas.height = h;
@@ -28,11 +40,19 @@ export async function preparePhoto(file: File): Promise<Blob> {
   ctx.drawImage(bmp, 0, 0, w, h);
   bmp.close();
   const type = source.type === "image/png" ? "image/png" : source.type === "image/webp" ? "image/webp" : "image/jpeg";
-  const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, type, PHOTO_QUALITY));
+  const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, type, quality));
   if (!blob) throw new Error("encode");
-  if (blob.size > PHOTO_MAX_BYTES) throw new Error("size");
+  if (blob.size > maxBytes) throw new Error("size");
   return blob;
 }
+
+/** Journal photos: 1400px long edge, JPEG ~0.8, originals over 15 MB rejected up front. */
+export const JOURNAL_PHOTO_OPTS: PreparePhotoOptions = {
+  maxEdge: 1400,
+  quality: 0.8,
+  maxBytes: 5 * 1024 * 1024,
+  maxSourceBytes: 15 * 1024 * 1024,
+};
 
 export function photoExtension(type: string) {
   return type === "image/png" ? "png" : type === "image/webp" ? "webp" : "jpg";
