@@ -22,7 +22,7 @@ export function SiteHeader() {
   // Signed-out visitors keep every entry (locked pages show their sign-in panel);
   // signed-in friends afar lose the areas they cannot open.
   const nav = NAV.filter((n) =>
-    (n.to !== "/travel" || canViewTravel(roles)) &&
+    (n.to !== "/travel" || !session || canViewTravel(roles)) &&
     (n.to !== "/purse" || !session || canViewPurse(roles)));
   const [open, setOpen] = useState(false);
   const [compact, setCompact] = useState(false);
