@@ -92,7 +92,7 @@ describe("sparse Heart handwriting", () => {
   it("selects one of seven UUID buckets and stays stable", () => {
     const ids = Array.from({ length: 7 }, (_, i) => `00000000-0000-4000-8000-${i.toString(16).padStart(12, "0")}`);
     expect(ids.filter(heartUsesHandwriting)).toEqual([ids[0]]);
-    expect(ids.toReversed().filter(heartUsesHandwriting)).toEqual([ids[0]]);
+    expect([...ids].reverse().filter(heartUsesHandwriting)).toEqual([ids[0]]);
   });
 });
 
