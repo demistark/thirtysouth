@@ -17,7 +17,7 @@
 - Accounts are invite-only: public sign-up is disabled; the host-only `syncGuestAccounts` server fn creates unconfirmed accounts for guests, and sign-in uses `shouldCreateUser: false`. Why: nobody can claim an invited friend's email first.
 - Roles are granted only after `email_confirmed_at` is set (trigger on INSERT OR UPDATE OF email_confirmed_at). Emails are matched with `normalizeEmail()` / lower(trim()) and unique on lower(email). Why: an unproven or differently-cased email never gets access.
 - Area-specific lockouts live in the shared Lockouts module; itinerary access is checked through canViewScenes, independently of other friends-only sections. Why: broader itinerary access must not expose travel or purse.
-- Reflections is the nested /journal/reflections route, rendered through Journal's Outlet; other Journal tabs remain public. Why: its URL and page identity stay consistent with its name.
+- Reflections is the nested /journal/reflections route, rendered through Journal's Outlet. Why: its URL and page identity stay consistent with its name.
 - Travel facts use fun_facts with active-only public reads and host-scoped full access; CSV parsing uses Papa Parse and validates the entire import before writing. Why: hidden facts remain private and quoted CSV text imports reliably.
 - Read signed-in display names through the ownership-scoped, name-only my_profile RPC. Why: preserve header names without exposing guest records or retaining photo functionality.
 - Keep header scroll behavior in SiteHeader with a stable reserved height, global anchor offset and a Home first-card marker for the returning fixed header. Why: header transitions cannot move content or depend on guessed page heights.
