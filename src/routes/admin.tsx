@@ -343,11 +343,16 @@ function SettingsAdmin() {
     },
   });
   const [f, setF] = useState<Record<string, string>>({});
+  const [settingsReady, setSettingsReady] = useState(false);
   useEffect(() => {
-    if (q.data) setF(q.data);
+    if (q.data) {
+      setF(q.data);
+      setSettingsReady(true);
+    }
   }, [q.data]);
 
   const save = async () => {
+    if (!settingsReady) return;
     const rows = [...DATE_KEYS.map((d) => ({ key: d.key, value: f[d.key] ?? "" })), { key: "timezone", value: f["timezone"] || CPT_ZONE }, { key: "otp_enabled", value: f["otp_enabled"] === "true" ? "true" : "false" }];
     const { error } = await supabase.from("settings").upsert(rows);
     if (error) { toast.error(error.message); return; }
@@ -368,7 +373,7 @@ function SettingsAdmin() {
         {t("admin.settings.otp")}
       </label>
       <div>
-        <Button variant="pill" className="btn-pill-solid" onClick={save}>{t("admin.settings.save")}</Button>
+        <Button variant="pill" className="btn-pill-solid" disabled={!settingsReady} onClick={save}>{t("admin.settings.save")}</Button>
       </div>
     </div>
   );
