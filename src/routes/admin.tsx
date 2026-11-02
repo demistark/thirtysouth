@@ -80,6 +80,7 @@ function Admin() {
         {active === "itinerary" && <ItineraryAdmin />}
         {active === "travel" && <TravelAdmin />}
         {active === "purse" && <PurseAdmin />}
+        {active === "journal" && <JournalAdmin />}
         {active === "settings" && <SettingsAdmin />}
         {active === "facts" && <FactsAdmin />}
       </div>
