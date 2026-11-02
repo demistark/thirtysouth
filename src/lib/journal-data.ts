@@ -159,7 +159,8 @@ export function journalErrorMessage(err: unknown): string {
 }
 
 export async function createCommonsPost(input: CreateCommonsInput): Promise<CommonsPost> {
-  const { data, error } = await supabase.rpc("create_commons_post", {
+  // The generated arg types are non-nullable; the RPC itself accepts nulls.
+  const params = {
     _request_id: input.request_id,
     _body: input.body,
     _photo_path: input.photo_path,
@@ -172,7 +173,8 @@ export async function createCommonsPost(input: CreateCommonsInput): Promise<Comm
     _stamp: input.stamp,
     _page_number: input.page_number,
     _frame_no: input.frame_no,
-  });
+  } as never;
+  const { data, error } = await supabase.rpc("create_commons_post", params);
   if (error) throw error;
   return data as CommonsPost;
 }
@@ -186,7 +188,7 @@ export async function createHeartCard(input: {
   photo_h: number | null;
   tilt_deg: number;
 }): Promise<HeartCard> {
-  const { data, error } = await supabase.rpc("create_heart_card", {
+  const params = {
     _request_id: input.request_id,
     _body: input.body,
     _city: input.city,
@@ -194,7 +196,8 @@ export async function createHeartCard(input: {
     _photo_w: input.photo_w,
     _photo_h: input.photo_h,
     _tilt_deg: input.tilt_deg,
-  });
+  } as never;
+  const { data, error } = await supabase.rpc("create_heart_card", params);
   if (error) throw error;
   return data as HeartCard;
 }
