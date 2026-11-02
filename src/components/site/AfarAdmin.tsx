@@ -83,7 +83,10 @@ export function AfarAdmin() {
   const generateAll = async () => {
     try {
       const r = await generateAllFn();
-      if (!r.issued.length) return toast.success("Everyone afar already has a code");
+      if (!r.issued.length) {
+        toast.success("Everyone afar already has a code");
+        return;
+      }
       setShown(r.issued);
       refresh();
     } catch {
@@ -182,7 +185,7 @@ export function AfarAdmin() {
       {shown && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-5" role="dialog" aria-modal="true">
           <div className="w-full max-w-md space-y-4 border bg-card p-6">
-            <p className="font-display-light text-2xl">{shown.length === 1 ? `Code for ${shown[0].displayName}` : "New codes"}</p>
+            <p className="font-display-light text-2xl">{shown.length === 1 ? `Code for ${shown[0]?.displayName ?? ""}` : "New codes"}</p>
             <p className="text-xs text-muted-foreground">
               Shown once. Copy what you need now — after you close this, the codes can't be shown again.
             </p>

@@ -23,7 +23,7 @@ async function loadAdmin() {
 }
 
 function randomInt(max: number): number {
-  return crypto.getRandomValues(new Uint32Array(1))[0] % max;
+  return crypto.getRandomValues(new Uint32Array(1))[0]! % max;
 }
 
 function newSalt(): string {
