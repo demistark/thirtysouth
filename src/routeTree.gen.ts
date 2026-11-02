@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as EnterRouteImport } from './routes/enter'
 import { Route as ItineraryRouteImport } from './routes/itinerary'
 import { Route as JournalRouteImport } from './routes/journal'
 import { Route as PurseRouteImport } from './routes/purse'
@@ -33,6 +34,11 @@ const AdminRoute = AdminRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnterRoute = EnterRouteImport.update({
+  id: '/enter',
+  path: '/enter',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ItineraryRoute = ItineraryRouteImport.update({
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/enter': typeof EnterRoute
   '/itinerary': typeof ItineraryRoute
   '/journal': typeof JournalRouteWithChildren
   '/purse': typeof PurseRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/enter': typeof EnterRoute
   '/itinerary': typeof ItineraryRoute
   '/journal': typeof JournalRouteWithChildren
   '/purse': typeof PurseRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/enter': typeof EnterRoute
   '/itinerary': typeof ItineraryRoute
   '/journal': typeof JournalRouteWithChildren
   '/purse': typeof PurseRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/enter'
     | '/itinerary'
     | '/journal'
     | '/purse'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/enter'
     | '/itinerary'
     | '/journal'
     | '/purse'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/enter'
     | '/itinerary'
     | '/journal'
     | '/purse'
@@ -151,6 +163,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
+  EnterRoute: typeof EnterRoute
   ItineraryRoute: typeof ItineraryRoute
   JournalRoute: typeof JournalRouteWithChildren
   PurseRoute: typeof PurseRoute
@@ -180,6 +193,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/enter': {
+      id: '/enter'
+      path: '/enter'
+      fullPath: '/enter'
+      preLoaderRoute: typeof EnterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/itinerary': {
@@ -249,6 +269,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
+  EnterRoute: EnterRoute,
   ItineraryRoute: ItineraryRoute,
   JournalRoute: JournalRouteWithChildren,
   PurseRoute: PurseRoute,

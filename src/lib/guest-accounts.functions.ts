@@ -31,6 +31,8 @@ export const syncGuestAccounts = createServerFn({ method: "POST" })
     const failed: string[] = [];
     for (const g of guests ?? []) {
       const email = g.email.trim().toLowerCase();
+      // Friends afar may have no email; their account is created on first code sign-in.
+      if (!email) continue;
       if (existing.has(email)) continue;
       const { error: cErr } = await supabaseAdmin.auth.admin.createUser({ email, email_confirm: false });
       if (cErr) failed.push(email);

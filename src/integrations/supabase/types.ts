@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      afar_attempts: {
+        Row: {
+          address: string
+          attempted_at: string
+          id: number
+        }
+        Insert: {
+          address: string
+          attempted_at?: string
+          id?: never
+        }
+        Update: {
+          address?: string
+          attempted_at?: string
+          id?: never
+        }
+        Relationships: []
+      }
+      afar_codes: {
+        Row: {
+          code_hash: string
+          disabled: boolean
+          guest_id: string
+          issued_at: string
+          last_signed_in_at: string | null
+          salt: string
+        }
+        Insert: {
+          code_hash: string
+          disabled?: boolean
+          guest_id: string
+          issued_at?: string
+          last_signed_in_at?: string | null
+          salt: string
+        }
+        Update: {
+          code_hash?: string
+          disabled?: boolean
+          guest_id?: string
+          issued_at?: string
+          last_signed_in_at?: string | null
+          salt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "afar_codes_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: true
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chapters: {
         Row: {
           date: string
@@ -244,6 +297,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          pending_role: Database["public"]["Enums"]["app_role"] | null
           photo_url: string | null
           pronoun_form: string | null
           splitwise_name: string | null
@@ -258,6 +312,7 @@ export type Database = {
           email: string
           full_name: string
           id?: string
+          pending_role?: Database["public"]["Enums"]["app_role"] | null
           photo_url?: string | null
           pronoun_form?: string | null
           splitwise_name?: string | null
@@ -272,6 +327,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          pending_role?: Database["public"]["Enums"]["app_role"] | null
           photo_url?: string | null
           pronoun_form?: string | null
           splitwise_name?: string | null
@@ -759,6 +815,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      afar_session_valid: { Args: never; Returns: boolean }
       can_edit_itinerary: { Args: { _user_id: string }; Returns: boolean }
       can_edit_purse: { Args: { _user_id: string }; Returns: boolean }
       can_edit_travel: { Args: { _user_id: string }; Returns: boolean }

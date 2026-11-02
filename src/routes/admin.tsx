@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { useServerFn } from "@tanstack/react-start";
 import { normalizeEmail } from "@/lib/email";
 import { syncGuestAccounts } from "@/lib/guest-accounts.functions";
+import { AfarAdmin } from "@/components/site/AfarAdmin";
 import { FactsAdmin } from "@/components/site/FactsAdmin";
 import { ItineraryAdmin } from "@/components/site/ItineraryAdmin";
 import { PurseAdmin } from "@/components/site/PurseAdmin";
@@ -66,7 +67,12 @@ function Admin() {
           value={active}
           onChange={setTab}
         />
-        {active === "guests" && <GuestsAdmin />}
+        {active === "guests" && (
+          <>
+            <GuestsAdmin />
+            <AfarAdmin />
+          </>
+        )}
         {active === "content" && <ContentAdmin />}
         {active === "itinerary" && <ItineraryAdmin />}
         {active === "travel" && <TravelAdmin />}
@@ -88,6 +94,7 @@ interface Guest {
   email: string;
   status: string;
   splitwise_name: string | null;
+  pending_role: string | null;
 }
 
 const emptyGuest = { full_name: "", display_name: "", email: "", status: "confirmed", splitwise_name: "" };
@@ -98,7 +105,7 @@ function GuestsAdmin() {
     queryKey: ["admin", "guests"],
     queryFn: async () => {
       const [g, ri] = await Promise.all([
-        supabase.from("guests").select("id,user_id,full_name,display_name,email,status,splitwise_name").order("created_at"),
+        supabase.from("guests").select("id,user_id,full_name,display_name,email,status,splitwise_name,pending_role").order("created_at"),
         supabase.from("role_invites").select("email,role"),
       ]);
       if (g.error) throw g.error;
@@ -168,14 +175,14 @@ function GuestsAdmin() {
     refresh();
   };
 
-  const baseRoleOf = (email: string) => guestsQ.data?.baseRoles.get(email) ?? "trip_guest";
+  const baseRoleOf = (g: Guest) => guestsQ.data?.baseRoles.get(g.email) ?? g.pending_role ?? "trip_guest";
   const setBaseRole = async (g: Guest, role: string) => {
     const { error } = await supabase.rpc("set_guest_role", { _guest_id: g.id, _role: role as "trip_guest" | "friend_afar" | "honorary_guest" });
     if (error) { toast.error(error.message); return; }
     toast.success("Saved");
     refresh();
   };
-  const visibleGuests = (guestsQ.data?.guests ?? []).filter((g) => roleFilter === "all" || baseRoleOf(g.email) === roleFilter);
+  const visibleGuests = (guestsQ.data?.guests ?? []).filter((g) => roleFilter === "all" || baseRoleOf(g) === roleFilter);
 
   return (
     <div className="space-y-10">
@@ -187,8 +194,8 @@ function GuestsAdmin() {
         <Field label="Display name">
           <input className="field" required value={form.display_name} onChange={(e) => setForm({ ...form, display_name: e.target.value })} />
         </Field>
-        <Field label="Email">
-          <input className="field" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        <Field label="Email (blank for friends afar)">
+          <input className="field" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
         </Field>
         <Field label="Splitwise name">
           <input className="field" value={form.splitwise_name} onChange={(e) => setForm({ ...form, splitwise_name: e.target.value })} />
@@ -225,13 +232,13 @@ function GuestsAdmin() {
                 {g.display_name} <span className="text-sm text-muted-foreground">· {g.full_name}</span>
               </p>
               <p className="truncate text-xs text-muted-foreground">
-                {g.email} · {g.status}
+                {g.email || "personal code only"} · {g.status}
                 {g.splitwise_name ? ` · Splitwise: ${g.splitwise_name}` : ""} · {g.user_id ? "signed in before" : "not signed in yet"}
               </p>
             </div>
             <select
               className="field !w-auto !py-1.5 text-xs"
-              value={baseRoleOf(g.email)}
+              value={baseRoleOf(g)}
               onChange={(e) => void setBaseRole(g, e.target.value)}
               aria-label={`Role for ${g.display_name}`}
             >

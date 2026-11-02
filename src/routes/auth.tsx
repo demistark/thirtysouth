@@ -120,6 +120,11 @@ function SignIn() {
           <button className="btn-pill btn-pill-solid w-full" disabled={state === "sending"}>
             {t("signin.button")}
           </button>
+          <p className="pt-2 text-center">
+            <Link to="/enter" search={{ code: undefined }} className="label-caps text-muted-foreground underline">
+              Have a personal code?
+            </Link>
+          </p>
         </form>
       )}
     </main>
