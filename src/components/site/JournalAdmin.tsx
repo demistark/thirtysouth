@@ -58,7 +58,7 @@ function CommonsAdmin() {
 
   const reroll = async (post: CommonsPost) => {
     const look = assignCommonsLook(post.body?.length ?? 0, !!post.photo_path);
-    await update(post.id, look);
+    await update(post.id, { ...look });
   };
 
   if (postsQ.isLoading) return <div className="h-48 border bg-card" />;
