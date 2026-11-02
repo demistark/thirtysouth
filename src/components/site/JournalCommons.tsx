@@ -210,7 +210,7 @@ function CommonsComposer({ settings, myPosts }: { settings: { commonsChars: numb
   );
 }
 
-function CommonsCard({ post, photoUrl }: { post: CommonsPost; photoUrl?: string }) {
+function CommonsCard({ post, photoUrl }: { post: CommonsPost; photoUrl?: string | undefined }) {
   const [straight, setStraight] = useState(false);
   const isPhone = typeof window !== "undefined" && window.matchMedia("(max-width: 700px)").matches;
   const adj = isPhone ? phoneAdjust(post.size_pct, post.tilt_deg) : { size_pct: post.size_pct, tilt_deg: post.tilt_deg };

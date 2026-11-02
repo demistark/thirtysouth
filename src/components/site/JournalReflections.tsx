@@ -42,7 +42,7 @@ function NonParticipantMessage() {
   );
 }
 
-function Notebook({ settings }: { settings: { reflectionsOpen: boolean; phaseOverride: string; phaseDuringStart: string; phaseDuringEnd: string } & Record<string, unknown> }) {
+function Notebook({ settings }: { settings: { reflectionsOpen: boolean; phaseOverride: string; phaseDuringStart: string; phaseDuringEnd: string } }) {
   const { t } = useContent();
   const queryClient = useQueryClient();
   const myGuestQ = useMyGuestId(true);

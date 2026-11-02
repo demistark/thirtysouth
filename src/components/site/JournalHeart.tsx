@@ -188,7 +188,7 @@ function HeartComposer({ settings, myCards }: { settings: { heartChars: number; 
   );
 }
 
-function HeartCardView({ card, photoUrl }: { card: HeartCard; photoUrl?: string }) {
+function HeartCardView({ card, photoUrl }: { card: HeartCard; photoUrl?: string | undefined }) {
   const { t } = useContent();
   return (
     <article className={cn("journal-postcard", card.pinned && "is-pinned")} style={{ transform: `rotate(${card.tilt_deg}deg)` }}>
