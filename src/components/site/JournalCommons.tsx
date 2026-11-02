@@ -52,7 +52,7 @@ function CommonsBody({ phase, roles, settings }: { phase: "before" | "during" | 
 
   if (phase === "before") {
     return (
-      <section>
+      <section className="space-y-4">
         <div className="journal-notice">
           <h2 className="journal-notice-title">{t("commons_before_title")}</h2>
           <p className="journal-notice-body">{t("commons_before_body")}</p>

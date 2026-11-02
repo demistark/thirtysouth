@@ -7,6 +7,7 @@ import {
   allowanceState,
   clampAspect,
   heartTilt,
+  heartUsesHandwriting,
   orderHeartCards,
   showCounter,
   type HeartCard,
@@ -200,13 +201,13 @@ function HeartCardView({ card, photoUrl }: { card: HeartCard; photoUrl?: string 
           ) : (
             <div className="journal-photo-waiting">Photo</div>
           )}
-          <p className="caption-serif mt-3 text-base italic leading-relaxed">{card.body}</p>
+          <p className={cn("mt-3 text-base leading-relaxed", heartUsesHandwriting(card.id) ? "journal-hand" : "caption-serif italic")}>{card.body}</p>
         </div>
       ) : (
         <div className="journal-postcard-split">
           <div className="journal-postcard-message">
             <p className="journal-card-tag">POSTCARD</p>
-            <p className="caption-serif mt-2 text-[17px] italic leading-[1.55]">{card.body}</p>
+            <p className={cn("mt-2 text-[17px] leading-[1.55]", heartUsesHandwriting(card.id) ? "journal-hand" : "caption-serif italic")}>{card.body}</p>
           </div>
           <div className="journal-postcard-address">
             <span className="journal-postcard-stamp">30° S</span>

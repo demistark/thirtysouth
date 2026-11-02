@@ -7,6 +7,7 @@ import {
   formatBoardDay,
   groupByDay,
   heartTilt,
+  heartUsesHandwriting,
   orderHeartCards,
   parseJournalSettings,
   phaseFromSettings,
@@ -87,6 +88,14 @@ describe("heartTilt", () => {
   });
 });
 
+describe("sparse Heart handwriting", () => {
+  it("selects one of seven UUID buckets and stays stable", () => {
+    const ids = Array.from({ length: 7 }, (_, i) => `00000000-0000-4000-8000-${i.toString(16).padStart(12, "0")}`);
+    expect(ids.filter(heartUsesHandwriting)).toEqual([ids[0]]);
+    expect(ids.toReversed().filter(heartUsesHandwriting)).toEqual([ids[0]]);
+  });
+});
+
 describe("phoneAdjust", () => {
   it("softens tilt by 0.6 and lifts cards to at least 76%", () => {
     expect(phoneAdjust(72, 4)).toEqual({ size_pct: 76, tilt_deg: 2.4 });
@@ -109,6 +118,12 @@ describe("counter and allowance thresholds", () => {
 
 describe("phases (America/Detroit settings)", () => {
   const s = parseJournalSettings({});
+  it("uses CPT boundaries when selected instead of EST", () => {
+    const cpt = parseJournalSettings({ phase_timezone: "Africa/Johannesburg" });
+    expect(phaseFromSettings(new Date("2026-11-19T21:59:00Z"), cpt)).toBe("before");
+    expect(phaseFromSettings(new Date("2026-11-19T22:00:00Z"), cpt)).toBe("during");
+    expect(phaseFromSettings(new Date("2026-11-19T22:00:00Z"), s)).toBe("before");
+  });
   it("boundary minutes: Nov 20 00:00 is during, one minute before is before", () => {
     // 2026-11-20 00:00 Detroit = 05:00 UTC (EST, UTC-5)
     expect(phaseFromSettings(new Date("2026-11-20T04:59:00Z"), s)).toBe("before");
