@@ -11,6 +11,7 @@ import { syncGuestAccounts } from "@/lib/guest-accounts.functions";
 import { AfarAdmin } from "@/components/site/AfarAdmin";
 import { FactsAdmin } from "@/components/site/FactsAdmin";
 import { ItineraryAdmin } from "@/components/site/ItineraryAdmin";
+import { JournalAdmin } from "@/components/site/JournalAdmin";
 import { PurseAdmin } from "@/components/site/PurseAdmin";
 import { TravelAdmin } from "@/components/site/TravelAdmin";
 import { useContent } from "@/lib/data";
@@ -30,14 +31,14 @@ export const Route = createFileRoute("/admin")({
   component: Admin,
 });
 
-type Tab = "guests" | "content" | "itinerary" | "travel" | "purse" | "settings" | "facts";
+type Tab = "guests" | "content" | "itinerary" | "travel" | "purse" | "journal" | "settings" | "facts";
 
 function Admin() {
   const { isHost, roles, loading } = useAuth();
   const { t } = useContent();
   const isManager = roles.includes("schedule_manager");
   const [tab, setTab] = useState<Tab>("guests");
-  const active: Tab = isHost ? tab : tab === "travel" || tab === "purse" ? tab : "itinerary";
+  const active: Tab = isHost ? tab : tab === "travel" || tab === "purse" || tab === "journal" ? tab : "itinerary";
   if (loading) return <main className="mx-auto max-w-5xl px-5 pt-20"><div className="h-48 border bg-card" /></main>;
   if (!isHost && !isManager)
     return (
@@ -57,12 +58,14 @@ function Admin() {
             { id: "itinerary", label: t("admin.tab.itinerary") },
             { id: "travel", label: t("admin.tab.travel") },
             { id: "purse", label: t("admin.tab.purse") },
+            { id: "journal", label: "Journal" },
             { id: "settings", label: "Settings" },
             { id: "facts", label: t("admin.tab.facts") },
           ] : [
             { id: "itinerary", label: t("admin.tab.itinerary") },
             { id: "travel", label: t("admin.tab.travel") },
             { id: "purse", label: t("admin.tab.purse") },
+            { id: "journal", label: "Journal" },
           ]}
           value={active}
           onChange={setTab}
@@ -77,6 +80,7 @@ function Admin() {
         {active === "itinerary" && <ItineraryAdmin />}
         {active === "travel" && <TravelAdmin />}
         {active === "purse" && <PurseAdmin />}
+        {active === "journal" && <JournalAdmin />}
         {active === "settings" && <SettingsAdmin />}
         {active === "facts" && <FactsAdmin />}
       </div>

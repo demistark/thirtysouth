@@ -120,6 +120,20 @@
       "when": 1793601984383,
       "tag": "0016_afar_access_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793603259857,
+      "tag": "0017_journal_commons_reflections_heart",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793603281608,
+      "tag": "0018_journal_photos_storage_policies",
+      "breakpoints": true
     }
   ]
 }
