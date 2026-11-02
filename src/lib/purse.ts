@@ -70,6 +70,78 @@ export function usdFromZar(zar: number, zarPerUsd: number) {
   return zarPerUsd > 0 ? Math.round(zar / zarPerUsd) : null;
 }
 
+/* ---------------- currency toggle (Shared Experiences prices only) ---------------- */
+
+export type PurseCurrency = "zar" | "usd";
+const CURRENCY_KEY = "purse_currency";
+
+/** Stored amounts are always ZAR; the toggle only changes how the price line reads. */
+export function readPurseCurrency(storage: Pick<Storage, "getItem"> | null | undefined): PurseCurrency {
+  try {
+    return (storage ?? window.localStorage).getItem(CURRENCY_KEY) === "usd" ? "usd" : "zar";
+  } catch {
+    return "zar";
+  }
+}
+
+export function storePurseCurrency(currency: PurseCurrency, storage: Pick<Storage, "setItem"> | null | undefined): void {
+  try {
+    (storage ?? window.localStorage).setItem(CURRENCY_KEY, currency);
+  } catch {
+    /* private mode: the page works without remembering */
+  }
+}
+
+/** The switch only exists on the Shared Experiences tab. */
+export function showCurrencyToggle(tab: string): boolean {
+  return tab === "experiences";
+}
+
+/** Primary amount takes "per person"; the secondary reads "about …". */
+export function priceLineParts(priceZar: number, zarPerUsd: number, currency: PurseCurrency): { primary: string; secondary: string | null } {
+  const usd = usdFromZar(priceZar, zarPerUsd);
+  if (currency === "usd" && usd != null) return { primary: `$${usd}`, secondary: formatPriceZar(priceZar) };
+  return { primary: formatPriceZar(priceZar), secondary: usd != null ? `$${usd}` : null };
+}
+
+/* ---------------- scene experience tags ---------------- */
+
+export type SceneExperienceStatus = RsvpStatus | "needs_reply" | null;
+export interface SceneExperienceTag { id: string; card: string; status: SceneExperienceStatus }
+
+/**
+ * One tag per linked experience (experience_scenes links, with the scenes.experience_card
+ * text match as a fallback). The status is the viewer's own reply; honorary guests,
+ * friends afar and no-RSVP experiences get the link only.
+ */
+export function sceneExperienceTags(
+  scene: { id: string; experience_card: string | null },
+  experiences: Experience[],
+  links: { experience_id: string; scene_id: string }[],
+  rsvps: ExperienceRsvp[],
+  myGuestId: string | null,
+  participant: boolean,
+): SceneExperienceTag[] {
+  const byId = new Map(experiences.map((e) => [e.id, e]));
+  const linked = links.filter((l) => l.scene_id === scene.id)
+    .map((l) => byId.get(l.experience_id))
+    .filter((e): e is Experience => !!e);
+  const wanted = (scene.experience_card ?? "").trim().toLowerCase();
+  if (wanted && !linked.some((e) => e.card.toLowerCase() === wanted)) {
+    const match = experiences.find((e) => e.card.toLowerCase() === wanted);
+    if (match) linked.push(match);
+  }
+  return linked.map((e) => {
+    let status: SceneExperienceStatus = null;
+    if (participant && e.rsvp_mode !== "none") {
+      const mine = myGuestId ? rsvps.find((r) => r.experience_id === e.id && r.guest_id === myGuestId) : undefined;
+      const eff = effectiveStatus(e, mine);
+      status = eff === "unconfirmed" ? "needs_reply" : eff;
+    }
+    return { id: e.id!, card: e.card, status };
+  });
+}
+
 /** Several days on one card are separated with a comma and a space, never a dot or dash. */
 export function formatWhenList(text: string) {
   return text
