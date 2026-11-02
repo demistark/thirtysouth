@@ -26,7 +26,7 @@ export function useJournalSettings(enabled: boolean) {
           "commons_posts_per_day", "commons_chars", "heart_cards_per_person", "heart_photos_per_person",
           "heart_chars", "counter_show_at_pct", "commons_show_honorary", "commons_show_afar",
           "heart_show_honorary", "heart_show_afar", "reflections_open",
-          "phase_during_start", "phase_during_end", "phase_override",
+          "phase_during_start", "phase_during_end", "phase_override", "phase_timezone",
         ]);
       if (error) throw error;
       const m = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]));

@@ -13,6 +13,7 @@ import {
 } from "@/lib/travel";
 import type { ImportResult, RowError } from "@/lib/itinerary";
 import { useGuestDirectory } from "@/lib/travel-data";
+import { TripTimeInput } from "./TripTimeInput";
 
 type Sub = "cast" | "villa" | "flights" | "transfers" | "packing" | "images" | "settings";
 
@@ -410,8 +411,7 @@ function LegRow({ leg, directory, transfers, allLegs, isNew, onDone }: {
       <F label="Airline"><input className="field" value={f.airline} onChange={(e) => setF({ ...f, airline: e.target.value })} /></F>
       <F label="Flight number"><input className="field" value={f.flight_number} onChange={(e) => setF({ ...f, flight_number: e.target.value })} /></F>
       <F label="Other airport"><input className="field" placeholder="DOH" value={f.other_airport} onChange={(e) => setF({ ...f, other_airport: e.target.value })} /></F>
-      <F label="Cape Town date"><input type="date" className="field" value={date} onChange={(e) => setF({ ...f, cpt_time: `${e.target.value}T${time}:00` })} /></F>
-      <F label="Cape Town time"><input className="field" placeholder="2:30 PM" value={time} onChange={(e) => setF({ ...f, cpt_time: `${date}T${e.target.value}:00` })} /></F>
+      <TripTimeInput label={t("time.flight.label")} value={f.cpt_time} onChange={(value) => setF({ ...f, cpt_time: value })} />
       <F label="Terminal"><input className="field" value={f.terminal ?? ""} onChange={(e) => setF({ ...f, terminal: e.target.value || null })} /></F>
       <F label="Transfer">
         <select className="field" value={f.transfer_id ?? ""} onChange={(e) => setF({ ...f, transfer_id: e.target.value || null })}>
@@ -502,8 +502,7 @@ function TransferRow({ transfer, isNew, onDone }: { transfer: Transfer; isNew?: 
         </select>
       </F>
       <F label="Order"><input type="number" className="field" value={f.sort_order} onChange={(e) => setF({ ...f, sort_order: +e.target.value })} /></F>
-      <F label="Meet date"><input type="date" className="field" value={date} onChange={(e) => setF({ ...f, meet_time: e.target.value ? `${e.target.value}T${time || "12:00"}:00` : null })} /></F>
-      <F label="Meet time"><input className="field" placeholder="2:30 PM" value={time} onChange={(e) => setF({ ...f, meet_time: date ? `${date}T${e.target.value}:00` : null })} /></F>
+      <TripTimeInput label={t("time.transfer.label")} value={f.meet_time ?? ""} onChange={(value) => setF({ ...f, meet_time: value || null })} />
       <F label="Meeting point"><input className="field" value={f.meeting_point ?? ""} onChange={(e) => setF({ ...f, meeting_point: e.target.value || null })} /></F>
       <F label="Provider"><input className="field" value={f.provider ?? ""} onChange={(e) => setF({ ...f, provider: e.target.value || null })} /></F>
       <F label="Driver contact"><input className="field" value={f.driver_contact ?? ""} onChange={(e) => setF({ ...f, driver_contact: e.target.value || null })} /></F>

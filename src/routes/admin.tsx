@@ -16,6 +16,8 @@ import { PurseAdmin } from "@/components/site/PurseAdmin";
 import { TravelAdmin } from "@/components/site/TravelAdmin";
 import { useContent } from "@/lib/data";
 import { Button } from "@/components/ui/button";
+import { TripTimeZoneSelect } from "@/components/site/TripTimeInput";
+import { CPT_ZONE } from "@/lib/trip-time";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -341,12 +343,17 @@ function SettingsAdmin() {
     },
   });
   const [f, setF] = useState<Record<string, string>>({});
+  const [settingsReady, setSettingsReady] = useState(false);
   useEffect(() => {
-    if (q.data) setF(q.data);
+    if (q.data) {
+      setF(q.data);
+      setSettingsReady(true);
+    }
   }, [q.data]);
 
   const save = async () => {
-    const rows = [...DATE_KEYS.map((d) => ({ key: d.key, value: f[d.key] ?? "" })), { key: "otp_enabled", value: f["otp_enabled"] === "true" ? "true" : "false" }];
+    if (!settingsReady) return;
+    const rows = [...DATE_KEYS.map((d) => ({ key: d.key, value: f[d.key] ?? "" })), { key: "timezone", value: f["timezone"] || CPT_ZONE }, { key: "otp_enabled", value: f["otp_enabled"] === "true" ? "true" : "false" }];
     const { error } = await supabase.from("settings").upsert(rows);
     if (error) { toast.error(error.message); return; }
     toast.success(t("admin.settings.saved"));
@@ -360,13 +367,13 @@ function SettingsAdmin() {
           <input type="date" className="field" value={f[d.key] ?? ""} onChange={(e) => setF({ ...f, [d.key]: e.target.value })} />
         </Field>
       ))}
-      <p className="caption-serif text-sm">All dates are read in {f["timezone"] ?? "Africa/Johannesburg"} time.</p>
+      <TripTimeZoneSelect value={f["timezone"] || CPT_ZONE} onChange={(zone) => setF({ ...f, timezone: zone })} />
       <label className="flex items-center gap-3 text-sm">
         <input type="checkbox" checked={f["otp_enabled"] === "true"} onChange={(e) => setF({ ...f, otp_enabled: e.target.checked ? "true" : "false" })} />
         {t("admin.settings.otp")}
       </label>
       <div>
-        <Button variant="pill" className="btn-pill-solid" onClick={save}>{t("admin.settings.save")}</Button>
+        <Button variant="pill" className="btn-pill-solid" disabled={!settingsReady} onClick={save}>{t("admin.settings.save")}</Button>
       </div>
     </div>
   );

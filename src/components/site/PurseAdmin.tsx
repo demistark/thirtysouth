@@ -11,6 +11,7 @@ import {
   type Experience, type ExperienceImportRow, type ExperienceRsvp, type RsvpStatus,
 } from "@/lib/purse";
 import { useParticipantDirectory } from "@/lib/purse-data";
+import { TripTimeInput } from "./TripTimeInput";
 
 type Sub = "experiences" | "rsvps" | "settings";
 
@@ -222,7 +223,7 @@ function ExperiencesPanel() {
         <F label="Choices (; separated)"><input className="field" value={form.choices} onChange={(e) => setForm({ ...form, choices: e.target.value })} /></F>
         <F label="When"><input className="field" value={form.when_text} onChange={(e) => setForm({ ...form, when_text: e.target.value })} placeholder="Fri Nov 27" /></F>
         <F label="Location"><input className="field" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></F>
-        <F label="RSVP deadline (Cape Town)"><input className="field" value={form.rsvp_deadline} onChange={(e) => setForm({ ...form, rsvp_deadline: e.target.value })} placeholder="2026-11-10 18:00" /></F>
+        <TripTimeInput label={t("time.rsvp.label")} value={form.rsvp_deadline} onChange={(value) => setForm({ ...form, rsvp_deadline: value })} />
         <F label="Summary" wide><textarea className="field min-h-16" value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} /></F>
         <F label="Details" wide><textarea className="field min-h-24" value={form.details} onChange={(e) => setForm({ ...form, details: e.target.value })} /></F>
         <F label="Price (ZAR)"><input className="field" inputMode="numeric" value={form.price_zar} onChange={(e) => setForm({ ...form, price_zar: e.target.value })} /></F>

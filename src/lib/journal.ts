@@ -59,7 +59,8 @@ export interface JournalSettings {
   heartShowHonorary: boolean;
   heartShowAfar: boolean;
   reflectionsOpen: boolean;
-  phaseDuringStart: string; // "YYYY-MM-DD HH:mm" America/Detroit
+  phaseDuringStart: string; // "YYYY-MM-DD HH:mm" in phaseTimezone
+  phaseTimezone?: string;
   phaseDuringEnd: string;
   phaseOverride: "auto" | Phase;
 }
@@ -101,6 +102,7 @@ export function parseJournalSettings(m: Record<string, string>): JournalSettings
     heartShowAfar: bool("heart_show_afar", true),
     reflectionsOpen: bool("reflections_open", true),
     phaseDuringStart: m["phase_during_start"] || "2026-11-20 00:00",
+    phaseTimezone: m["phase_timezone"] === "Africa/Johannesburg" ? "Africa/Johannesburg" : "Etc/GMT+5",
     phaseDuringEnd: m["phase_during_end"] || "2026-11-30 23:59",
     phaseOverride: override === "before" || override === "during" || override === "after" ? override : "auto",
   };
@@ -108,9 +110,9 @@ export function parseJournalSettings(m: Record<string, string>): JournalSettings
 
 /* ---------------- phases (America/Detroit settings) ---------------- */
 
-function detroitStamp(now: Date): string {
+function phaseStamp(now: Date, timeZone: string): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Detroit",
+    timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -124,7 +126,7 @@ function detroitStamp(now: Date): string {
 
 export function phaseFromSettings(now: Date, s: JournalSettings): Phase {
   if (s.phaseOverride !== "auto") return s.phaseOverride;
-  const stamp = detroitStamp(now);
+  const stamp = phaseStamp(now, s.phaseTimezone ?? "Etc/GMT+5");
   if (stamp < s.phaseDuringStart) return "before";
   if (stamp > s.phaseDuringEnd) return "after";
   return "during";
@@ -220,6 +222,13 @@ export function assignCommonsLook(bodyLength: number, hasPhoto: boolean, rand: (
 
 export function heartTilt(rand: () => number = Math.random): number {
   return Math.round((rand() * 2 - 1) * 10) / 10;
+}
+
+/** UUID-derived font choice: roughly one in seven, stable regardless of sorting/reload. */
+export function heartUsesHandwriting(id: string): boolean {
+  const tail = id.replaceAll("-", "").slice(-8);
+  if (!/^[0-9a-f]{8}$/i.test(tail)) return false;
+  return Number.parseInt(tail, 16) % 7 === 0;
 }
 
 /** Phone widths: tilt is softened and every card is at least 76% of the column. */
