@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { canEditPurse, canViewPurse, isTripParticipant } from "@/lib/locked-areas";
 import {
   capeTownNow, choiceList, effectiveStatus, experienceExpandable, exportExperiencesCsv, formatDeadline,
-  formatPriceZar, formatWhenList, needsReplyCount, parseExperiencesCsv, rsvpCounts, rsvpOpen, usdFromZar,
+  formatPriceZar, formatWhenList, needsReplyCount, parseExperiencesCsv, priceLineParts, readPurseCurrency,
+  rsvpCounts, rsvpOpen, sceneExperienceTags, showCurrencyToggle, storePurseCurrency, usdFromZar,
   type Experience, type ExperienceRsvp,
 } from "@/lib/purse";
 
