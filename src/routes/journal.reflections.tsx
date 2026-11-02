@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ReflectionsDescription, ReflectionsLockout } from "@/components/site/Lockouts";
+import { JournalReflections } from "@/components/site/JournalReflections";
+import { ReflectionsLockout } from "@/components/site/Lockouts";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/journal/reflections")({
@@ -15,8 +16,8 @@ export const Route = createFileRoute("/journal/reflections")({
 });
 
 function Reflections() {
-  const { isFriend, roles, loading } = useAuth();
+  const { session, loading } = useAuth();
   if (loading) return <div className="min-h-80 bg-paper" />;
-  const allowed = isFriend || roles.includes("honorary_guest");
-  return allowed ? <section className="lockout-band bg-paper"><ReflectionsDescription /></section> : <ReflectionsLockout />;
+  if (!session) return <ReflectionsLockout />;
+  return <JournalReflections />;
 }

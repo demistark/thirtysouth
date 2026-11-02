@@ -1,6 +1,8 @@
 import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ComingSoon, PageShell, SubTabs } from "@/components/site/Blocks";
+import { PageShell, SubTabs } from "@/components/site/Blocks";
+import { JournalCommons } from "@/components/site/JournalCommons";
+import { JournalHeart } from "@/components/site/JournalHeart";
 import { useContent } from "@/lib/data";
 
 export const Route = createFileRoute("/journal")({
@@ -12,6 +14,10 @@ export const Route = createFileRoute("/journal")({
       { property: "og:description", content: "The stories in between." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+    ],
+    links: [
+      // Shantell Sans is the handwriting font of Our Commons; this route only.
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Shantell+Sans:wght@500&display=swap" },
     ],
   }),
   component: Journal,
@@ -34,7 +40,7 @@ function Journal() {
   return (
     <PageShell titleKey={isReflections ? "journal.reflections.title" : "journal.title"} introKey="journal.intro">
       <SubTabs tabs={ids.map((id) => ({ id, label: t(`journal.tab.${id}`) }))} value={current} onChange={changeTab} />
-      {isReflections ? <Outlet /> : <ComingSoon />}
+      {isReflections ? <Outlet /> : current === "commons" ? <JournalCommons /> : <JournalHeart />}
     </PageShell>
   );
 }
