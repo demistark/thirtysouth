@@ -259,8 +259,8 @@ export function contrastRatio(hexA: string, hexB: string): number {
       .map((v) => (v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
     return 0.2126 * c[0]! + 0.7152 * c[1]! + 0.0722 * c[2]!;
   };
-  const [hi, lo] = [lum(hexA), lum(hexB)].sort((a, b) => b - a);
-  return (hi + 0.05) / (lo + 0.05);
+  const sorted = [lum(hexA), lum(hexB)].sort((a, b) => b - a);
+  return (sorted[0]! + 0.05) / (sorted[1]! + 0.05);
 }
 
 // Card paper is #FFFDF9; tones are existing palette tokens.

@@ -115,7 +115,7 @@ export interface SceneExperienceTag { id: string; card: string; status: SceneExp
  * friends afar and no-RSVP experiences get the link only.
  */
 export function sceneExperienceTags(
-  scene: { id: string; experience_card: string | null },
+  scene: { id?: string | undefined; experience_card: string | null },
   experiences: Experience[],
   links: { experience_id: string; scene_id: string }[],
   rsvps: ExperienceRsvp[],
