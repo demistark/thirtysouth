@@ -118,6 +118,74 @@ export type Database = {
         }
         Relationships: []
       }
+      commons_posts: {
+        Row: {
+          author_guest_id: string
+          body: string | null
+          card_style: string
+          created_at: string
+          edited_at: string
+          frame_no: number | null
+          hidden: boolean
+          id: string
+          page_number: number | null
+          photo_h: number | null
+          photo_path: string | null
+          photo_w: number | null
+          request_id: string
+          size_pct: number
+          stamp: boolean
+          tilt_deg: number
+          tint: string | null
+        }
+        Insert: {
+          author_guest_id: string
+          body?: string | null
+          card_style: string
+          created_at?: string
+          edited_at?: string
+          frame_no?: number | null
+          hidden?: boolean
+          id?: string
+          page_number?: number | null
+          photo_h?: number | null
+          photo_path?: string | null
+          photo_w?: number | null
+          request_id: string
+          size_pct: number
+          stamp?: boolean
+          tilt_deg?: number
+          tint?: string | null
+        }
+        Update: {
+          author_guest_id?: string
+          body?: string | null
+          card_style?: string
+          created_at?: string
+          edited_at?: string
+          frame_no?: number | null
+          hidden?: boolean
+          id?: string
+          page_number?: number | null
+          photo_h?: number | null
+          photo_path?: string | null
+          photo_w?: number | null
+          request_id?: string
+          size_pct?: number
+          stamp?: boolean
+          tilt_deg?: number
+          tint?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commons_posts_author_guest_id_fkey"
+            columns: ["author_guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       experience_rsvps: {
         Row: {
           choice: string | null
@@ -336,6 +404,65 @@ export type Database = {
         }
         Relationships: []
       }
+      heart_cards: {
+        Row: {
+          author_guest_id: string
+          body: string
+          city: string | null
+          created_at: string
+          edited_at: string
+          hidden: boolean
+          id: string
+          photo_h: number | null
+          photo_path: string | null
+          photo_w: number | null
+          pinned: boolean
+          pinned_at: string | null
+          request_id: string
+          tilt_deg: number
+        }
+        Insert: {
+          author_guest_id: string
+          body: string
+          city?: string | null
+          created_at?: string
+          edited_at?: string
+          hidden?: boolean
+          id?: string
+          photo_h?: number | null
+          photo_path?: string | null
+          photo_w?: number | null
+          pinned?: boolean
+          pinned_at?: string | null
+          request_id: string
+          tilt_deg?: number
+        }
+        Update: {
+          author_guest_id?: string
+          body?: string
+          city?: string | null
+          created_at?: string
+          edited_at?: string
+          hidden?: boolean
+          id?: string
+          photo_h?: number | null
+          photo_path?: string | null
+          photo_w?: number | null
+          pinned?: boolean
+          pinned_at?: string | null
+          request_id?: string
+          tilt_deg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "heart_cards_author_guest_id_fkey"
+            columns: ["author_guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       packing_categories: {
         Row: {
           id: string
@@ -425,6 +552,41 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chapters"
             referencedColumns: ["number"]
+          },
+        ]
+      }
+      reflection_entries: {
+        Row: {
+          body: string
+          created_at: string
+          entry_date: string
+          guest_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          entry_date: string
+          guest_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          entry_date?: string
+          guest_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reflection_entries_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -817,9 +979,11 @@ export type Database = {
     Functions: {
       afar_session_valid: { Args: never; Returns: boolean }
       can_edit_itinerary: { Args: { _user_id: string }; Returns: boolean }
+      can_edit_journal: { Args: { _user_id: string }; Returns: boolean }
       can_edit_purse: { Args: { _user_id: string }; Returns: boolean }
       can_edit_travel: { Args: { _user_id: string }; Returns: boolean }
       can_view_itinerary: { Args: { _user_id: string }; Returns: boolean }
+      can_view_journal: { Args: { _user_id: string }; Returns: boolean }
       can_view_purse: { Args: { _user_id: string }; Returns: boolean }
       can_view_travel: { Args: { _user_id: string }; Returns: boolean }
       cast_list: {
@@ -833,6 +997,81 @@ export type Database = {
           pronoun_form: string
         }[]
       }
+      create_commons_post: {
+        Args: {
+          _body: string
+          _card_style: string
+          _frame_no: number
+          _page_number: number
+          _photo_h: number
+          _photo_path: string
+          _photo_w: number
+          _request_id: string
+          _size_pct: number
+          _stamp: boolean
+          _tilt_deg: number
+          _tint: string
+        }
+        Returns: {
+          author_guest_id: string
+          body: string | null
+          card_style: string
+          created_at: string
+          edited_at: string
+          frame_no: number | null
+          hidden: boolean
+          id: string
+          page_number: number | null
+          photo_h: number | null
+          photo_path: string | null
+          photo_w: number | null
+          request_id: string
+          size_pct: number
+          stamp: boolean
+          tilt_deg: number
+          tint: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "commons_posts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_heart_card: {
+        Args: {
+          _body: string
+          _city: string
+          _photo_h: number
+          _photo_path: string
+          _photo_w: number
+          _request_id: string
+          _tilt_deg: number
+        }
+        Returns: {
+          author_guest_id: string
+          body: string
+          city: string | null
+          created_at: string
+          edited_at: string
+          hidden: boolean
+          id: string
+          photo_h: number | null
+          photo_path: string | null
+          photo_w: number | null
+          pinned: boolean
+          pinned_at: string | null
+          request_id: string
+          tilt_deg: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "heart_cards"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      current_phase: { Args: never; Returns: string }
       ensure_cast_order: { Args: never; Returns: undefined }
       guest_directory: {
         Args: never
@@ -850,6 +1089,7 @@ export type Database = {
       }
       is_invited: { Args: { _email: string }; Returns: boolean }
       is_trip_participant: { Args: { _user_id: string }; Returns: boolean }
+      journal_level: { Args: { _user_id: string }; Returns: string }
       link_guest: {
         Args: { _email: string; _user_id: string }
         Returns: undefined
