@@ -7,6 +7,8 @@ import { useContent } from "@/lib/data";
 import { assignCommonsLook, formatBoardDay, capeTownDay, type CardStyle, type CommonsPost, type HeartCard, type NoteTint } from "@/lib/journal";
 import { removeJournalPhoto, useCommonsPosts, useHeartCards, useJournalSettings } from "@/lib/journal-data";
 import { SubTabs } from "./Blocks";
+import { TripTimeZoneSelect } from "./TripTimeInput";
+import { EST_ZONE } from "@/lib/trip-time";
 
 type AdminTab = "commons" | "heart" | "reflections" | "settings";
 
@@ -301,9 +303,11 @@ function ContentText({ contentKey, label, multiline }: { contentKey: string; lab
 }
 
 function JournalSettingsAdmin() {
+  const { t } = useContent();
   const queryClient = useQueryClient();
   const settingsQ = useJournalSettings(true);
   const phaseOverride = useSettingValue("phase_override");
+  const phaseTimezone = useSettingValue("phase_timezone");
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
@@ -322,9 +326,13 @@ function JournalSettingsAdmin() {
       </div>
       <div className="border-t pt-6">
         <p className="text-sm font-medium">Site phases</p>
-        <p className="mt-1 text-xs text-slate">
-          These times are in Detroit time and will drive the whole site later.
-        </p>
+        <div className="mt-3 max-w-md">
+          <TripTimeZoneSelect label={t("time.trip.phase_zone")} value={phaseTimezone || EST_ZONE} onChange={async (zone) => {
+            await saveSetting("phase_timezone", zone);
+            await queryClient.invalidateQueries({ queryKey: ["admin", "setting", "phase_timezone"] });
+            await queryClient.invalidateQueries({ queryKey: ["journal", "settings"] });
+          }} />
+        </div>
         <div className="mt-3 grid gap-4 md:grid-cols-2">
           <SettingText settingKey="phase_during_start" label="Trip begins" note="YYYY-MM-DD HH:mm" />
           <SettingText settingKey="phase_during_end" label="Trip ends" note="YYYY-MM-DD HH:mm" />

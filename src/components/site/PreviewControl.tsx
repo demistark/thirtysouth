@@ -3,9 +3,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useAuth } from "@/lib/auth";
 import { formatPreviewLabel } from "@/lib/phase";
 import { useTripClock } from "@/lib/trip-clock";
+import { useContent } from "@/lib/data";
+import { localTimeDate, CPT_ZONE, type TripTimeZone } from "@/lib/trip-time";
+import { TripTimeZoneSelect } from "./TripTimeInput";
+import { Button } from "@/components/ui/button";
 
-// Johannesburg has no daylight saving: a fixed +02:00 offset is exact.
-const at = (local: string) => new Date(`${local}:00+02:00`);
 
 export function PreviewBanner() {
   const { isHost } = useAuth();
@@ -22,9 +24,12 @@ export function PreviewBanner() {
 }
 
 export function PreviewControl() {
+  const { t } = useContent();
   const { isHost } = useAuth();
   const { setPreview, settings } = useTripClock();
   const [value, setValue] = useState("");
+  const [zone, setZone] = useState<TripTimeZone>(CPT_ZONE);
+  const at = (local: string) => localTimeDate(local, zone);
   if (!isHost) return null;
 
   const presets = [
@@ -37,7 +42,7 @@ export function PreviewControl() {
     <Popover>
       <PopoverTrigger className="btn-pill fixed bottom-5 right-5 z-40 bg-card">Preview as…</PopoverTrigger>
       <PopoverContent align="end" className="w-72 bg-card">
-        <p className="label-caps text-muted-foreground">Preview as (Cape Town time)</p>
+        <TripTimeZoneSelect label={t("time.preview.label")} value={zone} onChange={setZone} />
         <div className="mt-3 flex flex-wrap gap-2">
           {presets.map((p) => (
             <button key={p.label} className="btn-pill !px-3 !py-1.5" onClick={() => setPreview(p.d)}>
@@ -45,16 +50,16 @@ export function PreviewControl() {
             </button>
           ))}
         </div>
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex flex-wrap gap-2">
           <input
             type="datetime-local"
-            className="field !py-1.5 text-sm"
+            className="field min-w-0 !py-1.5 text-sm"
             value={value}
             onChange={(e) => setValue(e.target.value)}
           />
-          <button className="btn-pill !px-3 !py-1.5" disabled={!value} onClick={() => setPreview(at(value))}>
+          <Button variant="pill" className="!px-3 !py-1.5" disabled={!value} onClick={() => setPreview(at(value))}>
             Go
-          </button>
+          </Button>
         </div>
         <button className="label-caps mt-4 text-muted-foreground underline" onClick={() => setPreview(null)}>
           Reset to now
