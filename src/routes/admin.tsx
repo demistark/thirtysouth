@@ -58,12 +58,14 @@ function Admin() {
             { id: "itinerary", label: t("admin.tab.itinerary") },
             { id: "travel", label: t("admin.tab.travel") },
             { id: "purse", label: t("admin.tab.purse") },
+            { id: "journal", label: "Journal" },
             { id: "settings", label: "Settings" },
             { id: "facts", label: t("admin.tab.facts") },
           ] : [
             { id: "itinerary", label: t("admin.tab.itinerary") },
             { id: "travel", label: t("admin.tab.travel") },
             { id: "purse", label: t("admin.tab.purse") },
+            { id: "journal", label: "Journal" },
           ]}
           value={active}
           onChange={setTab}
