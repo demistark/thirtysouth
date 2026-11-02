@@ -1,13 +1,18 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import {
   DEFAULT_JOURNAL_SETTINGS,
+  HEART_PAPER_HEX,
+  HEART_TONE_HEX,
   allowanceState,
   assignCommonsLook,
   clampAspect,
+  contrastRatio,
   formatBoardDay,
   groupByDay,
+  heartCardStyle,
+  heartTextColor,
   heartTilt,
-  heartUsesHandwriting,
   orderHeartCards,
   parseJournalSettings,
   phaseFromSettings,
@@ -88,11 +93,72 @@ describe("heartTilt", () => {
   });
 });
 
-describe("sparse Heart handwriting", () => {
-  it("selects one of seven UUID buckets and stays stable", () => {
-    const ids = Array.from({ length: 7 }, (_, i) => `00000000-0000-4000-8000-${i.toString(16).padStart(12, "0")}`);
-    expect(ids.filter(heartUsesHandwriting)).toEqual([ids[0]]);
-    expect([...ids].reverse().filter(heartUsesHandwriting)).toEqual([ids[0]]);
+describe("Close to Heart type variety", () => {
+  const ids = Array.from({ length: 200 }, () => crypto.randomUUID());
+
+  it("is deterministic: the same card id gives the same style every time", () => {
+    const a = heartCardStyle(ids[0]!, 120);
+    const b = heartCardStyle(ids[0]!, 120);
+    expect(a).toEqual(b);
+    expect([...ids].reverse().map((id) => heartCardStyle(id, 60))).toEqual(
+      ids.slice().reverse().map((id) => heartCardStyle(id, 60)),
+    );
+  });
+
+  it("steps size down at 40, 90 and 180 characters", () => {
+    const size = (n: number) => heartCardStyle(ids[0]!, n).sizePx;
+    expect(size(40)).toBe(26);
+    expect(size(41)).toBe(22);
+    expect(size(90)).toBe(22);
+    expect(size(91)).toBe(18);
+    expect(size(180)).toBe(18);
+    expect(size(181)).toBe(16);
+  });
+
+  it("uses weight 600 only for messages of 40 characters or fewer", () => {
+    for (const id of ids) {
+      expect([400, 600]).toContain(heartCardStyle(id, 40).weight);
+      expect([400, 500]).toContain(heartCardStyle(id, 41).weight);
+    }
+    expect(ids.some((id) => heartCardStyle(id, 30).weight === 600)).toBe(true);
+    expect(ids.some((id) => heartCardStyle(id, 200).weight === 500)).toBe(true);
+  });
+
+  it("splits colour roughly 80/10/10 over 200 ids", () => {
+    const tones = ids.map((id) => heartCardStyle(id, 100).tone);
+    const count = (t: string) => tones.filter((x) => x === t).length;
+    expect(count("ink")).toBeGreaterThanOrEqual(140);
+    expect(count("ink")).toBeLessThanOrEqual(180);
+    expect(count("ember")).toBeGreaterThanOrEqual(8);
+    expect(count("ember")).toBeLessThanOrEqual(40);
+    expect(count("olive")).toBeGreaterThanOrEqual(8);
+    expect(count("olive")).toBeLessThanOrEqual(40);
+  });
+
+  it("keeps every rendered colour within contrast rules on the card paper", () => {
+    expect(contrastRatio(HEART_TONE_HEX.ink, HEART_PAPER_HEX)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(HEART_TONE_HEX.ember, HEART_PAPER_HEX)).toBeGreaterThanOrEqual(4.5);
+    // Olive passes only as large text (3:1 at ≥24px); smaller olive cards fall back to ink.
+    expect(contrastRatio(HEART_TONE_HEX.olive, HEART_PAPER_HEX)).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(HEART_TONE_HEX.olive, HEART_PAPER_HEX)).toBeLessThan(4.5);
+    expect(heartTextColor("ember", 16)).toBe("var(--ember-deep)");
+    expect(heartTextColor("olive", 26)).toBe("var(--scene-olive)");
+    expect(heartTextColor("olive", 22)).toBe("var(--ink)");
+    expect(heartTextColor("ink", 26)).toBe("var(--ink)");
+  });
+
+  it("has no handwriting anywhere on Close to Heart and loads Shantell Sans on Our Commons only", () => {
+    const read = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
+    const heart = read("../components/site/JournalHeart.tsx");
+    const reflections = read("../components/site/JournalReflections.tsx");
+    const route = read("../routes/journal.tsx");
+    const commons = read("../components/site/JournalCommons.tsx");
+    for (const src of [heart, reflections, route]) {
+      expect(src).not.toContain("Shantell");
+      expect(src).not.toContain("journal-hand");
+      expect(src).not.toContain("heartUsesHandwriting");
+    }
+    expect(commons).toContain("Shantell+Sans");
   });
 });
 

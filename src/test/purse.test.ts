@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { canEditPurse, canViewPurse, isTripParticipant } from "@/lib/locked-areas";
 import {
   capeTownNow, choiceList, effectiveStatus, experienceExpandable, exportExperiencesCsv, formatDeadline,
-  formatPriceZar, formatWhenList, needsReplyCount, parseExperiencesCsv, rsvpCounts, rsvpOpen, usdFromZar,
+  formatPriceZar, formatWhenList, needsReplyCount, parseExperiencesCsv, priceLineParts, readPurseCurrency,
+  rsvpCounts, rsvpOpen, sceneExperienceTags, showCurrencyToggle, storePurseCurrency, usdFromZar,
   type Experience, type ExperienceRsvp,
 } from "@/lib/purse";
 
@@ -184,5 +185,84 @@ describe("experiences CSV import", () => {
     expect(r.errors).toEqual([]);
     expect(r.rows[0]?.card).toBe("Aquila Safari");
     expect(r.rows[0]?.related_scene_titles).toEqual(["Aquila Safari"]);
+  });
+});
+
+describe("currency toggle", () => {
+  it("defaults to ZAR", () => {
+    expect(readPurseCurrency({ getItem: () => null })).toBe("zar");
+  });
+  it("remembers the choice per viewer", () => {
+    const m = new Map<string, string>();
+    const storage = { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v) };
+    storePurseCurrency("usd", storage);
+    expect(readPurseCurrency(storage)).toBe("usd");
+    storePurseCurrency("zar", storage);
+    expect(readPurseCurrency(storage)).toBe("zar");
+  });
+  it("works with storage blocked: ZAR fallback, no throw", () => {
+    const blocked = { getItem: () => { throw new Error("blocked"); }, setItem: () => { throw new Error("blocked"); } };
+    expect(readPurseCurrency(blocked)).toBe("zar");
+    expect(() => storePurseCurrency("usd", blocked)).not.toThrow();
+  });
+  it("shows the switch on Shared Experiences only, never on Shared Expenses", () => {
+    expect(showCurrencyToggle("experiences")).toBe(true);
+    expect(showCurrencyToggle("expenses")).toBe(false);
+    expect(showCurrencyToggle("sum")).toBe(false);
+  });
+});
+
+describe("price line in both directions", () => {
+  it("ZAR selected: rand primary, about-dollars secondary", () => {
+    expect(priceLineParts(2895, 16.5, "zar")).toEqual({ primary: "R2,895", secondary: "$175" });
+  });
+  it("USD selected: dollars primary, about-rand secondary", () => {
+    expect(priceLineParts(2895, 16.5, "usd")).toEqual({ primary: "$175", secondary: "R2,895" });
+  });
+  it("drops the secondary when there is no rate", () => {
+    expect(priceLineParts(2895, 0, "zar")).toEqual({ primary: "R2,895", secondary: null });
+    expect(priceLineParts(2895, 0, "usd")).toEqual({ primary: "R2,895", secondary: null });
+  });
+});
+
+describe("scene experience tags", () => {
+  const safari = exp({ id: "e1", card: "Aquila Safari", rsvp_mode: "must_reply" });
+  const wine = exp({ id: "e2", card: "Winelands", rsvp_mode: "default_going" });
+  const picnic = exp({ id: "e3", card: "Picnic", rsvp_mode: "none" });
+  const all = [safari, wine, picnic];
+  const links = [
+    { experience_id: "e1", scene_id: "s1" },
+    { experience_id: "e2", scene_id: "s1" },
+  ];
+  const scene = { id: "s1", experience_card: null as string | null };
+
+  it("shows one tag per linked experience with the viewer's own status", () => {
+    const tags = sceneExperienceTags(scene, all, links, [{ experience_id: "e1", guest_id: "g1", status: "maybe", choice: null }], "g1", true);
+    expect(tags.map((t) => t.id)).toEqual(["e1", "e2"]);
+    expect(tags[0]?.status).toBe("maybe");
+    expect(tags[1]?.status).toBe("going"); // default_going, no row
+  });
+  it("marks an unanswered must_reply as needs_reply", () => {
+    const tags = sceneExperienceTags(scene, all, links, [], "g1", true);
+    expect(tags[0]?.status).toBe("needs_reply");
+  });
+  it("shows going/maybe/not_going straight from the reply", () => {
+    for (const status of ["going", "maybe", "not_going"] as const) {
+      const tags = sceneExperienceTags(scene, all, links, [{ experience_id: "e1", guest_id: "g1", status, choice: null }], "g1", true);
+      expect(tags[0]?.status).toBe(status);
+    }
+  });
+  it("keeps the experience_card text match as a fallback", () => {
+    const tags = sceneExperienceTags({ id: "s9", experience_card: "Picnic" }, all, [], [], "g1", true);
+    expect(tags.map((t) => t.id)).toEqual(["e3"]);
+    expect(tags[0]?.status).toBeNull(); // no RSVP on this experience
+  });
+  it("never duplicates a card matched by both link and text", () => {
+    const tags = sceneExperienceTags({ id: "s1", experience_card: "Aquila Safari" }, all, links, [], "g1", true);
+    expect(tags.map((t) => t.id)).toEqual(["e1", "e2"]);
+  });
+  it("gives honorary guests and non-participants the link only", () => {
+    const tags = sceneExperienceTags(scene, all, links, [], "g1", false);
+    expect(tags.every((t) => t.status === null)).toBe(true);
   });
 });
