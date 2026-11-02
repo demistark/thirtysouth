@@ -15,10 +15,6 @@ export const Route = createFileRoute("/journal")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-    links: [
-      // Journal-only: Commons handwriting and occasional Close to Heart cards.
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Shantell+Sans:wght@500&display=swap" },
-    ],
   }),
   component: Journal,
 });

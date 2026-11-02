@@ -61,10 +61,12 @@ export function SubTabs<T extends string>({
   tabs,
   value,
   onChange,
+  trailing,
 }: {
   tabs: { id: T; label: string }[];
   value: T;
   onChange: (v: T) => void;
+  trailing?: ReactNode;
 }) {
   return (
     <div className="mb-8 flex gap-6 overflow-x-auto shadow-[inset_0_-1px_0_var(--color-border)]" role="tablist">
@@ -82,6 +84,7 @@ export function SubTabs<T extends string>({
           {tab.label}
         </button>
       ))}
+      {trailing && <div className="ml-auto flex items-center pb-2">{trailing}</div>}
     </div>
   );
 }

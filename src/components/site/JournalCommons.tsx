@@ -33,10 +33,12 @@ import { cn } from "@/lib/utils";
 export function JournalCommons() {
   const { roles, loading } = useAuth();
   const settingsQ = useJournalSettings(!loading);
-  if (loading || !settingsQ.data) return <div className="h-48 border bg-card" />;
+  // Shantell Sans loads on Our Commons only — never on Reflections or Close to Heart.
+  const font = <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shantell+Sans:wght@500&display=swap" />;
+  if (loading || !settingsQ.data) return <>{font}<div className="h-48 border bg-card" /></>;
   const settings = settingsQ.data;
   const phase = phaseFromSettings(new Date(), settings);
-  return <CommonsBody phase={phase} roles={roles} settings={settings} />;
+  return <>{font}<CommonsBody phase={phase} roles={roles} settings={settings} /></>;
 }
 
 function CommonsBody({ phase, roles, settings }: { phase: "before" | "during" | "after"; roles: string[]; settings: ReturnType<typeof useJournalSettings>["data"] & object }) {

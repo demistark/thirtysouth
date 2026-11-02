@@ -10,9 +10,9 @@ import { useScenes } from "@/lib/itinerary-data";
 import { useItineraryDisplay } from "@/lib/itinerary-display-data";
 import { canEditPurse, isTripParticipant } from "@/lib/locked-areas";
 import {
-  capeTownNow, choiceList, effectiveStatus, experienceExpandable, formatDeadline, formatPriceZar,
-  formatWhenList, rsvpCounts, rsvpOpen, usdFromZar,
-  type Experience, type ExperienceRsvp, type RsvpStatus,
+  capeTownNow, choiceList, effectiveStatus, experienceExpandable, formatDeadline,
+  formatWhenList, priceLineParts, rsvpCounts, rsvpOpen,
+  type Experience, type ExperienceRsvp, type PurseCurrency, type RsvpStatus,
 } from "@/lib/purse";
 import {
   useExperienceRsvps, useExperienceScenes, useExperiences, useParticipantDirectory, usePurseSettings,
@@ -34,9 +34,10 @@ interface CardContext {
   participant: boolean;
   editor: boolean;
   nowCpt: string;
+  currency: PurseCurrency;
 }
 
-export function Experiences() {
+export function Experiences({ currency }: { currency: PurseCurrency }) {
   const { t } = useContent();
   const { roles } = useAuth();
   const { now } = useTripClock();
@@ -80,6 +81,7 @@ export function Experiences() {
     participant: isTripParticipant(roles),
     editor: canEditPurse(roles),
     nowCpt: capeTownNow(now),
+    currency,
   };
 
   return (
@@ -138,7 +140,7 @@ function ExperienceCard({ exp, ctx }: { exp: Experience; ctx: CardContext }) {
         </div>
         {exp.summary && <p className="scene-summary">{exp.summary}</p>}
         {location && <p className="scene-location"><MapPin aria-hidden="true" />{location}</p>}
-        {showPrice && <PriceLine exp={exp} settings={ctx.settings} />}
+        {showPrice && <PriceLine exp={exp} settings={ctx.settings} currency={ctx.currency} />}
         {showRsvp && <RsvpBlock exp={exp} ctx={ctx} myRsvp={myRsvp} status={status} counts={counts} />}
       </div>
       {canExpand && (
@@ -166,15 +168,15 @@ function ExperienceCard({ exp, ctx }: { exp: Experience; ctx: CardContext }) {
   );
 }
 
-function PriceLine({ exp, settings }: { exp: Experience; settings: PurseSettings }) {
+function PriceLine({ exp, settings, currency }: { exp: Experience; settings: PurseSettings; currency: PurseCurrency }) {
   const { t } = useContent();
   if (exp.show_host_note) return <p className="exp-host-note">{t("host_note_instead_of_price")}</p>;
   if (exp.price_zar == null) return null;
-  const usd = usdFromZar(exp.price_zar, settings.zarPerUsd);
+  const parts = priceLineParts(exp.price_zar, settings.zarPerUsd, currency);
   return (
     <p className="exp-price">
-      <span>{formatPriceZar(exp.price_zar)} {t("purse.per_person")}</span>
-      {usd != null && <span className="exp-price-usd">{t("purse.about")} ${usd}</span>}
+      <span>{parts.primary} {t("purse.per_person")}</span>
+      {parts.secondary != null && <span className="exp-price-usd">{t("purse.about")} {parts.secondary}</span>}
       {exp.price_status && <span className="exp-price-status">{exp.price_status}</span>}
     </p>
   );

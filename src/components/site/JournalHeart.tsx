@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type CSSProperties } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
@@ -6,8 +6,9 @@ import { useContent } from "@/lib/data";
 import {
   allowanceState,
   clampAspect,
+  heartCardStyle,
+  heartTextColor,
   heartTilt,
-  heartUsesHandwriting,
   orderHeartCards,
   showCounter,
   type HeartCard,
@@ -201,13 +202,13 @@ function HeartCardView({ card, photoUrl }: { card: HeartCard; photoUrl?: string 
           ) : (
             <div className="journal-photo-waiting">Photo</div>
           )}
-          <p className={cn("mt-3 text-base leading-relaxed", heartUsesHandwriting(card.id) ? "journal-hand" : "caption-serif italic")}>{card.body}</p>
+          <HeartBody card={card} className="mt-3" />
         </div>
       ) : (
         <div className="journal-postcard-split">
           <div className="journal-postcard-message">
             <p className="journal-card-tag">POSTCARD</p>
-            <p className={cn("mt-2 text-[17px] leading-[1.55]", heartUsesHandwriting(card.id) ? "journal-hand" : "caption-serif italic")}>{card.body}</p>
+            <HeartBody card={card} className="mt-2" />
           </div>
           <div className="journal-postcard-address">
             <span className="journal-postcard-stamp">30° S</span>
@@ -221,5 +222,18 @@ function HeartCardView({ card, photoUrl }: { card: HeartCard; photoUrl?: string 
         <span className="text-slate">{card.city ?? ""}</span>
       </div>
     </article>
+  );
+}
+
+/** Message text only: Lora italic, with the site-picked size, weight and tone from the card id. */
+function HeartBody({ card, className }: { card: HeartCard; className?: string }) {
+  const style = heartCardStyle(card.id, card.body.length);
+  return (
+    <p
+      className={cn("journal-postcard-body caption-serif italic", className)}
+      style={{ "--heart-size": `${style.sizePx}px`, fontWeight: style.weight, color: heartTextColor(style.tone, style.sizePx) } as CSSProperties}
+    >
+      {card.body}
+    </p>
   );
 }

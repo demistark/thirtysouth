@@ -3,12 +3,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PageShell, SubTabs } from "@/components/site/Blocks";
 import { RecordingLockout } from "@/components/site/Lockouts";
 import { useAuth } from "@/lib/auth";
-import { canViewScenes } from "@/lib/locked-areas";
+import { canViewScenes, isTripParticipant } from "@/lib/locked-areas";
 import { formatChapterDate, useChapters, useContent } from "@/lib/data";
 import { itineraryTabs } from "@/lib/itinerary-tabs";
 import { initialItineraryView, type Scene, type WardrobeLook } from "@/lib/itinerary";
-import { useExperiences } from "@/lib/purse-data";
-import type { Experience } from "@/lib/purse";
+import { useExperienceRsvps, useExperienceScenes, useExperiences } from "@/lib/purse-data";
+import { sceneExperienceTags, type Experience, type ExperienceRsvp } from "@/lib/purse";
+import { useMyGuestId } from "@/lib/journal-data";
 import { useLooks, usePhotoUrls, useScenes } from "@/lib/itinerary-data";
 import { useTripClock } from "@/lib/trip-clock";
 import { zonedDate } from "@/lib/phase";
@@ -90,7 +91,12 @@ function LookTag({look,anchor}: {look:WardrobeLook;anchor:string}) {
 }
 function Scenes({chapter,isToday,scenes,looks,loading}: {chapter:number;isToday:boolean;scenes:Scene[];looks:WardrobeLook[];loading:boolean}) {
   const {t}=useContent(); const [openId,setOpenId]=useState<string|null>(); const display=useItineraryDisplay().data ?? {indicator:"edge",shadow:3,grain:true};
+  const {roles}=useAuth();
   const experiences=useExperiences(true).data ?? [];
+  const expLinks=useExperienceScenes(true).data ?? [];
+  const rsvps=useExperienceRsvps(true).data ?? [];
+  const myGuestId=useMyGuestId(true).data ?? null;
+  const participant=isTripParticipant(roles);
   const dots=railDots(chapter,scenes);
   if(loading) return <div className="h-64 border bg-card" />;
   if(!scenes.length) return <div>{looks.map(l => <LookTag key={l.id} look={l} anchor={`tag-${l.id}`} />)}<p className="py-12 text-center text-sm">{t("itinerary.scenes_empty")}</p></div>;
@@ -99,14 +105,14 @@ function Scenes({chapter,isToday,scenes,looks,loading}: {chapter:number;isToday:
       const open = expandable(s) && (openId === undefined ? isToday && i === 0 : openId === s.id);
       return <li key={s.id} className="scene-timeline-item">
         {tagsForScene(scenes,looks,i).map(l => <LookTag key={l.id} look={l} anchor={`tag-${s.id}-${l.look_order}`} />)}
-        <SceneCard s={s} open={open} dot={dots[i] ?? {shape:"circle",color:"atlantic"}} onToggle={() => setOpenId(open ? null : s.id)} experiences={experiences} />
+        <SceneCard s={s} open={open} dot={dots[i] ?? {shape:"circle",color:"atlantic"}} onToggle={() => setOpenId(open ? null : s.id)} experiences={experiences} expLinks={expLinks} rsvps={rsvps} myGuestId={myGuestId} participant={participant} />
       </li>;
     })}
   </ul>;
 }
-function SceneCard({s,open,onToggle,dot,experiences}: {s:Scene;open:boolean;onToggle:()=>void;dot:Dot;experiences:Experience[]}) {
+function SceneCard({s,open,onToggle,dot,experiences,expLinks,rsvps,myGuestId,participant}: {s:Scene;open:boolean;onToggle:()=>void;dot:Dot;experiences:Experience[];expLinks:{experience_id:string;scene_id:string}[];rsvps:ExperienceRsvp[];myGuestId:string|null;participant:boolean}) {
   const {t}=useContent(); const canExpand=expandable(s); const time=[s.start_time,s.end_time].filter(Boolean).join(" – ");
-  const experience=experiences.find(e => e.card === (s.experience_card ?? "").trim());
+  const expTags=sceneExperienceTags(s,experiences,expLinks,rsvps,myGuestId,participant);
   return <article id={`scene-${s.id}`} className="scene-card" data-expandable={canExpand} data-open={open}>
     <div className="scene-main">
       {time && <p className="scene-time">{time}</p>}
@@ -122,7 +128,7 @@ function SceneCard({s,open,onToggle,dot,experiences}: {s:Scene;open:boolean;onTo
       {s.details && <p className="whitespace-pre-line text-sm leading-relaxed">{s.details}</p>}
       {s.call_time && <p className="scene-call">{t("itinerary.call_time")} {s.call_time}</p>}
       {s.wrap_time && <p className="scene-call">{t("itinerary.wrap_time")} {s.wrap_time}</p>}
-      {experience?.id && <Link className="look-tag !m-0" to="/purse" hash={`experience-${experience.id}`}><span>{t("purse.experience_tag")} //</span><span className="text-deep-atlantic">{experience.card}</span></Link>}
+      {expTags.length > 0 && <div className="scene-exp-tags">{expTags.map(tag => <Link key={tag.id} className="look-tag !m-0" to="/purse" hash={`experience-${tag.id}`}><span>{t("purse.experience_tag")} //</span><span className="text-deep-atlantic">{tag.card}</span>{tag.status === "needs_reply" ? <span className="scene-exp-needs"><span className="scene-exp-dot" aria-hidden="true" />{t("purse.needs_reply")}</span> : tag.status ? <span className="scene-exp-status">· {t(`purse.status.${tag.status}`)}</span> : null}</Link>)}</div>}
     </div></div></div>}
   </article>;
 }
