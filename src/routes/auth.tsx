@@ -121,7 +121,7 @@ function SignIn() {
             {t("signin.button")}
           </button>
           <p className="pt-2 text-center">
-            <Link to="/enter" className="label-caps text-muted-foreground underline">
+            <Link to="/enter" search={{ code: undefined }} className="label-caps text-muted-foreground underline">
               Have a personal code?
             </Link>
           </p>

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/enter")({
   validateSearch: (search: Record<string, unknown>) => ({
-    code: typeof search.code === "string" ? search.code : undefined,
+    code: typeof search["code"] === "string" ? (search["code"] as string) : undefined,
   }),
   head: () => ({
     meta: [

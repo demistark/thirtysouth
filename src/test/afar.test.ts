@@ -15,7 +15,7 @@ import {
 // Deterministic rng for tests.
 const seq = (values: number[]) => {
   let i = 0;
-  return (max: number) => values[i++ % values.length] % max;
+  return (max: number) => values[i++ % values.length]! % max;
 };
 
 describe("afar code format", () => {
@@ -24,7 +24,7 @@ describe("afar code format", () => {
     const [word, suffix] = code.split("-");
     expect(AFAR_WORDS).toContain(word);
     expect(suffix).toHaveLength(5);
-    for (const c of suffix) expect(AFAR_ALPHABET).toContain(c);
+    for (const c of suffix ?? "") expect(AFAR_ALPHABET).toContain(c);
   });
 
   it("alphabet has no look-alikes (no 0, 1, I, L, O)", () => {
