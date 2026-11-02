@@ -245,7 +245,9 @@ export function formatBoardDay(day: string): string {
     month: "short",
     day: "numeric",
     timeZone: "UTC",
-  }).format(new Date(Date.UTC(y, m - 1, d)));
+  })
+    .format(new Date(Date.UTC(y, m - 1, d)))
+    .replace(",", "");
 }
 
 export function capeTownTime(iso: string): string {

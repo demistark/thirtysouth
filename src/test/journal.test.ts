@@ -66,8 +66,9 @@ describe("assignCommonsLook", () => {
   });
 
   it("about one card in three is straight; tilts stay within per-type caps", () => {
-    expect(assignCommonsLook(50, false, rand([0.1, 0.9, 0.9, 0.9])).tilt_deg).toBe(0);
-    const note = assignCommonsLook(50, false, rand([0.9, 0.9, 0.9, 0.9]));
+    // Note look draws size first, then the straight-check: [size, straight?, ...]
+    expect(assignCommonsLook(50, false, rand([0.5, 0.1, 0.9, 0.9])).tilt_deg).toBe(0);
+    const note = assignCommonsLook(50, false, rand([0.5, 0.9, 0.9, 0.9]));
     expect(Math.abs(note.tilt_deg)).toBeLessThanOrEqual(2.5);
     const photo = assignCommonsLook(0, true, rand([0.9, 0.9, 0.9, 0.9]));
     expect(Math.abs(photo.tilt_deg)).toBeLessThanOrEqual(4);
@@ -146,10 +147,10 @@ describe("board grouping and ordering", () => {
   });
 
   it("groups by Cape Town day, newest day first, newest post first within a day", () => {
-    // 2026-11-23 21:30 UTC is already Nov 24 in Cape Town (UTC+2)
+    // 2026-11-23 22:30 UTC is already Nov 24 in Cape Town (UTC+2)
     const posts = [
       post("a", "2026-11-23T10:00:00Z"),
-      post("b", "2026-11-23T21:30:00Z"),
+      post("b", "2026-11-23T22:30:00Z"),
       post("c", "2026-11-23T12:00:00Z"),
     ];
     const days = groupByDay(posts);
