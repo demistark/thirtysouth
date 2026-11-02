@@ -224,11 +224,58 @@ export function heartTilt(rand: () => number = Math.random): number {
   return Math.round((rand() * 2 - 1) * 10) / 10;
 }
 
-/** UUID-derived font choice: roughly one in seven, stable regardless of sorting/reload. */
-export function heartUsesHandwriting(id: string): boolean {
-  const tail = id.replaceAll("-", "").slice(-8);
-  if (!/^[0-9a-f]{8}$/i.test(tail)) return false;
-  return Number.parseInt(tail, 16) % 7 === 0;
+/* ---------------- Close to Heart type variety (deterministic, from the card id) ---------------- */
+
+export type HeartTone = "ink" | "ember" | "olive";
+export interface HeartCardStyle { sizePx: number; weight: 400 | 500 | 600; tone: HeartTone }
+
+/** FNV-1a: stable across loads and devices, so a card always looks the same. */
+function hash32(s: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+/**
+ * The site — never the guest — picks the look. Size follows message length;
+ * colour (~80/10/10 ink/ember/olive) and weight come from independent hashes
+ * of the card id so they never correlate. Shared here so the PDF export can reuse it.
+ */
+export function heartCardStyle(id: string, bodyLength: number): HeartCardStyle {
+  const sizePx = bodyLength <= 40 ? 26 : bodyLength <= 90 ? 22 : bodyLength <= 180 ? 18 : 16;
+  const hColor = hash32(id) % 10;
+  const tone: HeartTone = hColor === 0 ? "ember" : hColor === 1 ? "olive" : "ink";
+  const weight = hash32(`${id}#weight`) % 3 === 0 ? (bodyLength <= 40 ? 600 : 500) : 400;
+  return { sizePx, weight, tone };
+}
+
+/** WCAG contrast ratio between two hex colours. */
+export function contrastRatio(hexA: string, hexB: string): number {
+  const lum = (hex: string) => {
+    const c = [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map((v) => (v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
+    return 0.2126 * c[0]! + 0.7152 * c[1]! + 0.0722 * c[2]!;
+  };
+  const [hi, lo] = [lum(hexA), lum(hexB)].sort((a, b) => b - a);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+// Card paper is #FFFDF9; tones are existing palette tokens.
+export const HEART_TONE_HEX: Record<HeartTone, string> = { ink: "#2D3330", ember: "#9A3A17", olive: "#6F7B4A" };
+export const HEART_PAPER_HEX = "#FFFDF9";
+
+/**
+ * Resolves a tone to a CSS colour with a contrast fallback: ember-deep passes 4.5:1 at
+ * every size; olive (#6F7B4A, ~4.2:1 on the card) passes only as large text (≥24px, 3:1),
+ * so smaller olive cards fall back to the dark ink.
+ */
+export function heartTextColor(tone: HeartTone, sizePx: number): string {
+  if (tone === "ember" && contrastRatio(HEART_TONE_HEX.ember, HEART_PAPER_HEX) >= 4.5) return "var(--ember-deep)";
+  if (tone === "olive" && sizePx >= 24 && contrastRatio(HEART_TONE_HEX.olive, HEART_PAPER_HEX) >= 3) return "var(--scene-olive)";
+  return "var(--ink)";
 }
 
 /** Phone widths: tilt is softened and every card is at least 76% of the column. */
