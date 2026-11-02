@@ -1,4 +1,4 @@
-- [ ] Use Shantell Sans on approximately one in seven Heart cards, add a small Commons notice/composer gap, and offer EST/CPT on trip-time settings; verify saved settings and zone conversions.
+- [x] Use stable approximately one-in-seven Shantell Sans Heart cards, add a 16px Commons gap, and offer EST/CPT for trip dates, Journal phases, preview, RSVP deadlines, flights and transfers; verify settings save/reload and midnight conversions.
 - [x] Restyle area-specific lockouts and rename Reflections.
 - [x] Add unseeded public active facts with host management and CSV import.
 - [x] Store all new copy in editable content and verify access and flows.
