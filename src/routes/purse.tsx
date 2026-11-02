@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ComingSoon, PageShell, SubTabs } from "@/components/site/Blocks";
 import { Experiences } from "@/components/site/Experiences";
 import { PurseLockout } from "@/components/site/Lockouts";
@@ -33,7 +33,9 @@ function Purse() {
   const ids: Tab[] = phase === "after" ? ["experiences", "expenses", "sum"] : ["experiences", "expenses"];
   const [tab, setTab] = useState<Tab>("experiences");
   const current = ids.includes(tab) ? tab : "experiences";
-  const [currency, setCurrency] = useState<PurseCurrency>(() => readPurseCurrency(null));
+  // Read after mount so the server render and first client render agree.
+  const [currency, setCurrency] = useState<PurseCurrency>("zar");
+  useEffect(() => { setCurrency(readPurseCurrency(null)); }, []);
   const pickCurrency = (c: PurseCurrency) => {
     setCurrency(c);
     storePurseCurrency(c, null);
