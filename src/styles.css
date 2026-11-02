@@ -55,6 +55,7 @@
   --color-band-tan: var(--band-tan);
   --color-deep-atlantic: var(--deep-atlantic);
   --color-seafoam: var(--seafoam);
+  --color-seafoam-deep: var(--seafoam-deep);
   --color-slate: var(--slate);
   --color-apricot: var(--apricot);
   --color-apricot-deep: var(--apricot-deep);
@@ -88,6 +89,7 @@
   /* Atlantic coastal additions */
   --deep-atlantic: oklch(0.383 0.052 232); /* #24485a — large display type only */
   --seafoam: oklch(0.893 0.019 184);       /* #cfe0dd — title bar + soft bands */
+  --seafoam-deep: oklch(0.749 0.045 187);  /* #8fb5b0 — notice borders (Journal) */
   --slate: oklch(0.517 0.02 220);          /* #5c6b70 — secondary text/icons on cream & white only */
   --apricot: oklch(0.81 0.096 72);         /* #e8b77a — thin accents only */
   --apricot-deep: oklch(0.571 0.1 64);     /* #a06a32 — large numerals (AA-safe apricot shade) */
