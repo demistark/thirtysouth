@@ -40,7 +40,7 @@ export function JournalHeart() {
     <section>
       <header className="text-center">
         <h2 className="font-display-light text-[44px] text-deep-atlantic" style={{ letterSpacing: "normal" }}>
-          Close to Heart.
+          Close to Heart
         </h2>
         <Tagline />
         <div className="mx-auto mt-6 h-px w-16 bg-line" />
@@ -68,7 +68,13 @@ function Tagline() {
   return <p className="caption-serif mt-2 text-[19px] text-slate italic">{t("heart_tagline")}</p>;
 }
 
-function HeartComposer({ settings, myCards }: { settings: { heartChars: number; heartCardsPerPerson: number; heartPhotosPerPerson: number; counterShowAtPct: number }; myCards: HeartCard[] }) {
+function HeartComposer({
+  settings,
+  myCards,
+}: {
+  settings: { heartChars: number; heartCardsPerPerson: number; heartPhotosPerPerson: number; counterShowAtPct: number };
+  myCards: HeartCard[];
+}) {
   const { t } = useContent();
   const queryClient = useQueryClient();
   const myGuestQ = useMyGuestId(true);
@@ -149,12 +155,16 @@ function HeartComposer({ settings, myCards }: { settings: { heartChars: number; 
         aria-label="City"
       />
       <datalist id="heart-cities">
-        {usedCities.map((c) => <option key={c} value={c} />)}
+        {usedCities.map((c) => (
+          <option key={c} value={c} />
+        ))}
       </datalist>
       {photo && (
         <div className="mt-3 flex items-center gap-3">
           <img src={photo.preview} alt="Postcard photo" className="h-20 w-20 rounded object-cover" />
-          <button className="btn-pill" onClick={() => setPhoto(null)}>Remove photo</button>
+          <button className="btn-pill" onClick={() => setPhoto(null)}>
+            Remove photo
+          </button>
         </div>
       )}
       <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -169,19 +179,27 @@ function HeartComposer({ settings, myCards }: { settings: { heartChars: number; 
             e.target.value = "";
           }}
         />
-        <button className="btn-pill" onClick={() => fileRef.current?.click()}>Add a photo</button>
+        <button className="btn-pill" onClick={() => fileRef.current?.click()}>
+          Add a photo
+        </button>
         <button className="btn-pill btn-pill-solid" disabled={!canSend} onClick={() => void send()}>
           {sending ? "Sending…" : "Send"}
         </button>
         <span className="ml-auto text-right">
           {showCounter(body.length, settings.heartChars, settings.counterShowAtPct) && (
-            <span className="block text-xs text-slate">{body.length} / {settings.heartChars}</span>
+            <span className="block text-xs text-slate">
+              {body.length} / {settings.heartChars}
+            </span>
           )}
           {allowance.state === "remaining" && (
-            <span className="block text-xs text-ember-deep">{allowance.left} postcard{allowance.left === 1 ? "" : "s"} left</span>
+            <span className="block text-xs text-ember-deep">
+              {allowance.left} postcard{allowance.left === 1 ? "" : "s"} left
+            </span>
           )}
           {atLimit && (
-            <span className="block text-xs text-ember-deep">That's your {settings.heartCardsPerPerson} postcards. Thank you.</span>
+            <span className="block text-xs text-ember-deep">
+              That's your {settings.heartCardsPerPerson} postcards. Thank you.
+            </span>
           )}
         </span>
       </div>
@@ -193,12 +211,21 @@ function HeartComposer({ settings, myCards }: { settings: { heartChars: number; 
 function HeartCardView({ card, photoUrl }: { card: HeartCard; photoUrl?: string | undefined }) {
   const { t } = useContent();
   return (
-    <article className={cn("journal-postcard", card.pinned && "is-pinned")} style={{ transform: `rotate(${card.tilt_deg}deg)` }}>
+    <article
+      className={cn("journal-postcard", card.pinned && "is-pinned")}
+      style={{ transform: `rotate(${card.tilt_deg}deg)` }}
+    >
       {card.pinned && <span className="journal-pinned-tag">PINNED</span>}
       {card.photo_path ? (
         <div className="journal-postcard-photo">
           {photoUrl ? (
-            <img src={photoUrl} alt={card.body.slice(0, 60)} loading="lazy" style={{ aspectRatio: String(clampAspect(card.photo_w, card.photo_h)) }} className="w-full object-cover" />
+            <img
+              src={photoUrl}
+              alt={card.body.slice(0, 60)}
+              loading="lazy"
+              style={{ aspectRatio: String(clampAspect(card.photo_w, card.photo_h)) }}
+              className="w-full object-cover"
+            />
           ) : (
             <div className="journal-photo-waiting">Photo</div>
           )}
@@ -231,7 +258,13 @@ function HeartBody({ card, className }: { card: HeartCard; className?: string })
   return (
     <p
       className={cn("journal-postcard-body caption-serif italic", className)}
-      style={{ "--heart-size": `${style.sizePx}px`, fontWeight: style.weight, color: heartTextColor(style.tone, style.sizePx) } as CSSProperties}
+      style={
+        {
+          "--heart-size": `${style.sizePx}px`,
+          fontWeight: style.weight,
+          color: heartTextColor(style.tone, style.sizePx),
+        } as CSSProperties
+      }
     >
       {card.body}
     </p>
