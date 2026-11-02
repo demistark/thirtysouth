@@ -56,7 +56,7 @@ function HomeBefore() {
   const { t } = useContent();
   const { daysToGo } = useTripClock();
   const { session, roles } = useAuth();
-  const showTravel = canViewTravel(roles);
+  const showTravel = !session || canViewTravel(roles);
   const showPurse = !session || canViewPurse(roles);
   return (
     <main>
