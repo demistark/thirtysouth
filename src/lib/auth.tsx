@@ -65,16 +65,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isFriend = isHost || roles.includes("trip_guest");
   const initial = (session?.user.email ?? "?").charAt(0).toUpperCase();
 
-  // Friends afar: end the session when the code was disabled, the master switch
-  // is off, or the role changed. Regeneration also revokes refresh tokens server-side.
-  const rolesKey = roles.join(",");
-  useEffect(() => {
-    if (!userId || rolesQ.isLoading || !rolesKey.includes("friend_afar")) return;
-    supabase.rpc("afar_session_valid").then(({ data }) => {
-      if (data === false) void signOutRef.current();
-    });
-  }, [userId, rolesQ.isLoading, rolesKey]);
-
   const signOut = async () => {
     await queryClient.cancelQueries();
     await supabase.auth.signOut();
@@ -82,6 +72,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.removeQueries({ queryKey: ["admin"] });
     queryClient.removeQueries({ queryKey: ["my-profile"] });
   };
+
+  // Friends afar: end the session when the code was disabled, the master switch
+  // is off, or the role changed. Regeneration also revokes refresh tokens server-side.
+  const rolesKey = roles.join(",");
+  useEffect(() => {
+    if (!userId || rolesQ.isLoading || !rolesKey.includes("friend_afar")) return;
+    supabase.rpc("afar_session_valid").then(({ data }) => {
+      if (data === false) void signOut();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, rolesQ.isLoading, rolesKey]);
 
   return (
     <AuthContext.Provider
