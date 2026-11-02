@@ -49,8 +49,8 @@ export function AfarAdmin() {
   const [template, setTemplate] = useState(AFAR_DEFAULT_TEMPLATE);
   useEffect(() => {
     if (settingsQ.data) {
-      setEnabled(settingsQ.data.afar_enabled !== "false");
-      setTemplate(settingsQ.data.afar_message_template || AFAR_DEFAULT_TEMPLATE);
+      setEnabled(settingsQ.data["afar_enabled"] !== "false");
+      setTemplate(settingsQ.data["afar_message_template"] || AFAR_DEFAULT_TEMPLATE);
     }
   }, [settingsQ.data]);
 
@@ -109,7 +109,10 @@ export function AfarAdmin() {
       { key: "afar_enabled", value: enabled ? "true" : "false" },
       { key: "afar_message_template", value: template },
     ]);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Saved");
     qc.invalidateQueries({ queryKey: ["admin", "afar-settings"] });
     qc.invalidateQueries({ queryKey: ["settings"] });
