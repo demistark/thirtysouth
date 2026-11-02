@@ -1,0 +1,1 @@
+ALTER TABLE public.guests DROP CONSTRAINT IF EXISTS guests_email_key;

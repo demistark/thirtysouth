@@ -134,6 +134,13 @@
       "when": 1793603281608,
       "tag": "0018_journal_photos_storage_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793647257668,
+      "tag": "0019_allow_multiple_code_only_guests",
+      "breakpoints": true
     }
   ]
 }
