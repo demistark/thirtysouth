@@ -23,6 +23,7 @@ import { useTripClock } from "@/lib/trip-clock";
 import type { Scene } from "@/lib/itinerary";
 import { useActionGate } from "./ActionGate";
 import { Button } from "@/components/ui/button";
+import { scrollToContent } from "@/lib/scroll";
 
 interface CardContext {
   scenes: Scene[];
@@ -62,7 +63,7 @@ export function Experiences({ currency }: { currency: PurseCurrency }) {
     if (!hash.startsWith("experience-")) return;
     const el = document.getElementById(hash);
     if (!el) return;
-    el.scrollIntoView({ block: "start", behavior: "instant" });
+    scrollToContent(el);
     el.classList.add("exp-anchor-highlight");
     const timer = setTimeout(() => el.classList.remove("exp-anchor-highlight"), 2500);
     return () => clearTimeout(timer);

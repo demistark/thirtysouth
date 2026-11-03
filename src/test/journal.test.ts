@@ -138,12 +138,10 @@ describe("Close to Heart type variety", () => {
   it("keeps every rendered colour within contrast rules on the card paper", () => {
     expect(contrastRatio(HEART_TONE_HEX.ink, HEART_PAPER_HEX)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(HEART_TONE_HEX.ember, HEART_PAPER_HEX)).toBeGreaterThanOrEqual(4.5);
-    // Olive passes only as large text (3:1 at ≥24px); smaller olive cards fall back to ink.
-    expect(contrastRatio(HEART_TONE_HEX.olive, HEART_PAPER_HEX)).toBeGreaterThanOrEqual(3);
-    expect(contrastRatio(HEART_TONE_HEX.olive, HEART_PAPER_HEX)).toBeLessThan(4.5);
+    expect(HEART_TONE_HEX.olive).toBe("#646E3C");
+    expect(contrastRatio(HEART_TONE_HEX.olive, HEART_PAPER_HEX)).toBeGreaterThanOrEqual(4.5);
     expect(heartTextColor("ember", 16)).toBe("var(--ember-deep)");
-    expect(heartTextColor("olive", 26)).toBe("var(--scene-olive)");
-    expect(heartTextColor("olive", 22)).toBe("var(--ink)");
+    for (const size of [26, 22, 18, 16]) expect(heartTextColor("olive", size)).toBe("var(--olive)");
     expect(heartTextColor("ink", 26)).toBe("var(--ink)");
   });
 

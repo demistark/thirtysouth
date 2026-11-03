@@ -37,8 +37,8 @@ describe("itinerary refinements", () => {
     const dots=railDots(7,scenes); expect(dots[1]?.color).toBe("olive"); expect(dots.filter(d => d.shape!=="circle")).toHaveLength(1);
   });
   it("defaults all cards to heavy edge, midpoint shadow and grain", () => {
-    expect(displaySettings({})).toEqual({indicator:"edge",shadow:3,grain:true});
-    expect(displaySettings({itinerary_indicator:"both",itinerary_shadow:"5",itinerary_grain:"false"})).toEqual({indicator:"both",shadow:5,grain:false});
+    expect(displaySettings({})).toEqual({indicator:"edge",shadow:3,grain:true,wardrobeVisible:true});
+    expect(displaySettings({itinerary_indicator:"both",itinerary_shadow:"5",itinerary_grain:"false"})).toEqual({indicator:"both",shadow:5,grain:false,wardrobeVisible:true});
   });
   it("round-trips call/wrap and optional controls while accepting leave_at alias", () => {
     const row={...scene(1),call_time:"12:00 PM",wrap_time:"3:45 PM",look_tag:"show" as const,dot_shape:"triangle" as const,dot_color:"olive" as const};

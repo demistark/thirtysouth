@@ -83,7 +83,7 @@ function HomeBefore() {
         <MomentsCard />
         <SectionCard n={2} to="/itinerary" tint="bg-sandstone" />
         {showTravel && <SectionCard n={3} to="/travel" tint="bg-tint-ember" hash="flights" live={<TravelLiveLine />} />}
-        {showPurse && <SectionCard n={4} to="/purse" tint="bg-tint-ember" live={<PurseLiveLine />} />}
+        {showPurse && <SectionCard n={4} to="/purse" tint="bg-tint-sage-olive" live={<PurseLiveLine />} />}
         <SectionCard n={5} to="/journal" tint="bg-tint-teal" polaroid />
       </div>
     </main>
