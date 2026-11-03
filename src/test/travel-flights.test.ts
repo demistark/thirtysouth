@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-const migration=readFileSync(new URL("../../drizzle/migrations/0021_travel_roomies_and_own_flights.sql",import.meta.url),"utf8");
+const migration=readFileSync("drizzle/migrations/0021_travel_roomies_and_own_flights.sql","utf8");
 import {describe,it,expect} from "vitest";
 import { normalizeIata,flightAirportsValid,flightDate,flightTime,flightRouteCodes,sortFlights,hasFlightDirection,type TravelLeg } from "@/lib/travel";
 import {canViewTravel} from "@/lib/locked-areas";
