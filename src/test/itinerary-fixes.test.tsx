@@ -79,7 +79,7 @@ describe("Script today marker (item 5)", () => {
     expect(dots).toHaveLength(2);
     expect(dots.item(0).closest(".script-margin-left")).not.toBeNull();
     expect(dots.item(1).closest(".script-margin-right")).not.toBeNull();
-    expect(dots[0].parentElement?.textContent).toBe("2");
+    expect(dots.item(0).parentElement?.textContent).toBe("2");
     for (const dot of dots) expect(dot.getAttribute("aria-hidden")).toBe("true");
   });
   it("renders no dots when no chapter is today", () => {

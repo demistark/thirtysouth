@@ -3,7 +3,7 @@ import { useContent, type ChapterBasic } from "@/lib/data";
 import type { ScriptAlignment } from "@/lib/itinerary";
 
 const alignment = (value: ScriptAlignment | null | undefined, fallback: ScriptAlignment = "left") => ({ left: "text-left", center: "text-center", right: "text-right" })[value ?? fallback];
-export function ItineraryScript({ chapters, loading, today }: { chapters: ChapterBasic[]; loading: boolean; today?: number }) {
+export function ItineraryScript({ chapters, loading, today }: { chapters: ChapterBasic[]; loading: boolean; today?: number | undefined }) {
   const { t } = useContent();
   if (loading) return <div className="h-64 border bg-card" />;
   return <article className="script-sheet fade-in">
