@@ -817,6 +817,7 @@ export type Database = {
       travel_legs: {
         Row: {
           airline: string
+          connections: string[]
           cpt_time: string
           created_at: string
           direction: string
@@ -832,6 +833,7 @@ export type Database = {
         }
         Insert: {
           airline?: string
+          connections?: string[]
           cpt_time: string
           created_at?: string
           direction: string
@@ -847,6 +849,7 @@ export type Database = {
         }
         Update: {
           airline?: string
+          connections?: string[]
           cpt_time?: string
           created_at?: string
           direction?: string
@@ -876,6 +879,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      travel_roomies: {
+        Row: {
+          floor_room: string
+          id: string
+          names: string
+          note: string
+          sort_order: number
+        }
+        Insert: {
+          floor_room?: string
+          id?: string
+          names?: string
+          note?: string
+          sort_order?: number
+        }
+        Update: {
+          floor_room?: string
+          id?: string
+          names?: string
+          note?: string
+          sort_order?: number
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

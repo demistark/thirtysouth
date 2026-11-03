@@ -1,0 +1,14 @@
+CREATE TABLE public.travel_roomies (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), names text NOT NULL DEFAULT '', floor_room text NOT NULL DEFAULT '', note text NOT NULL DEFAULT '', sort_order integer NOT NULL DEFAULT 0);
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.travel_roomies TO authenticated;
+GRANT ALL ON public.travel_roomies TO service_role;
+ALTER TABLE public.travel_roomies ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Travel friends read Roomies" ON public.travel_roomies FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'host') OR public.has_role(auth.uid(),'schedule_manager') OR public.has_role(auth.uid(),'trip_guest') OR public.has_role(auth.uid(),'honorary_guest'));
+CREATE POLICY "Travel editors manage Roomies" ON public.travel_roomies FOR ALL TO authenticated USING (public.has_role(auth.uid(),'host') OR public.has_role(auth.uid(),'schedule_manager')) WITH CHECK (public.has_role(auth.uid(),'host') OR public.has_role(auth.uid(),'schedule_manager'));
+ALTER TABLE public.travel_legs ADD COLUMN connections text[] NOT NULL DEFAULT '{}';
+ALTER TABLE public.travel_legs ALTER COLUMN airline SET DEFAULT '', ALTER COLUMN flight_number SET DEFAULT '';
+ALTER TABLE public.travel_legs ADD CONSTRAINT travel_legs_guest_direction_unique UNIQUE (guest_id,direction);
+ALTER TABLE public.travel_legs ADD CONSTRAINT travel_legs_direction_valid CHECK (direction IN ('arrival','departure'));
+ALTER TABLE public.travel_legs ADD CONSTRAINT travel_legs_airports_valid CHECK (other_airport ~ '^[A-Z]{3}$' AND cardinality(connections) <= 3 AND array_to_string(connections,',') ~ '^([A-Z]{3}(,[A-Z]{3}){0,2})?$' AND array_position(connections,NULL) IS NULL);
+CREATE POLICY "Participants insert own flights" ON public.travel_legs FOR INSERT TO authenticated WITH CHECK (public.is_trip_participant(auth.uid()) AND guest_id=public.my_guest());
+CREATE POLICY "Participants update own flights" ON public.travel_legs FOR UPDATE TO authenticated USING (public.is_trip_participant(auth.uid()) AND guest_id=public.my_guest()) WITH CHECK (public.is_trip_participant(auth.uid()) AND guest_id=public.my_guest());
+CREATE POLICY "Participants delete own flights" ON public.travel_legs FOR DELETE TO authenticated USING (public.is_trip_participant(auth.uid()) AND guest_id=public.my_guest());
