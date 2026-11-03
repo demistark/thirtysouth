@@ -1,4 +1,4 @@
-- [ ] Apply three small changes: measure/center footer and enlarge wordmark, conditional editable Splitwise link on Expenses, signed-out ComingSoon sign-in; run suite without walkthrough/accounts.
+- [x] Apply three small changes: footer visible centers within 0.008px at 390px/1280px and enlarged wordmark; editable Splitwise Expenses link with empty fallback; signed-out ComingSoon sign-in. All 189 tests pass, build OK; no walkthrough/accounts. Splitwise destination awaits host entry.
 - [x] Apply five Travel follow-ups: sticky 640px sections, flush phone dropdown, copy-flight form, Journal earlier-page navigation/host pre-trip board, weighted postcard places; 185 tests pass, build OK. No walkthroughs/accounts; live geometry, saves, and role displays remain unverified.
 - [x] Use stable approximately one-in-seven Shantell Sans Heart cards, add a 16px Commons gap, and offer EST/CPT for trip dates, Journal phases, preview, RSVP deadlines, flights and transfers; verify settings save/reload and midnight conversions.
 - [x] Restyle area-specific lockouts and rename Reflections.
