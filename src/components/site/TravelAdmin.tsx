@@ -8,16 +8,18 @@ import { photoExtension, preparePhoto } from "@/lib/image-resize";
 import {
   CSV_MAX_BYTES, FLIGHT_CSV_COLUMNS, PACKING_CSV_COLUMNS, TRANSFER_CSV_COLUMNS,
   exportFlightsCsv, parseFlightsCsv, parsePackingCsv, parseTimeInput, parseTransfersCsv,
-  shuffledCastOrders, type CastGuest, type PackingCategory, type PackingItem, type Transfer,
+  flightAirportsValid, hasFlightDirection, shuffledCastOrders, type CastGuest, type PackingCategory, type PackingItem, type Transfer,
   type TravelLeg, type TravelSlot, type VillaRoom,
 } from "@/lib/travel";
 import type { ImportResult, RowError } from "@/lib/itinerary";
 import { useGuestDirectory } from "@/lib/travel-data";
+import { TravelRoomiesAdmin } from "./TravelRoomiesAdmin";
+import { Button } from "@/components/ui/button";
 import { TripTimeInput } from "./TripTimeInput";
 
-type Sub = "cast" | "villa" | "flights" | "transfers" | "packing" | "images" | "settings";
+type Sub = "cast" | "villa" | "roomies" | "flights" | "transfers" | "packing" | "images" | "settings";
 
-const VILLA_KEYS = ["travel_subtitle", "cast_heading", "cast_subheading", "cast_deck", "villa_name", "villa_address", "villa_stay", "villa_checkin", "villa_checkout", "villa_about", "villa_amenities", "villa_house_rules", "villa_power_note", "villa_after_checkout", "flights_deck", "flights_getting_to_villa", "flights_power_and_time", "packing_deck"];
+const VILLA_KEYS = ["travel_subtitle", "cast_heading", "cast_subheading", "cast_deck", "villa_fun_line", "villa_vrbo_url", "villa_website_url", "villa_name", "villa_address", "villa_stay", "villa_checkin", "villa_checkout", "villa_about", "villa_amenities", "villa_house_rules", "villa_power_note", "villa_after_checkout", "flights_deck", "flights_getting_to_villa", "flights_power_and_time", "packing_deck"];
 
 function useRefresh() {
   const qc = useQueryClient();
@@ -33,9 +35,10 @@ export function TravelAdmin() {
   const [sub, setSub] = useState<Sub>("cast");
   return (
     <div>
-      <SubTabs tabs={(["cast", "villa", "flights", "transfers", "packing", "images", "settings"] as const).map((id) => ({ id, label: t(`admin.travel.${id}`) }))} value={sub} onChange={setSub} />
+      <SubTabs tabs={(["cast", "villa", "roomies", "flights", "transfers", "packing", "images", "settings"] as const).map((id) => ({ id, label: t(`admin.travel.${id}`) }))} value={sub} onChange={setSub} />
       {sub === "cast" && <CastPanel />}
       {sub === "villa" && <VillaPanel />}
+      {sub === "roomies" && <TravelRoomiesAdmin />}
       {sub === "flights" && <FlightsPanel />}
       {sub === "transfers" && <TransfersPanel />}
       {sub === "packing" && <PackingPanel />}
@@ -361,8 +364,8 @@ function FlightsPanel() {
       <ul className="space-y-4">
         {legs.map((l) => <LegRow key={l.id} leg={l} directory={directory} transfers={transfersQ.data ?? []} allLegs={legsQ.data ?? []} onDone={refresh} />)}
       </ul>
-      {adding && directory.length ? (
-        <ul className="mt-4"><LegRow leg={blankLeg(directory[0]!.id)} directory={directory} transfers={transfersQ.data ?? []} allLegs={legsQ.data ?? []} isNew onDone={async () => { setAdding(false); await refresh(); }} /></ul>
+      {adding && directory[0] ? (
+        <ul className="mt-4"><LegRow leg={blankLeg(directory[0].id)} directory={directory} transfers={transfersQ.data ?? []} allLegs={legsQ.data ?? []} isNew onDone={async () => { setAdding(false); await refresh(); }} /></ul>
       ) : (
         <button className="btn-pill mt-4" onClick={() => setAdding(true)}>{t("admin.itin.add")}</button>
       )}
@@ -383,17 +386,17 @@ function LegRow({ leg, directory, transfers, allLegs, isNew, onDone }: {
     const parsed = parseTimeInput(time);
     if (!parsed) { toast.error("Time must look like 2:30 PM or 14:30"); return; }
     if (!f.guest_id) { toast.error("Pick a friend"); return; }
-    if (f.direction === "arrival" && allLegs.some((l) => l.id !== f.id && l.guest_id === f.guest_id && l.direction === "arrival"))
-      toast.warning("This friend already has another arrival");
-    const { id, ...row } = { ...f, cpt_time: `${date}T${parsed}:00` };
-    const { error } = isNew ? await supabase.from("travel_legs").insert(row) : await supabase.from("travel_legs").update(row).eq("id", leg.id!);
+    if (!flightAirportsValid(f.other_airport,f.connections ?? [])) { toast.error(t("travel.flight.invalid")); return; }
+    if (hasFlightDirection(allLegs,f.guest_id,f.direction,f.id)) { toast.error(t("travel.flight.duplicate")); return; }
+    const { id, ...row } = { ...f, other_airport: f.other_airport.toUpperCase(), connections: (f.connections ?? []).map(c=>c.toUpperCase()), cpt_time: `${date}T${parsed}:00` };
+    const { error } = isNew ? await supabase.from("travel_legs").insert(row) : await supabase.from("travel_legs").update(row).eq("id", leg.id ?? "");
     if (error) { toast.error(error.message); return; }
     toast.success(t("admin.itin.saved"));
     await onDone();
   };
   const del = async () => {
     if (!confirm("Delete this flight?")) return;
-    const { error } = await supabase.from("travel_legs").delete().eq("id", leg.id!);
+    const { error } = await supabase.from("travel_legs").delete().eq("id", leg.id ?? "");
     if (error) toast.error(error.message); else await onDone();
   };
   return (
@@ -411,6 +414,7 @@ function LegRow({ leg, directory, transfers, allLegs, isNew, onDone }: {
       <F label="Airline"><input className="field" value={f.airline} onChange={(e) => setF({ ...f, airline: e.target.value })} /></F>
       <F label="Flight number"><input className="field" value={f.flight_number} onChange={(e) => setF({ ...f, flight_number: e.target.value })} /></F>
       <F label="Other airport"><input className="field" placeholder="DOH" value={f.other_airport} onChange={(e) => setF({ ...f, other_airport: e.target.value })} /></F>
+      <F label={t("travel.flight.connections")}><input className="field" value={(f.connections ?? []).join("; ")} onChange={e=>setF({...f,connections:e.target.value.split(/[; ,]+/).filter(Boolean).map(c=>c.toUpperCase())})} /></F>
       <TripTimeInput label={t("time.flight.label")} value={f.cpt_time} onChange={(value) => setF({ ...f, cpt_time: value })} />
       <F label="Terminal"><input className="field" value={f.terminal ?? ""} onChange={(e) => setF({ ...f, terminal: e.target.value || null })} /></F>
       <F label="Transfer">
@@ -674,7 +678,7 @@ function ImagesPanel() {
   if (q.isPending) return <div className="h-64 border bg-card" />;
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      {(["cast", "villa", "flights", "packing"] as TravelSlot[]).map((slot) => (
+      {(["cast", "villa", "roomies", "flights", "packing"] as TravelSlot[]).map((slot) => (
         <ImageSlot key={slot} slot={slot} image={q.data?.rows.find((r) => r.slot === slot)} url={q.data?.urls[q.data.rows.find((r) => r.slot === slot)?.storage_path ?? ""]} onDone={refresh} label={t(`travel.section.${slot}`)} />
       ))}
     </div>
