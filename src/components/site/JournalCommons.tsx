@@ -29,15 +29,17 @@ import {
 } from "@/lib/journal-data";
 import { JOURNAL_PHOTO_OPTS, preparePhoto } from "@/lib/image-resize";
 import { cn } from "@/lib/utils";
+import { useTripClock } from "@/lib/trip-clock";
 
 export function JournalCommons() {
   const { roles, loading } = useAuth();
+  const { now } = useTripClock();
   const settingsQ = useJournalSettings(!loading);
   // Shantell Sans loads on Our Commons only — never on Reflections or Close to Heart.
   const font = <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shantell+Sans:wght@500&display=swap" />;
   if (loading || !settingsQ.data) return <>{font}<div className="h-48 border bg-card" /></>;
   const settings = settingsQ.data;
-  const phase = phaseFromSettings(new Date(), settings);
+  const phase = phaseFromSettings(now, settings);
   return <>{font}<CommonsBody phase={phase} roles={roles} settings={settings} /></>;
 }
 
@@ -46,29 +48,29 @@ function CommonsBody({ phase, roles, settings }: { phase: "before" | "during" | 
   const participant = isTripParticipant(roles as never);
   const isAfar = roles.includes("friend_afar") && !participant;
   const [limit, setLimit] = useState(PAGE_SIZE);
-  const postsQ = useCommonsPosts(phase !== "before", limit);
+  const hostBefore = phase === "before" && roles.includes("host");
+  const postsQ = useCommonsPosts(phase !== "before" || hostBefore, limit);
   const posts = useMemo(() => postsQ.data ?? [], [postsQ.data]);
   const photoPaths = useMemo(() => posts.map((p) => p.photo_path).filter((p): p is string => !!p), [posts]);
   const urlsQ = useJournalPhotoUrls(photoPaths);
   const days = useMemo(() => groupByDay(posts), [posts]);
 
-  if (phase === "before") {
+  if (phase === "before" && !hostBefore) {
     return (
       <section className="space-y-4">
         <div className="journal-notice">
           <h2 className="journal-notice-title">{t("commons_before_title")}</h2>
           <p className="journal-notice-body">{t("commons_before_body")}</p>
         </div>
-        {/* The host may post early to test the board. */}
-        {roles.includes("host") && <CommonsComposer settings={settings} myPosts={[]} />}
       </section>
     );
   }
 
   return (
     <section>
+      {hostBefore && <div className="journal-notice mb-4"><h2 className="journal-notice-title">{t("commons_before_title")}</h2><p className="journal-notice-body">{t("commons_before_body")}</p></div>}
       {phase === "after" && <p className="caption-serif mb-6 text-lg text-slate italic">{t("commons_after_line")}</p>}
-      {phase === "during" && participant && <CommonsComposer settings={settings} myPosts={posts} />}
+      {(phase === "during" && participant || hostBefore) && <CommonsComposer settings={settings} myPosts={posts} />}
       {phase === "during" && !participant && !isAfar && <HonoraryComposerHint />}
       {postsQ.isLoading ? (
         <div className="h-48 border bg-card" />

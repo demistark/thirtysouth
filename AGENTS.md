@@ -32,4 +32,4 @@
 - Journal access/limits stay in RPCs/RLS; Reflections remain own-row-only with no host read path. Phase timestamps use phase_timezone in current_phase() and phaseFromSettings(); queries live in journal-data. Why: phases must agree.
 - Shared TripTimeInput conversions keep transfers and RSVP deadlines in CPT; Travel's own-flight form uses separate CPT-local date/time fields, and phase settings store their zone. Flight number validation lives in the shared travel helper. Why: CPT schedules and consistent optional flight identifiers.
 - Section tabs share section-tab styling. Why: consistent tabs.
-- Close to Heart text is always Lora italic; size/weight/tone derive from heartCardStyle(card id) in src/lib/journal.ts; Shantell Sans loads on Our Commons only. Why: deterministic looks, no handwriting on Heart.
+- Close to Heart text is always Lora italic; style and weighted address picks use independently salted card-id hashes in journal.ts; Earlier Pages filtering and copy-flight options stay pure and tested. Shantell Sans loads on Our Commons only. Why: deterministic exportable presentation and deduplicated lists.
