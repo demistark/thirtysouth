@@ -328,9 +328,11 @@
 .back-to-top-bubble:hover { transform: translateY(-3px); background: var(--bubble-glow-hover), var(--bubble-fill); color: var(--ink); }
 .back-to-top-bubble:active { transform: translateY(1px); }
 .back-to-top-bubble:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
-.footer-text .label-caps { letter-spacing: .08em; padding-left: .08em; font-size: .5625rem; white-space: nowrap; }
+.footer-text .label-caps { letter-spacing: .08em; font-size: .5625rem; white-space: nowrap; }
+.footer-text > p .label-caps { font-size: .65625rem; }
 @media (min-width: 640px) {
-  .footer-text .label-caps { letter-spacing: .18em; padding-left: .18em; font-size: .6875rem; }
+  .footer-text .label-caps { letter-spacing: .18em; font-size: .6875rem; }
+  .footer-text > p .label-caps { font-size: .8125rem; }
   .site-header-bar { padding-left: 1.25rem; padding-right: 1.25rem; }
 }
 @media (max-width: 639px) {
