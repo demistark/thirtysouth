@@ -1,8 +1,10 @@
 import Papa from "papaparse";
 import { CSV_MAX_BYTES, CSV_MAX_ROWS, type ImportResult, type RowError } from "./itinerary";
 
-export type TravelSlot = "cast" | "villa" | "flights" | "packing";
-export const TRAVEL_SLOTS: TravelSlot[] = ["cast", "villa", "flights", "packing"];
+export type TravelSlot = "cast" | "villa" | "roomies" | "flights" | "packing";
+export const TRAVEL_SLOTS: TravelSlot[] = ["cast", "villa", "roomies", "flights", "packing"];
+
+export interface Roomie { id: string; names: string; floor_room: string; note: string; sort_order: number }
 
 export interface TravelImage {
   slot: TravelSlot;
@@ -21,7 +23,7 @@ export type LegDirection = "arrival" | "departure";
 export interface TravelLeg {
   id?: string; guest_id: string; direction: LegDirection; airline: string; flight_number: string;
   other_airport: string; cpt_time: string; terminal: string | null; notes: string | null;
-  transfer_id: string | null; visible: boolean;
+  transfer_id: string | null; visible: boolean; connections?: string[];
 }
 export interface Transfer {
   id?: string; direction: LegDirection; label: string; meet_time: string | null;
@@ -114,6 +116,26 @@ export function nextLeg(legs: TravelLeg[], myGuestId: string | null | undefined,
     .sort((a, b) => a.cpt_time.localeCompare(b.cpt_time))[0] ?? null;
 }
 
+export function normalizeIata(code: string): string | null {
+  const value = code.trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(value) ? value : null;
+}
+export function flightAirportsValid(airport: string, connections: string[]) {
+  return !!normalizeIata(airport) && connections.length <= 3 && connections.every(code => !!normalizeIata(code));
+}
+export function sortFlights(legs: TravelLeg[]) { return [...legs].sort((a,b) => a.cpt_time.localeCompare(b.cpt_time)); }
+export function flightDate(iso: string) { return `${iso.slice(5,7)}.${iso.slice(8,10)}`; }
+export function flightTime(iso: string) {
+  const h = Number(iso.slice(11,13)), m = iso.slice(14,16);
+  return `${h % 12 || 12}${m === "00" ? "" : `:${m}`} ${h >= 12 ? "P" : "A"}`;
+}
+export function flightRouteCodes(leg: Pick<TravelLeg,"direction" | "other_airport" | "connections">) {
+  return leg.direction === "arrival" ? [leg.other_airport,...(leg.connections ?? []),"CPT"] : ["CPT",...(leg.connections ?? []),leg.other_airport];
+}
+export function hasFlightDirection(legs: TravelLeg[], guestId: string, direction: LegDirection, exceptId?: string) {
+  return legs.some(l => l.guest_id === guestId && l.direction === direction && (!exceptId || l.id !== exceptId));
+}
+
 /* ---------- Packing columns ---------- */
 
 /** About 10 rows per column, capped by the width allowance; short lists use fewer. */
@@ -149,7 +171,7 @@ function dupCheck(keys: string[], errors: RowError[]) {
   keys.forEach((k, i) => { if (!k) return; if (seen.has(k)) errors.push({ row: i + 2, message: `Same key as row ${seen.get(k)}` }); else seen.set(k, i + 2); });
 }
 
-export const FLIGHT_CSV_COLUMNS = ["guest_name", "direction", "airline", "flight_number", "other_airport", "cpt_date", "cpt_time", "terminal", "notes", "transfer_label"] as const;
+export const FLIGHT_CSV_COLUMNS = ["guest_name", "direction", "airline", "flight_number", "other_airport", "cpt_date", "cpt_time", "terminal", "notes", "transfer_label", "connections"] as const;
 export const TRANSFER_CSV_COLUMNS = ["direction", "label", "meet_date", "meet_time", "meeting_point", "provider", "driver_contact", "included_with_villa", "notes"] as const;
 export const PACKING_CSV_COLUMNS = ["category", "item", "note", "chapter", "look_order"] as const;
 
@@ -160,7 +182,7 @@ export function parseFlightsCsv(
   existing: TravelLeg[],
   transfers: Transfer[],
 ): ImportResult<TravelLeg> {
-  const { data, errors } = parseRaw(csv, FLIGHT_CSV_COLUMNS);
+  const { data, errors } = parseRaw(csv, FLIGHT_CSV_COLUMNS.filter(c => c !== "connections"));
   if (errors.length) return finish([], errors);
   const out: TravelLeg[] = [];
   data.forEach((r, i) => {
@@ -175,17 +197,20 @@ export function parseFlightsCsv(
     const time = parseTimeInput(cell(r, "cpt_time"));
     if (!time) { errors.push({ row, message: "cpt_time must look like 2:30 PM or 14:30" }); return; }
     const old = existing.find((l) => l.guest_id === guest.id && l.direction === direction
-      && l.flight_number.toLowerCase() === cell(r, "flight_number").toLowerCase() && cptDatePart(l.cpt_time) === date);
+      );
     const transferLabel = cell(r, "transfer_label").toLowerCase();
     const transfer = transferLabel ? transfers.find((tr) => tr.label.toLowerCase() === transferLabel) : undefined;
     if (transferLabel && !transfer) errors.push({ row, message: `No transfer called “${cell(r, "transfer_label")}”` });
     const keep = (v: string, o: string | null | undefined) => (v ? v : (old ? (o ?? null) : null));
+    const connections = cell(r,"connections") ? cell(r,"connections").split(/[; >→]+/).filter(Boolean).map(c => c.toUpperCase()) : old?.connections ?? [];
+    const airport = (cell(r,"other_airport") || old?.other_airport || "").toUpperCase();
+    if (!flightAirportsValid(airport,connections)) errors.push({row,message:"Invalid airport codes or more than three connections"});
     out.push({
       ...(old?.id ? { id: old.id } : {}),
       guest_id: guest.id, direction,
       airline: cell(r, "airline") || old?.airline || "",
       flight_number: cell(r, "flight_number") || old?.flight_number || "",
-      other_airport: cell(r, "other_airport") || old?.other_airport || "",
+      other_airport: airport, connections,
       cpt_time: `${date}T${time}:00`,
       terminal: keep(cell(r, "terminal"), old?.terminal),
       notes: keep(cell(r, "notes"), old?.notes),
@@ -193,7 +218,7 @@ export function parseFlightsCsv(
       visible: old?.visible ?? true,
     });
   });
-  dupCheck(data.map((r) => `${cell(r, "guest_name").toLowerCase()}|${cell(r, "direction").toLowerCase()}|${cell(r, "flight_number").toLowerCase()}|${cell(r, "cpt_date")}`), errors);
+  dupCheck(data.map((r) => `${cell(r, "guest_name").toLowerCase()}|${cell(r, "direction").toLowerCase()}`), errors);
   return finish(out, errors);
 }
 
@@ -273,7 +298,7 @@ export function exportFlightsCsv(legs: TravelLeg[], guests: { id: string; displa
     data: legs.map((l) => [
       guests.find((g) => g.id === l.guest_id)?.display_name ?? "", l.direction, l.airline, l.flight_number,
       l.other_airport, cptDatePart(l.cpt_time), formatLegTime(l.cpt_time), l.terminal ?? "", l.notes ?? "",
-      transfers.find((tr) => tr.id === l.transfer_id)?.label ?? "",
+      transfers.find((tr) => tr.id === l.transfer_id)?.label ?? "", (l.connections ?? []).join(";"),
     ]),
   });
 }

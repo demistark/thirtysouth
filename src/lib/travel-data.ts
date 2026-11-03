@@ -143,3 +143,11 @@ export function useTravelShareAll(enabled: boolean) {
 }
 
 export type { TravelSlot };
+
+export function useRoomies(enabled: boolean) {
+  return useQuery({ queryKey: ["travel", "roomies"], enabled, queryFn: async () => {
+    const {data,error} = await supabase.from("travel_roomies").select("*").order("sort_order").order("id");
+    if(error) throw error;
+    return data ?? [];
+  }});
+}
