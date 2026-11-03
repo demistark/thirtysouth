@@ -1,4 +1,4 @@
-- [ ] Apply five Travel follow-ups: sticky 640px sections, flush phone dropdown, copy-flight form, Journal earlier-page navigation/host pre-trip board, weighted postcard places; run suite without walkthroughs/accounts.
+- [x] Apply five Travel follow-ups: sticky 640px sections, flush phone dropdown, copy-flight form, Journal earlier-page navigation/host pre-trip board, weighted postcard places; 185 tests pass, build OK. No walkthroughs/accounts; live geometry, saves, and role displays remain unverified.
 - [x] Use stable approximately one-in-seven Shantell Sans Heart cards, add a 16px Commons gap, and offer EST/CPT for trip dates, Journal phases, preview, RSVP deadlines, flights and transfers; verify settings save/reload and midnight conversions.
 - [x] Restyle area-specific lockouts and rename Reflections.
 - [x] Add unseeded public active facts with host management and CSV import.
