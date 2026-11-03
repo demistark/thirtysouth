@@ -142,8 +142,7 @@ export function SiteFooter() {
     const position = () => {
       if (!footer.current || !bubble.current) return;
       const size = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
-      const clearance = Number.parseFloat(getComputedStyle(bubble.current).getPropertyValue("--bubble-clearance")) || 24;
-      bubble.current.style.bottom = `${bubbleBottom(window.innerHeight, footer.current.getBoundingClientRect().top, size, clearance - 24)}px`;
+      bubble.current.style.setProperty("--bubble-footer-bottom", `${bubbleBottom(window.innerHeight, footer.current.getBoundingClientRect().top, size)}px`);
       setVisible(backToTopVisible(window.scrollY));
     };
     const scrolling = () => {
