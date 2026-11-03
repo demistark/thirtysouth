@@ -23,9 +23,9 @@ export function railDots(chapter: number, scenes: Scene[]): Dot[] {
   }
   return dots;
 }
-export interface ItineraryDisplay { indicator: "edge" | "arrow" | "both"; shadow: number; grain: boolean }
+export interface ItineraryDisplay { indicator: "edge" | "arrow" | "both"; shadow: number; grain: boolean; wardrobeVisible?: boolean }
 export function displaySettings(values: Record<string,string>): ItineraryDisplay {
   const indicator = values["itinerary_indicator"];
   const shadow = Number(values["itinerary_shadow"] ?? 3);
-  return {indicator: indicator === "arrow" || indicator === "both" ? indicator : "edge", shadow: Number.isInteger(shadow) && shadow >= 1 && shadow <= 5 ? shadow : 3, grain: values["itinerary_grain"] !== "false"};
+  return {indicator: indicator === "arrow" || indicator === "both" ? indicator : "edge", shadow: Number.isInteger(shadow) && shadow >= 1 && shadow <= 5 ? shadow : 3, grain: values["itinerary_grain"] !== "false", wardrobeVisible: values["wardrobe_visible"] !== "false"};
 }
