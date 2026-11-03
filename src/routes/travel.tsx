@@ -126,8 +126,15 @@ function jumpToTravel(slot: string) {
   const target=document.getElementById(slot);if(!target)return;
   const desktop=window.matchMedia("(min-width: 768px)").matches;
   const tabs=document.querySelector<HTMLElement>(".travel-jumpbar");
-  const offset=travelHeaderBottom()+(desktop ? tabs?.getBoundingClientRect().height ?? 0 : 6)+5;
-  window.scrollTo({top:Math.max(0,target.getBoundingClientRect().top+window.scrollY-offset),behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"});
+  const destination=()=>{
+    const offset=travelHeaderBottom()+(desktop ? tabs?.getBoundingClientRect().height ?? 0 : 6)+5;
+    return Math.max(0,target.getBoundingClientRect().top+window.scrollY-offset);
+  };
+  const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduced){window.scrollTo({top:destination(),behavior:"instant"});requestAnimationFrame(()=>window.scrollTo({top:destination(),behavior:"instant"}));return;}
+  const start=window.scrollY;let began:number | undefined;
+  const step=(time:number)=>{began ??= time;const progress=Math.min(1,(time-began)/300);window.scrollTo({top:start+(destination()-start)*(1-(1-progress)**3),behavior:"instant"});if(progress<1)requestAnimationFrame(step);};
+  requestAnimationFrame(step);
 }
 function JumpBar({ active }: { active: TravelSlot }) {
   const { t } = useContent();const bar=useRef<HTMLElement>(null);const panel=useRef<HTMLDivElement>(null);
