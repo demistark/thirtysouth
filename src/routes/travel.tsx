@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
-import { BedDouble, MapPin } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { MapPin } from "lucide-react";
 import { PageShell } from "@/components/site/Blocks";
 import { TravelLockout } from "@/components/site/Lockouts";
 import { useAuth } from "@/lib/auth";
@@ -15,11 +15,12 @@ import {
 } from "@/lib/travel";
 import {
   useCast, useGuestDirectory, useMyGuest, usePackingCategories, usePackingChecks, usePackingItems,
-  useRoomAssignments, useTransfers, useTravelImages, useTravelLegs, useVillaRooms,
+  useRoomies, useTravelImages, useTravelLegs,
 } from "@/lib/travel-data";
 import { lookNumber } from "@/lib/itinerary-display";
 import { cn } from "@/lib/utils";
-import { scrollToContent } from "@/lib/scroll";
+import { Button } from "@/components/ui/button";
+import { TravelFlights } from "@/components/site/TravelFlights";
 
 export const Route = createFileRoute("/travel")({
   head: () => ({
@@ -59,10 +60,9 @@ function TravelPage() {
   const castQ = useCast(true);
   const myGuestQ = useMyGuest(!!session);
   const directoryQ = useGuestDirectory(true);
-  const roomsQ = useVillaRooms(true);
-  const assignmentsQ = useRoomAssignments(true);
+  const roomiesQ = useRoomies(true);
   const legsQ = useTravelLegs(true);
-  const transfersQ = useTransfers(true);
+
   const categoriesQ = usePackingCategories(true);
   const itemsQ = usePackingItems(true);
   const checksQ = usePackingChecks(!!session);
@@ -86,7 +86,7 @@ function TravelPage() {
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     if ((TRAVEL_SLOTS as string[]).includes(hash))
-      scrollToContent(document.getElementById(hash));
+      jumpToTravel(hash);
   }, []);
 
   const images = imagesQ.data?.images ?? [];
@@ -97,38 +97,23 @@ function TravelPage() {
   };
 
   const legs = legsQ.data ?? [];
-  const transfers = transfersQ.data ?? [];
+
   const directory = directoryQ.data ?? [];
   const chapters = chaptersQ.data ?? [];
 
   return (
-    <main className="pt-14 md:pt-20">
+    <main className="travel-page pt-14 md:pt-20">
       <header className="mx-auto max-w-5xl px-5">
         <h1 className="font-display-light text-[56px] uppercase leading-none text-deep-atlantic">{t("travel.title")}</h1>
         <p className="caption-serif mt-3 text-lg">{t("travel_subtitle")}</p>
       </header>
       <JumpBar active={active} />
       <div className="travel-sections">
-        <TravelSection slot="cast" deck={t("cast_deck")} media={imageFor("cast")} eager
+        <TravelSection slot="cast" deck="" media={imageFor("cast")} eager
           intro={<CastRoll cast={castQ.data ?? []} loading={castQ.isPending} />} />
-        <TravelSection slot="villa" deck="" media={imageFor("villa")}
-          intro={<VillaIntro />}
-          below={<>
-            <RoomsGrid rooms={roomsQ.data ?? []} assignments={assignmentsQ.data ?? []} directory={directory} />
-            {t("villa_after_checkout") && (
-              <div className="travel-card mt-6">
-                <p className="travel-label">{t("travel.after_checkout")}</p>
-                <p className="mt-2 whitespace-pre-line text-sm leading-relaxed">{t("villa_after_checkout")}</p>
-              </div>
-            )}
-          </>} />
-        <TravelSection slot="flights" deck={t("flights_deck")} media={imageFor("flights")}
-          intro={<>
-            {participant && <YourFlight legs={legs.filter((l) => l.guest_id === myGuestQ.data)} />}
-            {t("flights_getting_to_villa") && <LabelledText label={t("travel.getting_to_villa")} text={t("flights_getting_to_villa")} />}
-            {t("flights_power_and_time") && <LabelledText label={t("travel.power_time")} text={t("flights_power_and_time")} />}
-          </>}
-          below={<FlightLists legs={legs} transfers={transfers} directory={directory} chapters={chapters} loading={legsQ.isPending} />} />
+        <TravelSection slot="villa" deck="" media={imageFor("villa")} intro={<VillaIntro />} />
+        <TravelSection slot="roomies" deck="" media={imageFor("roomies")} intro={<div className="travel-roomies-grid">{(roomiesQ.data ?? []).map(r => <article key={r.id} className="travel-roomie"><p className="travel-roomie-names">{r.names}</p><p className="travel-roomie-floor">{r.floor_room}</p>{r.note && <p className="travel-roomie-note">{r.note}</p>}</article>)}</div>} below={!roomiesQ.isPending && !roomiesQ.data?.length ? <p className="caption-serif mt-6 text-sm">{t("travel.roomies.empty")}</p> : undefined} />
+        <TravelSection slot="flights" deck="" media={imageFor("flights")} intro={<TravelFlights legs={legs} directory={directory} myGuestId={myGuestQ.data ?? null} editable={participant} />} />
         <TravelSection slot="packing" deck={t("packing_deck")} media={imageFor("packing")}
           intro={<PackingCount items={itemsQ.data ?? []} checks={checksQ.data ?? new Set()} />}
           below={<PackingList categories={categoriesQ.data ?? []} items={itemsQ.data ?? []} checks={checksQ.data ?? new Set()} userId={session?.user.id} />} />
@@ -137,38 +122,33 @@ function TravelPage() {
   );
 }
 
+function travelHeaderBottom() {
+  return Math.max(0,document.querySelector(".site-header")?.getBoundingClientRect().bottom ?? 0);
+}
+function jumpToTravel(slot: string) {
+  const target=document.getElementById(slot);if(!target)return;
+  const desktop=window.matchMedia("(min-width: 768px)").matches;
+  const tabs=document.querySelector<HTMLElement>(".travel-jumpbar");
+  const offset=travelHeaderBottom()+(desktop ? tabs?.getBoundingClientRect().height ?? 0 : 6)+5;
+  window.scrollTo({top:Math.max(0,target.getBoundingClientRect().top+window.scrollY-offset),behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"});
+}
 function JumpBar({ active }: { active: TravelSlot }) {
-  const { t } = useContent();
-  const [hidden, setHidden] = useState(false);
-  useEffect(() => {
-    let last = window.scrollY;
-    const onScroll = () => {
-      const y = window.scrollY;
-      setHidden(y > last + 4 && y > 140);
-      if (y < last - 4 || y <= 140) setHidden(false);
-      last = y;
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-  const go = (slot: TravelSlot) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    scrollToContent(document.getElementById(slot));
-    history.replaceState(null, "", `#${slot}`);
-  };
-  return (
-    <nav data-scroll-obstruction className={cn("travel-jumpbar", hidden && "travel-jumpbar-hidden")} aria-label="Travel sections">
-      <div className="mx-auto flex max-w-5xl gap-6 overflow-x-auto px-5 shadow-[inset_0_-1px_0_var(--color-border)]">
-        {TRAVEL_SLOTS.map((s) => (
-          <a key={s} href={`#${s}`} onClick={go(s)} aria-current={active === s ? "true" : undefined}
-            className={cn("section-tab",
-              active === s ? "border-ember text-foreground" : "border-transparent text-muted-foreground hover:text-foreground")}>
-            {t(`travel.section.${s}`)}
-          </a>
-        ))}
-      </div>
-    </nav>
-  );
+  const { t } = useContent();const bar=useRef<HTMLElement>(null);const panel=useRef<HTMLDivElement>(null);
+  const [out,setOut]=useState(false);const [open,setOpen]=useState(false);
+  useEffect(()=>{
+    const update=()=>{document.querySelector<HTMLElement>(".travel-page")?.style.setProperty("--travel-header-bottom",`${travelHeaderBottom()}px`);if(bar.current)setOut(bar.current.getBoundingClientRect().bottom<=travelHeaderBottom());};
+    const scroll=()=>{update();setOpen(false);};
+    const outside=(e:PointerEvent)=>{if(panel.current && e.target instanceof Node && !panel.current.contains(e.target))setOpen(false);};
+    update();const header=document.querySelector(".site-header");const observer=new ResizeObserver(update);if(header)observer.observe(header);
+    window.addEventListener("scroll",scroll,{passive:true});window.addEventListener("resize",update);document.addEventListener("pointerdown",outside);
+    return()=>{observer.disconnect();window.removeEventListener("scroll",scroll);window.removeEventListener("resize",update);document.removeEventListener("pointerdown",outside);};
+  },[]);
+  const go=(slot:TravelSlot)=>{setOpen(false);jumpToTravel(slot);history.replaceState(null,"",`#${slot}`);};
+  const tabs=<>{TRAVEL_SLOTS.map(s=><Button key={s} variant="ghost" onClick={()=>go(s)} aria-current={active===s ? "true" : undefined} className={cn("section-tab rounded-none",active===s ? "border-ember text-foreground" : "border-transparent text-muted-foreground")}>{t(`travel.section.${s}`)}</Button>)}</>;
+  return <>
+    <nav ref={bar} className="travel-jumpbar" aria-label={t("travel.title")}><div className="travel-tab-row">{tabs}</div></nav>
+    {out && <div ref={panel} className="travel-phone-nav"><Button variant="ghost" className="travel-tab-line" aria-label={t("travel.title")} aria-expanded={open} onClick={()=>setOpen(!open)}><span className="travel-tab-track">{TRAVEL_SLOTS.map(s=><span key={s} className={s===active ? "bg-ember" : "bg-border"}/>)}</span></Button>{open && <nav className="travel-tab-panel" aria-label={t("travel.title")}>{tabs}</nav>}</div>}
+  </>;
 }
 
 function TravelSection({ slot, deck, media, intro, below, eager }: {
@@ -182,13 +162,12 @@ function TravelSection({ slot, deck, media, intro, below, eager }: {
       <div className="travel-split">
         <div className="travel-split-media"><SectionMedia slot={slot} media={media} eager={eager} /></div>
         <div className="travel-split-text">
-          <p className="travel-eyebrow">{t("travel.title")}</p>
           <h2 className="travel-heading">{t(`travel.section.${slot}`)}</h2>
           {deck && <p className="caption-serif mt-3 text-lg text-muted-foreground">{deck}</p>}
           {intro}
+          {below}
         </div>
       </div>
-      {below && <div className="travel-below">{below}</div>}
     </section>
   );
 }
@@ -228,9 +207,7 @@ function CastRoll({ cast, loading }: { cast: CastGuest[]; loading: boolean }) {
   if (!cast.length) return <p className="caption-serif mt-6 text-lg italic">{t("travel.cast.empty")}</p>;
   return (
     <div className="cast-roll mt-8">
-      <p className="cast-roll-head">
-        <strong>{t("cast_heading")}</strong> <span className="cast-roll-sub">{t("cast_subheading")}</span>
-      </p>
+      <p className="cast-roll-sub">{t("cast_subheading")}</p>
       <ul className="cast-roll-list">
         {cast.map((g) => (
           <li key={g.id} className="cast-row">
@@ -257,6 +234,7 @@ function VillaIntro() {
         <div><p className="travel-label">{t("travel.checkin")}</p><p className="mt-1 text-sm">{t("villa_checkin")}</p></div>
         <div><p className="travel-label">{t("travel.checkout")}</p><p className="mt-1 text-sm">{t("villa_checkout")}</p></div>
       </div>
+      <VillaFunLine />
       {t("villa_about") && <LabelledText label={t("travel.about")} text={t("villa_about")} />}
       {t("villa_amenities") && <LabelledText label={t("travel.amenities")} text={t("villa_amenities")} />}
       {t("villa_house_rules") && <LabelledText label={t("travel.house_rules")} text={t("villa_house_rules")} />}
@@ -265,131 +243,10 @@ function VillaIntro() {
   );
 }
 
-function RoomsGrid({ rooms, assignments, directory }: { rooms: VillaRoom[]; assignments: RoomAssignment[]; directory: { id: string; display_name: string }[] }) {
-  const { t } = useContent();
-  const byRoom = useMemo(() => {
-    const map = new Map<string, string[]>();
-    assignments.forEach((a) => {
-      const name = directory.find((d) => d.id === a.guest_id)?.display_name;
-      if (name) map.set(a.room_id, [...(map.get(a.room_id) ?? []), name]);
-    });
-    return map;
-  }, [assignments, directory]);
-  if (!rooms.length) return null;
-  return (
-    <div>
-      <p className="travel-label">{t("travel.rooms")}</p>
-      <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {rooms.map((r) => (
-          <li key={r.id} className="travel-card">
-            <h3 className="font-display text-[23px] text-deep-atlantic">{r.label}</h3>
-            <p className="mt-2 flex items-center gap-2 text-sm"><BedDouble className="h-4 w-4 shrink-0 text-slate" aria-hidden="true" />{r.bed_config}{r.sleeps ? ` · ${r.sleeps}` : ""}</p>
-            {r.notes && <p className="mt-2 text-xs text-muted-foreground">{r.notes}</p>}
-            <p className="mt-3 border-t pt-3 text-sm">
-              {byRoom.get(r.id)?.length ? byRoom.get(r.id)!.join(", ") : <span className="italic text-muted-foreground">{t("travel.not_assigned")}</span>}
-            </p>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-/* ---------- Flights ---------- */
-
-function YourFlight({ legs }: { legs: TravelLeg[] }) {
-  const { t } = useContent();
-  if (!legs.length) return null;
-  return (
-    <div className="mt-8">
-      <p className="travel-label flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-ember" aria-hidden="true" />{t(legs.length > 1 ? "travel.your_flights" : "travel.your_flight")}</p>
-      <ul className="mt-3 space-y-3">
-        {legs.map((l) => (
-          <li key={l.id} className="travel-card">
-            <p className="scene-time">{formatLegDate(l.cpt_time)} · {formatLegTime(l.cpt_time)}</p>
-            <p className="mt-1 text-sm">{legRoute(l)}</p>
-            {l.terminal && <p className="mt-1 flex items-center gap-2 text-xs text-muted-foreground"><MapPin className="h-3.5 w-3.5" aria-hidden="true" />{l.terminal}</p>}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function FlightLists({ legs, transfers, directory, chapters, loading }: {
-  legs: TravelLeg[]; transfers: Transfer[]; directory: { id: string; display_name: string }[];
-  chapters: { number: number; date: string }[]; loading: boolean;
-}) {
-  const { t } = useContent();
-  if (loading) return <div className="h-64 border bg-card" />;
-  if (!legs.length) return <p className="caption-serif py-8 text-lg italic">{t("travel.flights.empty")}</p>;
-  const chapterFor = (date: string) => chapters.find((c) => c.date === date)?.number;
-  const nameFor = (id: string) => directory.find((d) => d.id === id)?.display_name ?? "";
-  const list = (direction: "arrival" | "departure", label: string) => {
-    const groups = groupLegsByDate(legs.filter((l) => l.direction === direction));
-    return (
-      <div>
-        <p className="travel-label">{label}</p>
-        {groups.map((g) => (
-          <div key={g.date} className="mt-6">
-            <p className="travel-date-head">{formatLegDate(g.date)}{chapterFor(g.date) ? ` · CHP ${chapterFor(g.date)}` : ""}</p>
-            <ul className="scene-timeline mt-4">
-              {g.legs.map((l) => {
-                const transfer = transfers.find((tr) => tr.id === l.transfer_id);
-                return (
-                  <li key={l.id} className="scene-timeline-item">
-                    <article id={`leg-${l.id}`} className="scene-card">
-                      <div className="scene-main">
-                        <p className="scene-time">{formatLegTime(l.cpt_time)}</p>
-                        <div className="scene-title-row">
-                          <span className="scene-timeline-dot" data-shape="circle" data-color="atlantic" aria-hidden="true"><span /></span>
-                          <h3 className="scene-title">{nameFor(l.guest_id)}</h3>
-                        </div>
-                        <p className="scene-summary">{legRoute(l)}</p>
-                        {l.terminal && <p className="scene-location"><MapPin aria-hidden="true" />{l.terminal}</p>}
-                        {l.notes && <p className="mt-1 text-sm text-muted-foreground">{l.notes}</p>}
-                        {transfer && (
-                          <a className="look-tag" href={`#transfer-${transfer.id}`} onClick={e => { e.preventDefault(); scrollToContent(document.getElementById(`transfer-${transfer.id}`)); history.replaceState(null, "", `#transfer-${transfer.id}`); }}>
-                            <span>{transfer.label} //</span>
-                            <span className="text-deep-atlantic">{transfer.meet_time ? formatLegTime(transfer.meet_time) : ""}</span>
-                          </a>
-                        )}
-                      </div>
-                    </article>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-      </div>
-    );
-  };
-  return (
-    <div>
-      <div className="grid gap-10 lg:grid-cols-2">
-        {list("arrival", t("travel.arrivals"))}
-        {list("departure", t("travel.departures"))}
-      </div>
-      {transfers.length > 0 && (
-        <ul className="mt-10 grid gap-4 sm:grid-cols-2">
-          {transfers.map((tr) => (
-            <li key={tr.id} id={`transfer-${tr.id}`} className="travel-card">
-              <h3 className="font-display text-[23px] text-deep-atlantic">{tr.label}</h3>
-              {tr.meet_time && <p className="scene-time mt-2">{formatLegDate(tr.meet_time)} · {formatLegTime(tr.meet_time)}</p>}
-              {tr.meeting_point && <p className="mt-1 flex items-center gap-2 text-sm"><MapPin className="h-4 w-4 shrink-0 text-slate" aria-hidden="true" />{tr.meeting_point}</p>}
-              {tr.provider && <p className="mt-1 text-sm">{tr.provider}{tr.driver_contact ? ` · ${tr.driver_contact}` : ""}</p>}
-              {tr.included_with_villa && <p className="mt-2 text-xs font-medium uppercase tracking-[0.14em] text-ember-deep">{t("travel.included_villa")}</p>}
-              {tr.notes && <p className="mt-2 text-xs text-muted-foreground">{tr.notes}</p>}
-              <p className="mt-3 border-t pt-3 text-sm">
-                {legs.filter((l) => l.transfer_id === tr.id).map((l) => nameFor(l.guest_id)).filter(Boolean).join(", ")}
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
+function VillaFunLine() {
+  const {t}=useContent();
+  const parts=t("villa_fun_line").split(/(\[[^\]]+\]\((?:vrbo|website)\))/);
+  return <p className="mt-6 text-sm leading-relaxed">{parts.map((part,i)=>{const match=/^\[([^\]]+)\]\((vrbo|website)\)$/.exec(part);return match ? <a key={i} href={t(match[2]==="vrbo" ? "villa_vrbo_url" : "villa_website_url")} target="_blank" rel="noopener noreferrer" className="underline decoration-ember underline-offset-2">{match[1]}</a> : part;})}</p>;
 }
 
 /* ---------- Packing ---------- */
@@ -401,25 +258,12 @@ function PackingCount({ items, checks }: { items: PackingItem[]; checks: Set<str
   return <p className="mt-6 text-right text-xs font-medium uppercase tracking-[0.14em] text-ember-deep">{done} {t("travel.of")} {items.length} {t("travel.packed")}</p>;
 }
 
-function useColumnCap() {
-  const [cap, setCap] = useState(4);
-  useEffect(() => {
-    const update = () => setCap(window.innerWidth < 640 ? 2 : window.innerWidth < 1024 ? 3 : 4);
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
-  return cap;
-}
-
 function PackingList({ categories, items, checks, userId }: {
   categories: PackingCategory[]; items: PackingItem[]; checks: Set<string>; userId: string | undefined;
 }) {
   const qc = useQueryClient();
   const [local, setLocal] = useState<Set<string>>(checks);
   useEffect(() => setLocal(checks), [checks]);
-  const cap = useColumnCap();
-  const cols = packingColumnCount(categories.length + items.length, cap);
   if (!items.length) return null;
 
   const toggle = async (itemId: string) => {
@@ -436,7 +280,7 @@ function PackingList({ categories, items, checks, userId }: {
   };
 
   return (
-    <div className="packing-list" style={{ columnCount: cols }}>
+    <div className="packing-list">
       {categories.map((c) => {
         const catItems = items.filter((i) => i.category_id === c.id);
         if (!catItems.length) return null;
