@@ -75,6 +75,7 @@ function Itinerary() {
       return () => cancelAnimationFrame(frame);
     }
     if (tab === "scenes") scrollToContent(target);
+    return undefined;
   },[hash,tab,loading,displayQ.isPending,scenesQ.isPending,looksQ.isPending]);
   return <PageShell titleKey="itinerary.title" introKey="itinerary.intro">
     <SubTabs tabs={itineraryTabs().map(id => ({id,label:t(`itinerary.tab.${id}`)}))} value={tab} onChange={next => void navigate({search:{tab:next,day:chapter},hash:""})} />
