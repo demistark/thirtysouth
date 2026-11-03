@@ -6,7 +6,10 @@ export function stickyBottom(): number {
     const style = getComputedStyle(el);
     if (style.visibility === "hidden" || style.display === "none" || rect.bottom <= 0) continue;
     const top = Number.parseFloat(style.top) || 0;
-    if (style.position === "fixed" || (style.position === "sticky" && rect.top <= top + 1)) bottom = Math.max(bottom, rect.bottom);
+    const parent = el.parentElement;
+    const parentStyle = parent ? getComputedStyle(parent) : undefined;
+    const parentStuck = parent && parentStyle?.position === "sticky" && parent.getBoundingClientRect().top <= (Number.parseFloat(parentStyle.top) || 0) + 1;
+    if (style.position === "fixed" || parentStuck || (style.position === "sticky" && rect.top <= top + 1)) bottom = Math.max(bottom, rect.bottom);
   }
   return bottom;
 }
