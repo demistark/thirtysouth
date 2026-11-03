@@ -1,13 +1,14 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { render } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/data", () => ({
   useContent: () => ({ t: (key: string) => key }),
 }));
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children, className }: { children: React.ReactNode; className?: string }) => <a className={className}>{children}</a>,
+  Link: ({ children, className }: { children: ReactNode; className?: string }) => <a className={className}>{children}</a>,
 }));
 
 import { ItineraryScript } from "@/components/site/ItineraryScript";
