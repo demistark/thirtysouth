@@ -14,7 +14,7 @@ export function ItineraryScript({ chapters, loading }: { chapters: ChapterBasic[
         {c.heading_before && <p className={`script-heading mb-5 ${alignment(c.heading_before_align, "center")}`}>{c.heading_before}</p>}
         <div className="script-chapter">
           <span className="script-margin script-margin-left">{c.number}</span><span className="script-margin script-margin-right">{c.number}</span>
-          <Link to="/itinerary" search={{tab:"scenes",day:c.number}} className={`block ${alignment(c.layout)}`}>
+          <Link to="/itinerary" search={{tab:"scenes",day:c.number}} hash={`day-${c.number}`} resetScroll={false} hashScrollIntoView={false} className={`block ${alignment(c.layout)}`}>
             <p className="script-label">{t("itinerary.chapter")} {c.number} — {new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "2-digit", timeZone: "UTC" }).format(new Date(`${c.date}T12:00:00Z`))}</p>
             <h3 className="script-title">{c.title}</h3>
             <p className="mt-4 whitespace-pre-line text-sm leading-relaxed">{c.summary}</p>
