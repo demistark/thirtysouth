@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ComingSoon, PageShell, SubTabs } from "@/components/site/Blocks";
-import { scrollToContent } from "@/lib/scroll";
+import { scrollToContent, stickyBottom } from "@/lib/scroll";
 import { wardrobeVisible } from "@/lib/site-shell";
 import { RecordingLockout } from "@/components/site/Lockouts";
 import { useAuth } from "@/lib/auth";
@@ -65,28 +65,31 @@ function Itinerary() {
     if(!search.tab) void navigate({search:{tab:initial.tab,day:initial.chapter},replace:true});
   },[loading,chaptersQ.data,search.tab,initial.tab,initial.chapter,navigate]);
   const scenesQ = useScenes(allowed); const looksQ = useLooks(allowed);
+  const hash = useLocation({select: location => location.hash});
   useEffect(() => {
-    if(tab !== "scenes") return;
-    const hash = window.location.hash.slice(1);
-    if(hash) scrollToContent(document.getElementById(hash));
-  },[tab,chapter,scenesQ.data]);
-  useEffect(() => {
-    if (tab === "wardrobe" && search.from === "scenes" && !loading && !displayQ.isPending) scrollToContent(document.querySelector(".wardrobe-context-slot"));
-  },[tab,chapter,search.from,search.look,loading,displayQ.isPending,showWardrobe,looksQ.data]);
+    if (!hash || loading || displayQ.isPending || scenesQ.isPending || looksQ.isPending) return;
+    const target = document.getElementById(hash);
+    if (!target) return;
+    if (hash === "wardrobe-context" || /^day-\d+$/.test(hash)) {
+      const frame = requestAnimationFrame(() => window.scrollTo({top: Math.max(0, target.getBoundingClientRect().top + window.scrollY - stickyBottom() - 8), behavior: "instant"}));
+      return () => cancelAnimationFrame(frame);
+    }
+    if (tab === "scenes") scrollToContent(target);
+    return undefined;
+  },[hash,tab,loading,displayQ.isPending,scenesQ.isPending,looksQ.isPending]);
   return <PageShell titleKey="itinerary.title" introKey="itinerary.intro">
     <SubTabs tabs={itineraryTabs().map(id => ({id,label:t(`itinerary.tab.${id}`)}))} value={tab} onChange={next => void navigate({search:{tab:next,day:chapter},hash:""})} />
     {tab === "script" ? <ItineraryScript chapters={chapters} loading={chaptersQ.isLoading} /> : loading || (tab === "wardrobe" && displayQ.isPending) ? <div className="min-h-80 bg-card" /> : tab === "wardrobe" && !showWardrobe ? <div className="wardrobe-context-slot" data-hidden><ComingSoon /></div> : !allowed ? <div className="itinerary-recording"><RecordingLockout /></div> : <>
-      <ItineraryDays chapters={chapters} value={chapter} today={todayChapter} onChange={day => void navigate({search:{tab,day},hash:""})} />
+      <ItineraryDays chapters={chapters} value={chapter} today={todayChapter} onChange={day => void navigate({search:{tab,day},hash:"",resetScroll:false})} />
       {tab === "scenes" ? <>
         <header className="day-heading" id={`day-${chapter}`}>
-          <p className="day-heading-chapter">{t("itinerary.chapter")} {chapter}</p>
-          <p className="day-heading-date">{formatChapterDate(selected?.date ?? today)}</p>
+          <p className="day-heading-line"><span className="day-heading-chapter">{t("itinerary.chapter")} {chapter}</span>{" — "}<span className="day-heading-date">{formatChapterDate(selected?.date ?? today)}</span></p>
           <h2 className="day-title"><span>{selected?.title}</span></h2>
         </header>
         <Scenes key={`${chapter}-${todayChapter}`} chapter={chapter} isToday={chapter === todayChapter} scenes={(scenesQ.data ?? []).filter(s => s.chapter_number === chapter)} looks={(looksQ.data ?? []).filter(l => l.chapter_number === chapter)} loading={scenesQ.isPending || looksQ.isPending} />
       </> : <>
-        <div className="wardrobe-context-slot">
-          {search.from === "scenes" ? <Link className="wardrobe-back" to="/itinerary" search={{tab:"scenes",day:chapter}} hash={search.anchor ?? `day-${chapter}`}><ArrowLeft aria-hidden="true" />{t("itinerary.chapter")} {chapter}</Link> : <p className="day-heading-date">{formatChapterDate(selected?.date ?? today)}</p>}
+        <div className="wardrobe-context-slot" id="wardrobe-context">
+          {search.from === "scenes" ? <Link className="wardrobe-back" to="/itinerary" search={{tab:"scenes",day:chapter}} hash={`day-${chapter}`} resetScroll={false} hashScrollIntoView={false}><ArrowLeft aria-hidden="true" />{t("itinerary.chapter")} {chapter}</Link> : <p className="day-heading-date">{formatChapterDate(selected?.date ?? today)}</p>}
         </div>
         {wardrobeHidden && isHost && <p className="label-caps mb-4 text-muted-foreground">{t("itinerary.wardrobe_hidden")}</p>}
         <Wardrobe chapter={chapter} focus={search.from === "scenes" ? undefined : search.look} />
@@ -96,7 +99,7 @@ function Itinerary() {
 }
 function LookTag({look,anchor}: {look:WardrobeLook;anchor:string}) {
   const {t}=useContent();
-  return <Link id={anchor} className="look-tag" to="/itinerary" search={{tab:"wardrobe",day:look.chapter_number,...(look.id ? {look:look.id} : {}),from:"scenes",anchor}}><span>{t("itinerary.look")} {lookNumber(look.chapter_number,look.look_order)} //</span><span className="text-deep-atlantic">{look.title}</span></Link>;
+  return <Link id={anchor} className="look-tag" to="/itinerary" search={{tab:"wardrobe",day:look.chapter_number,...(look.id ? {look:look.id} : {}),from:"scenes"}} hash="wardrobe-context" resetScroll={false} hashScrollIntoView={false}><span>{t("itinerary.look")} {lookNumber(look.chapter_number,look.look_order)} //</span><span className="text-deep-atlantic">{look.title}</span></Link>;
 }
 function Scenes({chapter,isToday,scenes,looks,loading}: {chapter:number;isToday:boolean;scenes:Scene[];looks:WardrobeLook[];loading:boolean}) {
   const {t}=useContent(); const [openId,setOpenId]=useState<string|null>(); const display=useItineraryDisplay().data ?? {indicator:"edge",shadow:3,grain:true};
@@ -107,9 +110,27 @@ function Scenes({chapter,isToday,scenes,looks,loading}: {chapter:number;isToday:
   const myGuestId=useMyGuestId(true).data ?? null;
   const participant=isTripParticipant(roles);
   const dots=railDots(chapter,scenes);
+  const timeline = useRef<HTMLUListElement>(null);
+  useEffect(() => {
+    const list = timeline.current;
+    if (!list) return;
+    const measure = () => {
+      const cards = list.querySelectorAll(".scene-card");
+      const first = cards[0]; const last = cards[cards.length - 1];
+      if (!first || !last) return;
+      const bounds = list.getBoundingClientRect();
+      list.style.setProperty("--rail-top", `${first.getBoundingClientRect().top - bounds.top}px`);
+      list.style.setProperty("--rail-bottom", `${bounds.bottom - last.getBoundingClientRect().bottom}px`);
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(list);
+    list.querySelectorAll(".scene-card, .look-tag").forEach(el => observer.observe(el));
+    measure();
+    return () => observer.disconnect();
+  }, [scenes, looks, loading]);
   if(loading) return <div className="h-64 border bg-card" />;
   if(!scenes.length) return <div>{looks.map(l => <LookTag key={l.id} look={l} anchor={`tag-${l.id}`} />)}<p className="py-12 text-center text-sm">{t("itinerary.scenes_empty")}</p></div>;
-  return <ul className="scene-timeline fade-in" data-shadow={display.shadow} data-indicator={display.indicator} data-grain={display.grain}>
+  return <ul ref={timeline} className="scene-timeline fade-in" data-shadow={display.shadow} data-indicator={display.indicator} data-grain={display.grain}>
     {scenes.map((s,i) => {
       const open = expandable(s) && (openId === undefined ? isToday && i === 0 : openId === s.id);
       return <li key={s.id} className="scene-timeline-item">

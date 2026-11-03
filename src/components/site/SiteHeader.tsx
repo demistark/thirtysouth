@@ -133,6 +133,8 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   const { t } = useContent();
+  const location = useLocation();
+  const scriptOnly = location.pathname === "/itinerary" && (location.search as { tab?: string }).tab === "script";
   const footer = useRef<HTMLElement>(null);
   const bubble = useRef<HTMLButtonElement>(null);
   const [visible, setVisible] = useState(false);
@@ -143,7 +145,7 @@ export function SiteFooter() {
       if (!footer.current || !bubble.current) return;
       const size = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
       bubble.current.style.setProperty("--bubble-footer-bottom", `${bubbleBottom(window.innerHeight, footer.current.getBoundingClientRect().top, size)}px`);
-      setVisible(backToTopVisible(window.scrollY));
+      setVisible(scriptOnly ? document.documentElement.scrollHeight - window.innerHeight - window.scrollY <= 40 : backToTopVisible(window.scrollY));
     };
     const scrolling = () => {
       position(); setIdle(false); clearTimeout(timer);
@@ -152,17 +154,18 @@ export function SiteFooter() {
     scrolling();
     const observer = new ResizeObserver(position);
     if (footer.current) observer.observe(footer.current);
+    observer.observe(document.documentElement);
     window.addEventListener("scroll", scrolling, { passive: true });
     window.addEventListener("resize", position);
     return () => { clearTimeout(timer); observer.disconnect(); window.removeEventListener("scroll", scrolling); window.removeEventListener("resize", position); };
-  }, []);
+  }, [scriptOnly]);
   return (
     <footer ref={footer} className="band-ink footer-glow relative mt-24 border-t">
       <Button ref={bubble} variant="ghost" size="icon" className="back-to-top-bubble" data-visible={visible} data-idle={idle} tabIndex={visible ? 0 : -1} aria-hidden={!visible} aria-label={t("common.back_to_top")} onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })}>
         <svg viewBox="0 0 24 28" aria-hidden="true" className="h-7 w-6"><path fill="currentColor" d="M10 24a2 2 0 0 0 4 0V9.8l3.6 3.6a2 2 0 0 0 2.8-2.8l-7-7a2 2 0 0 0-2.8 0l-7 7a2 2 0 0 0 2.8 2.8L10 9.8Z" /></svg>
       </Button>
       <div className="footer-text mx-auto max-w-6xl px-5 py-[1.875rem] text-center sm:py-8">
-        <p className="label-caps text-foreground">{t("footer.wordmark")}</p>
+        <p className="flex justify-center text-center"><span className="label-caps text-foreground">{t("footer.wordmark")}</span></p>
         <div className="mt-3 flex items-center justify-center gap-3 sm:gap-6">
           {["footer.brand", "footer.place", "footer.date"].map((key) => <span key={key} className="label-caps text-foreground">{t(key)}</span>)}
         </div>

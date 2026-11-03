@@ -33,7 +33,7 @@ export function ItineraryDays({ chapters, value, today, onChange }: { chapters: 
             if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
             e.preventDefault(); const next = chapters[i + (e.key === "ArrowRight" ? 1 : -1)];
             if (!next) return;
-            onChange(next.number); row.current?.querySelector<HTMLButtonElement>(`[data-day="${next.number}"] button`)?.focus();
+            onChange(next.number); row.current?.querySelector<HTMLButtonElement>(`[data-day="${next.number}"] button`)?.focus({preventScroll:true});
           }}>
             <span className="day-weekday">{new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" }).format(date)}</span>
             <span className="day-number">{date.getUTCDate()}</span>

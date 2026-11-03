@@ -20,7 +20,7 @@
 - Reflections is the nested /journal/reflections route, rendered through Journal's Outlet. Why: its URL and page identity stay consistent with its name.
 - Travel facts use fun_facts with active-only public reads and host-scoped full access; CSV parsing uses Papa Parse and validates the entire import before writing. Why: hidden facts remain private and quoted CSV text imports reliably.
 - Read signed-in display names through the ownership-scoped, name-only my_profile RPC. Why: preserve header names without exposing guest records or retaining photo functionality.
-- Keep SiteHeader's reserved height and Home first-card return marker; content links use scrollToContent and measured data-scroll-obstruction elements. Why: changing headers cannot obscure links or move content.
+- Keep SiteHeader's reserved height and Home first-card return marker; content links use measured data-scroll-obstruction elements, with instant chapter-top landings for internal Itinerary links and resetScroll:false for day selection. Why: preserve intentional scroll behavior without obscuring content.
 - Treat otp_enabled as an exact-string opt-in setting checked by shared isOtpEnabled. Why: unavailable email codes remain hidden by default.
 - Keep phase-independent itinerary ordering in itinerary-tabs and its regression test. Why: date overrides must not reshuffle tabs.
 - Share day navigation through ItineraryDays and render the screenplay through ItineraryScript using additive chapter fields; chapter CSV export/import lives with itinerary parsing. Why: Scenes/Wardrobe stay consistent and screenplay edits round-trip without changing access or photo flows.
