@@ -21,3 +21,4 @@
 - [x] Apply uploaded site shell fixes, AA olive text and host-only Wardrobe visibility toggle; 163 tests pass without walkthrough/accounts/screenshots.
 - [x] Apply seven footer/Itinerary fixes; footer centers differ by 0.008px at 390px/1280px, Script arrow bottom-only verified, 163 tests pass and build OK; no walkthrough/accounts. Signed-in itinerary interactions not live-tested per request.
 - [x] Rebuild Travel per Prompt C and supplied screenshots with independent Roomies, own-flight entry and Admin entry for anyone; tab jumps land 5px below visible Travel tabs, supplied Villa links saved, flight-sharing setting preserved. 176 tests pass; live UI/role write checks not run per no-walkthrough/no-temporary-account instruction.
+- [ ] Apply six requested Travel polish items and flight validation tests; run existing suite without walkthroughs or temporary accounts.
