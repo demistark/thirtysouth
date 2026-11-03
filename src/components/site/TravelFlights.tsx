@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useContent } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { flightAirportsValid, flightNumberValid, flightDate, flightTime, flightRouteCodes, sortFlights, hasFlightDirection, type TravelLeg, type LegDirection } from "@/lib/travel";
+import { copyFlightOptions, flightAirportsValid, flightNumberValid, flightDate, flightTime, flightRouteCodes, sortFlights, hasFlightDirection, type TravelLeg, type LegDirection } from "@/lib/travel";
 
 export function TravelFlights({ legs, directory, myGuestId, editable }: { legs: TravelLeg[]; directory: {id: string; display_name: string}[]; myGuestId: string | null; editable: boolean }) {
   const { t } = useContent();
@@ -17,7 +17,7 @@ export function TravelFlights({ legs, directory, myGuestId, editable }: { legs: 
   useEffect(() => { const mq=window.matchMedia("(max-width: 767px)"); const update=()=>setPhone(mq.matches); update(); mq.addEventListener("change",update); return ()=>mq.removeEventListener("change",update); },[]);
   const mine = legs.find(l => l.guest_id === myGuestId && l.direction === direction);
   const title=t(mine ? "travel.flight.edit" : "travel.flight.add");
-  const form=myGuestId ? <FlightForm key={`${direction}-${mine?.id ?? "new"}`} leg={mine} guestId={myGuestId} direction={direction} legs={legs} onDone={()=>setOpen(false)} /> : null;
+  const form=myGuestId ? <FlightForm key={`${direction}-${mine?.id ?? "new"}`} leg={mine} guestId={myGuestId} direction={direction} legs={legs} directory={directory} onDone={()=>setOpen(false)} /> : null;
   return <div className="mt-6 min-w-0">
     <div className="flex gap-5" role="tablist" aria-label={t("travel.section.flights")}>
       {(["arrival","departure"] as const).map(d=><Button key={d} variant="ghost" role="tab" aria-selected={direction===d} onClick={()=>setDirection(d)} className={cn("section-tab rounded-none",direction===d ? "border-ember" : "border-transparent")}>{t(d==="arrival" ? "travel.arrivals" : "travel.departures")}</Button>)}
@@ -36,12 +36,22 @@ export function FlightRow({ leg, name }: { leg: TravelLeg; name: string }) {
     <span className="travel-flight-half travel-flight-route-group"><span className="travel-flight-route">{flightRouteCodes(leg).map((code,i)=><Fragment key={i}>{i>0 && <span className="travel-flight-arrow">→</span>}{code}</Fragment>)}</span><span className="travel-flight-separator" aria-hidden="true">//</span><span className="travel-flight-time">{flightTime(leg.cpt_time)}</span>{leg.flight_number && <><span className="travel-flight-separator" aria-hidden="true">//</span><span className="travel-flight-number">{leg.flight_number}</span></>}</span>
   </div></li>;
 }
-function FlightForm({leg,guestId,direction,legs,onDone}:{leg?:TravelLeg | undefined; guestId:string; direction:LegDirection; legs:TravelLeg[]; onDone:()=>void}) {
+function FlightForm({leg,guestId,direction,legs,directory,onDone}:{leg?:TravelLeg | undefined; guestId:string; direction:LegDirection; legs:TravelLeg[]; directory:{id:string;display_name:string}[]; onDone:()=>void}) {
   const {t}=useContent(); const qc=useQueryClient();
   const [dir,setDir]=useState(direction); const [airport,setAirport]=useState(leg?.other_airport ?? "");
   const [connections,setConnections]=useState(Array.from({length:3},(_,i)=>leg?.connections?.[i] ?? ""));
   const [datetime,setDatetime]=useState(leg?.cpt_time ?? ""); const [busy,setBusy]=useState(false);
   const [flightNumber,setFlightNumber]=useState(leg?.flight_number ?? "");
+  const [copyChoice,setCopyChoice]=useState("");
+  const options=copyFlightOptions(legs,directory,guestId,dir);
+  const copy=(value:string)=>{
+    setCopyChoice(value);
+    const source=options.find(option=>option.leg.guest_id===value)?.leg;
+    if(!source)return;
+    setAirport(source.other_airport);
+    setConnections(Array.from({length:3},(_,i)=>source.connections?.[i] ?? ""));
+    setDatetime(source.cpt_time);setFlightNumber(source.flight_number ?? "");
+  };
   const finish=async()=>{await qc.invalidateQueries({queryKey:["travel","legs"]}); await qc.invalidateQueries({queryKey:["admin","travel-legs"]}); onDone();};
   const save=async(e:React.FormEvent)=>{
     e.preventDefault(); const codes=connections.map(c=>c.trim().toUpperCase()).filter(Boolean);
@@ -56,7 +66,8 @@ function FlightForm({leg,guestId,direction,legs,onDone}:{leg?:TravelLeg | undefi
   };
   const del=async()=>{if(!leg?.id)return;setBusy(true);const {error}=await supabase.from("travel_legs").delete().eq("id",leg.id);setBusy(false);if(error)toast.error(t("admin.itin.error"));else await finish();};
   return <form className="travel-flight-form mt-4 space-y-3" onSubmit={save}>
-    <label className="block text-sm">{t("travel.flight.direction")}<select className="field mt-1" value={dir} onChange={e=>setDir(e.target.value as LegDirection)}><option value="arrival">{t("travel.arrivals")}</option><option value="departure">{t("travel.departures")}</option></select></label>
+    {options.length>0 && <label className="block text-sm">{t("travel.flight.copy.label")}<select className="field mt-1" value={copyChoice} onChange={e=>copy(e.target.value)}><option value="">{t("travel.flight.copy.placeholder")}</option>{options.map(option=><option key={option.leg.guest_id} value={option.leg.guest_id}>{option.label}</option>)}</select></label>}
+    <label className="block text-sm">{t("travel.flight.direction")}<select className="field mt-1" value={dir} onChange={e=>{setDir(e.target.value as LegDirection);setCopyChoice("");}}><option value="arrival">{t("travel.arrivals")}</option><option value="departure">{t("travel.departures")}</option></select></label>
     <label className="block text-sm">{t(dir==="arrival" ? "travel.flight.origin" : "travel.flight.final")}<input className="field mt-1 uppercase" required pattern="[A-Za-z]{3}" maxLength={3} value={airport} onChange={e=>setAirport(e.target.value.toUpperCase())} /></label>
     <fieldset><legend className="text-sm">{t("travel.flight.connections")}</legend><div className="mt-1 space-y-3">{connections.map((c,i)=><input key={i} className="field min-w-0 uppercase" aria-label={`${t("travel.flight.connections")} ${i+1}`} pattern="[A-Za-z]{3}" maxLength={3} value={c} onChange={e=>setConnections(connections.map((v,j)=>i===j ? e.target.value.toUpperCase() : v))} />)}</div></fieldset>
     <label className="block">{t("travel.flight.date")}<input type="date" className="field mt-1" required value={datetime.slice(0,10)} onChange={e=>setDatetime(`${e.target.value}T${datetime.slice(11,16) || "00:00"}`)} /></label>

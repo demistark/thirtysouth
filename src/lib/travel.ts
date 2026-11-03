@@ -140,6 +140,14 @@ export function hasFlightDirection(legs: TravelLeg[], guestId: string, direction
   return legs.some(l => l.guest_id === guestId && l.direction === direction && (!exceptId || l.id !== exceptId));
 }
 
+export function copyFlightOptions(legs: TravelLeg[], directory: { id: string; display_name: string }[], guestId: string, direction: LegDirection) {
+  return sortFlights(legs.filter(l => l.guest_id !== guestId && l.direction === direction)).flatMap(leg => {
+    const guest = directory.find(g => g.id === leg.guest_id);
+    if (!guest) return [];
+    return [{ leg, label: `${guest.display_name}: ${flightRouteCodes(leg).join("→")}, ${flightDate(leg.cpt_time)} ${flightTime(leg.cpt_time)}${leg.flight_number ? `, ${leg.flight_number}` : ""}` }];
+  });
+}
+
 /* ---------- Packing columns ---------- */
 
 /** About 10 rows per column, capped by the width allowance; short lists use fewer. */

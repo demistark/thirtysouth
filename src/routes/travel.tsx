@@ -142,13 +142,13 @@ function JumpBar({ active }: { active: TravelSlot }) {
   useEffect(()=>{
     let frame=0;
     let followUntil=0;
-    const update=()=>{document.querySelector<HTMLElement>(".travel-page")?.style.setProperty("--travel-header-bottom",`${travelHeaderBottom()}px`);if(bar.current)setOut(bar.current.getBoundingClientRect().bottom<=travelHeaderBottom());};
+    const update=()=>{const page=document.querySelector<HTMLElement>(".travel-page");const bottom=travelHeaderBottom();page?.style.setProperty("--travel-header-bottom",`${bottom}px`);page?.style.setProperty("--travel-tabs-bottom",`${bottom+(bar.current?.getBoundingClientRect().height ?? 0)}px`);if(bar.current)setOut(bar.current.getBoundingClientRect().bottom<=bottom);};
     const follow=(now:number)=>{update();if(now<followUntil)frame=requestAnimationFrame(follow);else frame=0;};
     const track=()=>{update();followUntil=performance.now()+300;if(!frame)frame=requestAnimationFrame(follow);};
     const scroll=()=>{track();setOpen(false);};
     const toggle=()=>setOpen(value=>!value);
     const outside=(e:PointerEvent)=>{if(panel.current && e.target instanceof Element && !panel.current.contains(e.target) && !e.target.closest(".site-header-bar"))setOpen(false);};
-    update();const header=document.querySelector(".site-header");const observer=new ResizeObserver(update);if(header)observer.observe(header);
+    update();const header=document.querySelector(".site-header");const observer=new ResizeObserver(update);if(header)observer.observe(header);if(bar.current)observer.observe(bar.current);
     window.addEventListener("scroll",scroll,{passive:true});window.addEventListener("resize",track);window.addEventListener("travel-toggle-tabs",toggle);document.addEventListener("pointerdown",outside);
     return()=>{cancelAnimationFrame(frame);observer.disconnect();window.removeEventListener("scroll",scroll);window.removeEventListener("resize",track);window.removeEventListener("travel-toggle-tabs",toggle);document.removeEventListener("pointerdown",outside);};
   },[]);

@@ -511,7 +511,7 @@
 .travel-tab-line:hover, .travel-tab-line:active { background: transparent; }
 .travel-tab-track { display: flex; width: 100%; height: 6px; position: absolute; top: 0; }
 .travel-tab-track > span { flex: 1; }
-.travel-tab-panel { display: grid; background: var(--cream); border-bottom: 1px solid var(--line); padding: 12px 20px; }
+.travel-tab-panel { position: absolute; top: 6px; left: 0; right: 0; z-index: 1; display: grid; background: var(--cream); border-bottom: 1px solid var(--line); padding: 12px 20px; }
 .travel-roomies-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 28px; }
 .travel-roomie { padding: 14px 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); min-width: 0; }
 .travel-roomie-names { font-family: var(--font-serif); font-style: italic; font-size: 18px; overflow-wrap: anywhere; }
@@ -536,14 +536,14 @@
   .travel-tab-row { display: flex; gap: 24px; }
   .travel-tab-row .section-tab { font-size: .6875rem; letter-spacing: .18em; padding-left: 0; padding-right: 0; }
   .travel-phone-nav { display: none; }
-  .travel-split { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); min-height: 560px; }
-  .travel-split-media { position: relative; }
-  .travel-media { position: absolute; inset: 0; height: 100%; max-height: 900px; }
+  .travel-split { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); min-height: 640px; }
+  .travel-split-media { position: relative; min-height: 640px; }
+  .travel-media { position: sticky; top: calc(var(--travel-tabs-bottom,0px) + 12px); height: 100%; max-height: min(80vh,900px); }
+  .travel-media-img { position: absolute; inset: 0; }
   .travel-media-empty span { font-size: 72px; }
   .travel-split-text { padding: 64px 40px; max-width: none; margin: 0; }
   .travel-heading { font-size: 52px; }
   .travel-section[data-slot="villa"] .travel-split-media, .travel-section[data-slot="flights"] .travel-split-media { order: 2; }
-  .travel-section[data-slot="packing"] .travel-media { position: sticky; top: calc(var(--travel-header-bottom,0px) + 50px); height: 560px; }
   .travel-roomies-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
 
@@ -960,6 +960,7 @@
   transition: border-color 200ms ease;
 }
 .journal-earlier-page:hover { border-color: var(--deep-atlantic); }
+.journal-earlier-page[aria-current="page"] { border-left-color: var(--ember); }
 .journal-earlier-preview {
   display: -webkit-box;
   -webkit-line-clamp: 2;
