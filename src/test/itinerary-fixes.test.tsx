@@ -77,8 +77,8 @@ describe("Script today marker (item 5)", () => {
     const { container } = render(<ItineraryScript chapters={chapters} loading={false} today={2} />);
     const dots = container.querySelectorAll(".script-today-dot");
     expect(dots).toHaveLength(2);
-    expect(dots[0].closest(".script-margin-left")).not.toBeNull();
-    expect(dots[1].closest(".script-margin-right")).not.toBeNull();
+    expect(dots.item(0).closest(".script-margin-left")).not.toBeNull();
+    expect(dots.item(1).closest(".script-margin-right")).not.toBeNull();
     expect(dots[0].parentElement?.textContent).toBe("2");
     for (const dot of dots) expect(dot.getAttribute("aria-hidden")).toBe("true");
   });
