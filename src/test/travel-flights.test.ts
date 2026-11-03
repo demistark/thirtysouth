@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+const migration=readFileSync(new URL("../../drizzle/migrations/0021_travel_roomies_and_own_flights.sql",import.meta.url),"utf8");
 import {describe,it,expect} from "vitest";
 import { normalizeIata,flightAirportsValid,flightDate,flightTime,flightRouteCodes,sortFlights,hasFlightDirection,type TravelLeg } from "@/lib/travel";
 import {canViewTravel} from "@/lib/locked-areas";
@@ -11,4 +13,21 @@ describe("Travel flight list",()=>{
  it("orders routes around CPT for both directions",()=>{expect(flightRouteCodes(leg({connections:["LOS"]}))).toEqual(["ATL","LOS","CPT"]);expect(flightRouteCodes(leg({direction:"departure",connections:["LOS"]}))).toEqual(["CPT","LOS","ATL"]);});
  it("allows one flight per guest per direction, excluding edited row",()=>{expect(hasFlightDirection([leg()],"me","arrival")).toBe(true);expect(hasFlightDirection([leg()],"me","departure")).toBe(false);expect(hasFlightDirection([leg()],"other","arrival")).toBe(false);expect(hasFlightDirection([leg()],"me","arrival","a")).toBe(false);});
  it("Roomies follows resolved Travel visibility roles",()=>{for(const role of ["host","schedule_manager","trip_guest","honorary_guest"] as const)expect(canViewTravel([role])).toBe(true);expect(canViewTravel(["friend_afar"])).toBe(false);expect(canViewTravel([])).toBe(false);});
+});
+
+describe("Travel database rules",()=>{
+ it("enforces one arrival and departure per friend in the migration",()=>{
+   expect(migration).toMatch(/UNIQUE \(guest_id,direction\)/);
+ });
+ it.each(["INSERT","UPDATE","DELETE"])("scopes participant %s to my_guest rather than another friend",command=>{
+   const policy=migration.split(";\n").find(s=>s.includes('"Participants') && s.includes(`FOR ${command} `));
+   expect(policy).toBeDefined();
+   expect(policy).toContain("public.is_trip_participant(auth.uid()) AND guest_id=public.my_guest()");
+   if(command==="UPDATE")expect(policy?.match(/guest_id=public.my_guest\(\)/g)).toHaveLength(2);
+ });
+ it("Roomies read policy includes schedule managers and excludes friends afar",()=>{
+   const read=migration.split(";\n").find(s=>s.includes('"Travel friends read Roomies"'));
+   for(const role of ["host","schedule_manager","trip_guest","honorary_guest"])expect(read).toContain(`public.has_role(auth.uid(),'${role}')`);
+   expect(read).not.toContain("friend_afar");
+ });
 });
