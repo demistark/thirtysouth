@@ -120,6 +120,10 @@ export function normalizeIata(code: string): string | null {
   const value = code.trim().toUpperCase();
   return /^[A-Z]{3}$/.test(value) ? value : null;
 }
+/** Empty is valid; otherwise a flight identifier is at most eight letters/digits. */
+export function flightNumberValid(value: string) {
+  return /^[A-Za-z0-9]{0,8}$/.test(value);
+}
 export function flightAirportsValid(airport: string, connections: string[]) {
   return !!normalizeIata(airport) && connections.length <= 3 && connections.every(code => !!normalizeIata(code));
 }
