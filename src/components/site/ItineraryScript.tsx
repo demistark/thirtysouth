@@ -3,7 +3,7 @@ import { useContent, type ChapterBasic } from "@/lib/data";
 import type { ScriptAlignment } from "@/lib/itinerary";
 
 const alignment = (value: ScriptAlignment | null | undefined, fallback: ScriptAlignment = "left") => ({ left: "text-left", center: "text-center", right: "text-right" })[value ?? fallback];
-export function ItineraryScript({ chapters, loading }: { chapters: ChapterBasic[]; loading: boolean }) {
+export function ItineraryScript({ chapters, loading, today }: { chapters: ChapterBasic[]; loading: boolean; today?: number | undefined }) {
   const { t } = useContent();
   if (loading) return <div className="h-64 border bg-card" />;
   return <article className="script-sheet fade-in">
@@ -13,7 +13,7 @@ export function ItineraryScript({ chapters, loading }: { chapters: ChapterBasic[
       {chapters.map((c) => <li key={c.number}>
         {c.heading_before && <p className={`script-heading mb-5 ${alignment(c.heading_before_align, "center")}`}>{c.heading_before}</p>}
         <div className="script-chapter">
-          <span className="script-margin script-margin-left">{c.number}</span><span className="script-margin script-margin-right">{c.number}</span>
+          <span className="script-margin script-margin-left">{c.number === today && <span className="script-today-dot" aria-hidden="true" />}{c.number}</span><span className="script-margin script-margin-right">{c.number}{c.number === today && <span className="script-today-dot" aria-hidden="true" />}</span>
           <Link to="/itinerary" search={{tab:"scenes",day:c.number}} className={`block ${alignment(c.layout)}`}>
             <p className="script-label">{t("itinerary.chapter")} {c.number} — {new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "2-digit", timeZone: "UTC" }).format(new Date(`${c.date}T12:00:00Z`))}</p>
             <h3 className="script-title">{c.title}</h3>

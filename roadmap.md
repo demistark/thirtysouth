@@ -19,3 +19,4 @@
 - [ ] Import experiences.csv yourself in Admin › Purse › Experiences (per spec, not seeded).
 - [x] Purse ZAR|USD toggle on Shared Experiences only, scene experience tags with own RSVP status at the bottom of expanded scenes, Close to Heart deterministic Lora type variety (no handwriting), Shantell Sans scoped to Our Commons; 82 targeted tests pass.
 - [x] Apply uploaded site shell fixes, AA olive text and host-only Wardrobe visibility toggle; 163 tests pass without walkthrough/accounts/screenshots.
+- [x] Itinerary fixes: full-width 15px scene look links, rail bounded by first/last card edges, one-line chapter—date heading, pulsing ember today dots on the Script (reduced-motion safe); 174 tests pass.
