@@ -64,8 +64,11 @@ export function SiteHeader() {
   return (
     <div className={home ? "site-header-space" : "site-header-space sticky top-0 z-40"}>
     <header className="site-header band-ink border-b bg-seafoam" data-scroll-obstruction data-compact={compact} data-home-returned={homeHeaderReturned}>
-      <div className="site-header-bar mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-5 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-        <Link to="/" className="site-wordmark wordmark min-w-0 whitespace-nowrap text-base text-foreground">
+      <div className="site-header-bar mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-5 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]" onClick={e => {
+        if (pathname !== "/travel" || !window.matchMedia("(max-width: 767px)").matches || !(e.target instanceof Element) || e.target.closest("a,button")) return;
+        if (document.querySelector(".travel-phone-nav")) window.dispatchEvent(new Event("travel-toggle-tabs"));
+      }}>
+        <Link to="/" className="site-wordmark wordmark min-w-0 justify-self-start whitespace-nowrap text-base text-foreground md:justify-self-stretch">
           <span>30° South</span>
         </Link>
         <nav className="site-nav hidden items-center gap-5 md:flex lg:gap-8">

@@ -101,7 +101,7 @@ function TravelPage() {
   return (
     <main className="travel-page pt-14 md:pt-20">
       <header className="mx-auto max-w-5xl px-5">
-        <h1 className="font-display-light text-[56px] uppercase leading-none text-deep-atlantic">{t("travel.title")}</h1>
+        <h1 className="font-display-light text-5xl text-deep-atlantic md:text-7xl">{t("travel.title")}</h1>
         <p className="caption-serif mt-3 text-lg">{t("travel_subtitle")}</p>
       </header>
       <JumpBar active={active} />
@@ -140,12 +140,17 @@ function JumpBar({ active }: { active: TravelSlot }) {
   const { t } = useContent();const bar=useRef<HTMLElement>(null);const panel=useRef<HTMLDivElement>(null);
   const [out,setOut]=useState(false);const [open,setOpen]=useState(false);
   useEffect(()=>{
+    let frame=0;
+    let followUntil=0;
     const update=()=>{document.querySelector<HTMLElement>(".travel-page")?.style.setProperty("--travel-header-bottom",`${travelHeaderBottom()}px`);if(bar.current)setOut(bar.current.getBoundingClientRect().bottom<=travelHeaderBottom());};
-    const scroll=()=>{update();setOpen(false);};
-    const outside=(e:PointerEvent)=>{if(panel.current && e.target instanceof Node && !panel.current.contains(e.target))setOpen(false);};
+    const follow=(now:number)=>{update();if(now<followUntil)frame=requestAnimationFrame(follow);else frame=0;};
+    const track=()=>{update();followUntil=performance.now()+300;if(!frame)frame=requestAnimationFrame(follow);};
+    const scroll=()=>{track();setOpen(false);};
+    const toggle=()=>setOpen(value=>!value);
+    const outside=(e:PointerEvent)=>{if(panel.current && e.target instanceof Element && !panel.current.contains(e.target) && !e.target.closest(".site-header-bar"))setOpen(false);};
     update();const header=document.querySelector(".site-header");const observer=new ResizeObserver(update);if(header)observer.observe(header);
-    window.addEventListener("scroll",scroll,{passive:true});window.addEventListener("resize",update);document.addEventListener("pointerdown",outside);
-    return()=>{observer.disconnect();window.removeEventListener("scroll",scroll);window.removeEventListener("resize",update);document.removeEventListener("pointerdown",outside);};
+    window.addEventListener("scroll",scroll,{passive:true});window.addEventListener("resize",track);window.addEventListener("travel-toggle-tabs",toggle);document.addEventListener("pointerdown",outside);
+    return()=>{cancelAnimationFrame(frame);observer.disconnect();window.removeEventListener("scroll",scroll);window.removeEventListener("resize",track);window.removeEventListener("travel-toggle-tabs",toggle);document.removeEventListener("pointerdown",outside);};
   },[]);
   const go=(slot:TravelSlot)=>{setOpen(false);jumpToTravel(slot);history.replaceState(null,"",`#${slot}`);};
   const tabs=<>{TRAVEL_SLOTS.map(s=><Button key={s} variant="ghost" onClick={()=>go(s)} aria-current={active===s ? "true" : undefined} className={cn("section-tab rounded-none",active===s ? "border-ember text-foreground" : "border-transparent text-muted-foreground")}>{t(`travel.section.${s}`)}</Button>)}</>;
@@ -211,12 +216,11 @@ function CastRoll({ cast, loading }: { cast: CastGuest[]; loading: boolean }) {
   if (!cast.length) return <p className="caption-serif mt-6 text-lg italic">{t("travel.cast.empty")}</p>;
   return (
     <div className="cast-roll mt-8">
-      <p className="cast-roll-sub">{t("cast_subheading")}</p>
+      <p className="cast-roll-sub">({t("cast_subheading")})</p>
       <ul className="cast-roll-list">
         {cast.map((g) => (
           <li key={g.id} className="cast-row">
-            <span className="cast-name">{castName(g)}</span>
-            <span className="cast-dots" aria-hidden="true">······</span>
+            <span className="cast-name"><span>{castName(g)}</span><span className="cast-dots" aria-hidden="true">{"·".repeat(160)}</span></span>
             <span className="cast-role">{castRole(g)}</span>
           </li>
         ))}

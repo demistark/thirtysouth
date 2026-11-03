@@ -1,10 +1,13 @@
 import { readFileSync } from "node:fs";
 const migration=readFileSync("drizzle/migrations/0021_travel_roomies_and_own_flights.sql","utf8");
 import {describe,it,expect} from "vitest";
-import { normalizeIata,flightAirportsValid,flightDate,flightTime,flightRouteCodes,sortFlights,hasFlightDirection,type TravelLeg } from "@/lib/travel";
+import { normalizeIata,flightAirportsValid,flightNumberValid,flightDate,flightTime,flightRouteCodes,sortFlights,hasFlightDirection,type TravelLeg } from "@/lib/travel";
 import {canViewTravel} from "@/lib/locked-areas";
 const leg=(over:Partial<TravelLeg>={}):TravelLeg=>({id:"a",guest_id:"me",direction:"arrival",airline:"",flight_number:"",other_airport:"ATL",cpt_time:"2026-11-20T18:35:00",terminal:null,notes:null,transfer_id:null,visible:true,...over});
 describe("Travel flight list",()=>{
+ it("allows optional flight numbers",()=>{expect(flightNumberValid("")).toBe(true);});
+ it("accepts only letters and digits",()=>{expect(flightNumberValid("dl0210")).toBe(true);for(const value of ["DL-210","DL 210","DL.210","é210"])expect(flightNumberValid(value)).toBe(false);});
+ it("limits flight numbers to eight characters",()=>{expect(flightNumberValid("AB123456")).toBe(true);expect(flightNumberValid("AB1234567")).toBe(false);});
  it("sorts by CPT date then time without changing input",()=>{const rows=[leg({id:"b",cpt_time:"2026-11-21T01:00:00"}),leg(),leg({id:"c",cpt_time:"2026-11-20T11:00:00"})];expect(sortFlights(rows).map(l=>l.id)).toEqual(["c","a","b"]);expect(rows[0]?.id).toBe("b");});
  it("formats CPT date MM.DD",()=>expect(flightDate("2026-11-20T18:35:00")).toBe("11.20"));
  it("formats times with A/P and drops zero minutes",()=>{expect(flightTime("2026-11-20T18:35:00")).toBe("6:35 P");expect(flightTime("2026-11-20T11:00:00")).toBe("11 A");expect(flightTime("2026-11-20T00:00:00")).toBe("12 A");expect(flightTime("2026-11-20T12:00:00")).toBe("12 P");});
