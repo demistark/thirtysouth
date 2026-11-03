@@ -18,4 +18,4 @@
 - [x] Build Purse Shared Experiences: experiences/RSVP schema and RLS, cards with price and RSVP modes, Admin › Purse tabs with CSV import, Scenes experience tag, Home live reply line; 99 tests pass, host RSVP flow verified end to end.
 - [ ] Import experiences.csv yourself in Admin › Purse › Experiences (per spec, not seeded).
 - [x] Purse ZAR|USD toggle on Shared Experiences only, scene experience tags with own RSVP status at the bottom of expanded scenes, Close to Heart deterministic Lora type variety (no handwriting), Shantell Sans scoped to Our Commons; 82 targeted tests pass.
-- [ ] Apply uploaded site shell fixes, AA olive text and Wardrobe visibility; run tests without walkthrough/accounts/screenshots.
+- [x] Apply uploaded site shell fixes, AA olive text and host-only Wardrobe visibility toggle; 163 tests pass without walkthrough/accounts/screenshots.

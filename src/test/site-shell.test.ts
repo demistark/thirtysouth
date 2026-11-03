@@ -29,7 +29,7 @@ describe("site shell behaviour", () => {
   });
   it("measures the current header and sticky bar but ignores an unstuck bar", () => {
     const add = (position:string,top:number,bottom:number) => {
-      const el=document.createElement("div"); el.dataset.scrollObstruction=""; el.style.position=position; el.style.top="0px";
+      const el=document.createElement("div"); el.dataset["scrollObstruction"]=""; el.style.position=position; el.style.top="0px";
       el.getBoundingClientRect=() => ({top,bottom,height:bottom-top,left:0,right:390,width:390,x:0,y:top,toJSON:() => ({})});
       document.body.append(el); return el;
     };
