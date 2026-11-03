@@ -6,12 +6,11 @@ import { PageShell } from "@/components/site/Blocks";
 import { TravelLockout } from "@/components/site/Lockouts";
 import { useAuth } from "@/lib/auth";
 import { canViewTravel, isTripParticipant } from "@/lib/locked-areas";
-import { useChapters, useContent } from "@/lib/data";
+import { useContent } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  TRAVEL_SLOTS, castName, castRole, formatLegDate, formatLegTime, groupLegsByDate, legRoute,
-  packingColumnCount, type CastGuest, type PackingCategory, type PackingItem, type Transfer,
-  type TravelImage, type TravelLeg, type TravelSlot, type VillaRoom, type RoomAssignment,
+  TRAVEL_SLOTS, castName, castRole, type CastGuest, type PackingCategory, type PackingItem,
+  type TravelImage, type TravelSlot,
 } from "@/lib/travel";
 import {
   useCast, useGuestDirectory, useMyGuest, usePackingCategories, usePackingChecks, usePackingItems,
@@ -26,9 +25,9 @@ export const Route = createFileRoute("/travel")({
   head: () => ({
     meta: [
       { title: "Travel · 30° South" },
-      { name: "description", content: "The cast, the villa, flights, and what to pack." },
+      { name: "description", content: "The cast, the villa, Roomies, flights, and what to pack." },
       { property: "og:title", content: "Travel · 30° South" },
-      { property: "og:description", content: "The cast, the villa, flights, and what to pack." },
+      { property: "og:description", content: "The cast, the villa, Roomies, flights, and what to pack." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -66,7 +65,6 @@ function TravelPage() {
   const categoriesQ = usePackingCategories(true);
   const itemsQ = usePackingItems(true);
   const checksQ = usePackingChecks(!!session);
-  const chaptersQ = useChapters();
 
   // Assign the random cast order once, the first time anyone sees it missing.
   useEffect(() => {
@@ -99,7 +97,6 @@ function TravelPage() {
   const legs = legsQ.data ?? [];
 
   const directory = directoryQ.data ?? [];
-  const chapters = chaptersQ.data ?? [];
 
   return (
     <main className="travel-page pt-14 md:pt-20">

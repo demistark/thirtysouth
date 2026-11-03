@@ -35,7 +35,7 @@ export function TravelFlights({ legs, directory, myGuestId, editable }: { legs: 
     {phone ? <Sheet open={open} onOpenChange={setOpen}><SheetContent side="bottom" className="travel-flight-sheet"><SheetTitle>{title}</SheetTitle>{form}</SheetContent></Sheet> : <Dialog open={open} onOpenChange={setOpen}><DialogContent className="max-w-md"><DialogTitle>{title}</DialogTitle>{form}</DialogContent></Dialog>}
   </div>;
 }
-function FlightForm({leg,guestId,direction,legs,onDone}:{leg?:TravelLeg; guestId:string; direction:LegDirection; legs:TravelLeg[]; onDone:()=>void}) {
+function FlightForm({leg,guestId,direction,legs,onDone}:{leg?:TravelLeg | undefined; guestId:string; direction:LegDirection; legs:TravelLeg[]; onDone:()=>void}) {
   const {t}=useContent(); const qc=useQueryClient();
   const [dir,setDir]=useState(direction); const [airport,setAirport]=useState(leg?.other_airport ?? "");
   const [connections,setConnections]=useState(Array.from({length:3},(_,i)=>leg?.connections?.[i] ?? ""));
