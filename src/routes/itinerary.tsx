@@ -75,7 +75,7 @@ function Itinerary() {
   },[tab,chapter,search.from,search.look,loading,displayQ.isPending,showWardrobe,looksQ.data]);
   return <PageShell titleKey="itinerary.title" introKey="itinerary.intro">
     <SubTabs tabs={itineraryTabs().map(id => ({id,label:t(`itinerary.tab.${id}`)}))} value={tab} onChange={next => void navigate({search:{tab:next,day:chapter},hash:""})} />
-    {tab === "script" ? <ItineraryScript chapters={chapters} loading={chaptersQ.isLoading} /> : loading || (tab === "wardrobe" && displayQ.isPending) ? <div className="min-h-80 bg-card" /> : tab === "wardrobe" && !showWardrobe ? <div className="wardrobe-context-slot"><ComingSoon /></div> : !allowed ? <div className="itinerary-recording"><RecordingLockout /></div> : <>
+    {tab === "script" ? <ItineraryScript chapters={chapters} loading={chaptersQ.isLoading} /> : loading || (tab === "wardrobe" && displayQ.isPending) ? <div className="min-h-80 bg-card" /> : tab === "wardrobe" && !showWardrobe ? <div className="wardrobe-context-slot" data-hidden><ComingSoon /></div> : !allowed ? <div className="itinerary-recording"><RecordingLockout /></div> : <>
       <ItineraryDays chapters={chapters} value={chapter} today={todayChapter} onChange={day => void navigate({search:{tab,day},hash:""})} />
       {tab === "scenes" ? <>
         <header className="day-heading" id={`day-${chapter}`}>

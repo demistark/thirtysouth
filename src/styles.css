@@ -216,6 +216,7 @@
 .day-heading-date { display: table; font-size: 12px; letter-spacing: .26em; font-weight: 500; text-transform: uppercase; color: var(--slate); margin-top: 8px; }
 .day-title { font-family: var(--font-display); font-size: 38px; line-height: 1.18; font-weight: 300; color: var(--deep-atlantic); margin-top: 8px; letter-spacing: 0; }
 .wardrobe-context-slot { height: 48px; display: flex; align-items: flex-start; }
+.wardrobe-context-slot[data-hidden] { height: auto; display: block; }
 .wardrobe-context-slot .day-heading-date { margin: 0; }
 .wardrobe-back { display: inline-flex; align-items: center; gap: 8px; min-height: 24px; font-size: 12px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: var(--deep-atlantic); }
 .wardrobe-back svg { width: 20px; height: 16px; stroke-width: 1; }
