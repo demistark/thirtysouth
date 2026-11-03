@@ -11,6 +11,8 @@ import {
   formatBoardDay,
   groupByDay,
   heartCardStyle,
+  heartCardPlace,
+  earlierReflectionPages,
   heartTextColor,
   heartTilt,
   orderHeartCards,
@@ -20,12 +22,51 @@ import {
   showCounter,
   type CommonsPost,
   type HeartCard,
+  type ReflectionEntry,
 } from "@/lib/journal";
 
 const rand = (seq: number[]) => {
   let i = 0;
   return () => seq[i++ % seq.length]!;
 };
+
+describe("Earlier Pages filter", () => {
+  it("excludes today and keeps an open earlier date only once", () => {
+    const page = (id: string, entry_date: string): ReflectionEntry => ({ id, entry_date, guest_id: "me", body: id, updated_at: "2026-11-03T12:00:00Z" });
+    const entries = [page("today", "2026-11-03"), page("open", "2026-11-02"), page("duplicate", "2026-11-02"), page("older", "2026-11-01")];
+    expect(earlierReflectionPages(entries, "2026-11-03").map(e => e.id)).toEqual(["open", "older"]);
+    expect(earlierReflectionPages(entries, "2026-11-02").map(e => e.id)).toEqual(["today", "older"]);
+  });
+});
+
+describe("Postcard place picker", () => {
+  const pool = "Cape Town, 30\nDetroit, 20\nAtlanta, 15\nChicago, 15\n-, 15\nAbuja, 5";
+  it("keeps the same address for the same id", () => {
+    const picks = Array.from({ length: 100 }, (_, i) => heartCardPlace(`card-${i}`, pool, "Fallback"));
+    expect(Array.from({ length: 100 }, (_, i) => heartCardPlace(`card-${i}`, pool, "Fallback"))).toEqual(picks);
+    expect(new Set(picks).size).toBeGreaterThan(1);
+  });
+  it("respects relative weights across many stable ids", () => {
+    const counts = new Map<string | undefined, number>();
+    for (let i = 0; i < 20000; i++) {
+      const place = heartCardPlace(`card-${i}`, pool, "Fallback");
+      counts.set(place, (counts.get(place) ?? 0) + 1);
+    }
+    for (const [place, weight] of [["Cape Town", 30], ["Detroit", 20], ["Atlanta", 15], ["Chicago", 15], [undefined, 15], ["Abuja", 5]] as const) {
+      expect(Math.abs((counts.get(place) ?? 0) / 20000 - weight / 100)).toBeLessThan(0.025);
+    }
+    expect(heartCardPlace("same", "Cape Town, 3\nDetroit, 2", "Fallback")).toBe(heartCardPlace("same", "Cape Town, 30\nDetroit, 20", "Fallback"));
+  });
+  it("a dash line prints no place", () => {
+    expect(heartCardPlace("card", "-, 15", "Cape Town")).toBeUndefined();
+  });
+  it("empty or invalid pools fall back to heart_to_place", () => {
+    for (const setting of ["", "\n", "Detroit", "Detroit,", "Detroit, 0", "Detroit, -3", "Detroit, nope", "Detroit, Infinity", ", 15"]) {
+      expect(heartCardPlace("card", setting, "Cape Town")).toBe("Cape Town");
+    }
+    expect(heartCardPlace("card", "\nDetroit, 0\nAtlanta, 2\nAbuja, -3", "Cape Town")).toBe("Atlanta");
+  });
+});
 
 describe("assignCommonsLook", () => {
   it("short text (≤120 chars) becomes a note with a tint", () => {

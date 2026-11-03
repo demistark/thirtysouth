@@ -1,10 +1,20 @@
 import { readFileSync } from "node:fs";
 const migration=readFileSync("drizzle/migrations/0021_travel_roomies_and_own_flights.sql","utf8");
 import {describe,it,expect} from "vitest";
-import { normalizeIata,flightAirportsValid,flightNumberValid,flightDate,flightTime,flightRouteCodes,sortFlights,hasFlightDirection,type TravelLeg } from "@/lib/travel";
+import { copyFlightOptions,normalizeIata,flightAirportsValid,flightNumberValid,flightDate,flightTime,flightRouteCodes,sortFlights,hasFlightDirection,type TravelLeg } from "@/lib/travel";
 import {canViewTravel} from "@/lib/locked-areas";
 const leg=(over:Partial<TravelLeg>={}):TravelLeg=>({id:"a",guest_id:"me",direction:"arrival",airline:"",flight_number:"",other_airport:"ATL",cpt_time:"2026-11-20T18:35:00",terminal:null,notes:null,transfer_id:null,visible:true,...over});
 describe("Travel flight list",()=>{
+ it("copy choices include other guests only in the selected direction",()=>{
+   const rows=[leg(),leg({id:"b",guest_id:"demi",other_airport:"LGA",connections:["ATL"],cpt_time:"2026-11-21T18:35:00",flight_number:"DL0210"}),leg({id:"c",guest_id:"demi",direction:"departure"}),leg({id:"d",guest_id:"friend",flight_number:""})];
+   const directory=[{id:"me",display_name:"Me"},{id:"demi",display_name:"Demi"},{id:"friend",display_name:"Friend"}];
+   const options=copyFlightOptions(rows,directory,"me","arrival");
+   expect(options.map(o=>o.leg.id)).toEqual(["d","b"]);
+   expect(options[1]?.label).toBe("Demi: LGA→ATL→CPT, 11.21 6:35 P, DL0210");
+   expect(options[0]?.label).toBe("Friend: ATL→CPT, 11.20 6:35 P");
+   expect(copyFlightOptions(rows,directory,"me","departure").map(o=>o.leg.id)).toEqual(["c"]);
+   expect(copyFlightOptions([leg()],directory,"me","arrival")).toEqual([]);
+ });
  it("allows optional flight numbers",()=>{expect(flightNumberValid("")).toBe(true);});
  it("accepts only letters and digits",()=>{expect(flightNumberValid("dl0210")).toBe(true);for(const value of ["DL-210","DL 210","DL.210","é210"])expect(flightNumberValid(value)).toBe(false);});
  it("limits flight numbers to eight characters",()=>{expect(flightNumberValid("AB123456")).toBe(true);expect(flightNumberValid("AB1234567")).toBe(false);});
