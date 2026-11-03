@@ -18,4 +18,4 @@
 - [x] Build Purse Shared Experiences: experiences/RSVP schema and RLS, cards with price and RSVP modes, Admin › Purse tabs with CSV import, Scenes experience tag, Home live reply line; 99 tests pass, host RSVP flow verified end to end.
 - [ ] Import experiences.csv yourself in Admin › Purse › Experiences (per spec, not seeded).
 - [x] Purse ZAR|USD toggle on Shared Experiences only, scene experience tags with own RSVP status at the bottom of expanded scenes, Close to Heart deterministic Lora type variety (no handwriting), Shantell Sans scoped to Our Commons; 82 targeted tests pass.
-- [ ] Decide olive postcard text: #6F7B4A measures ~4.2:1 on the card, so it renders only at the 26px step (large-text 3:1) and falls back to ink below that; a darker olive (~#646E3C) would pass 4.5:1 everywhere if wanted.
+- [ ] Apply uploaded site shell fixes, AA olive text and Wardrobe visibility; run tests without walkthrough/accounts/screenshots.
