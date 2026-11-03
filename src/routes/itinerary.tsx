@@ -75,14 +75,12 @@ function Itinerary() {
   },[tab,chapter,search.from,search.look,loading,displayQ.isPending,showWardrobe,looksQ.data]);
   return <PageShell titleKey="itinerary.title" introKey="itinerary.intro">
     <SubTabs tabs={itineraryTabs().map(id => ({id,label:t(`itinerary.tab.${id}`)}))} value={tab} onChange={next => void navigate({search:{tab:next,day:chapter},hash:""})} />
-    {tab === "script" ? <ItineraryScript chapters={chapters} loading={chaptersQ.isLoading} today={todayChapter} /> : loading || (tab === "wardrobe" && displayQ.isPending) ? <div className="min-h-80 bg-card" /> : tab === "wardrobe" && !showWardrobe ? <div className="wardrobe-context-slot" data-hidden><ComingSoon /></div> : !allowed ? <div className="itinerary-recording"><RecordingLockout /></div> : <>
+    {tab === "script" ? <ItineraryScript chapters={chapters} loading={chaptersQ.isLoading} /> : loading || (tab === "wardrobe" && displayQ.isPending) ? <div className="min-h-80 bg-card" /> : tab === "wardrobe" && !showWardrobe ? <div className="wardrobe-context-slot" data-hidden><ComingSoon /></div> : !allowed ? <div className="itinerary-recording"><RecordingLockout /></div> : <>
       <ItineraryDays chapters={chapters} value={chapter} today={todayChapter} onChange={day => void navigate({search:{tab,day},hash:""})} />
       {tab === "scenes" ? <>
         <header className="day-heading" id={`day-${chapter}`}>
-          <p className="day-heading-line">
-            <span className="day-heading-chapter">{t("itinerary.chapter")} {chapter}</span>
-            <span className="day-heading-date">— {formatChapterDate(selected?.date ?? today)}</span>
-          </p>
+          <p className="day-heading-chapter">{t("itinerary.chapter")} {chapter}</p>
+          <p className="day-heading-date">{formatChapterDate(selected?.date ?? today)}</p>
           <h2 className="day-title"><span>{selected?.title}</span></h2>
         </header>
         <Scenes key={`${chapter}-${todayChapter}`} chapter={chapter} isToday={chapter === todayChapter} scenes={(scenesQ.data ?? []).filter(s => s.chapter_number === chapter)} looks={(looksQ.data ?? []).filter(l => l.chapter_number === chapter)} loading={scenesQ.isPending || looksQ.isPending} />
@@ -98,7 +96,7 @@ function Itinerary() {
 }
 function LookTag({look,anchor}: {look:WardrobeLook;anchor:string}) {
   const {t}=useContent();
-  return <Link id={anchor} className="look-tag look-tag-scene" to="/itinerary" search={{tab:"wardrobe",day:look.chapter_number,...(look.id ? {look:look.id} : {}),from:"scenes",anchor}}><span>{t("itinerary.look")} {lookNumber(look.chapter_number,look.look_order)} //</span><span className="text-deep-atlantic">{look.title}</span></Link>;
+  return <Link id={anchor} className="look-tag" to="/itinerary" search={{tab:"wardrobe",day:look.chapter_number,...(look.id ? {look:look.id} : {}),from:"scenes",anchor}}><span>{t("itinerary.look")} {lookNumber(look.chapter_number,look.look_order)} //</span><span className="text-deep-atlantic">{look.title}</span></Link>;
 }
 function Scenes({chapter,isToday,scenes,looks,loading}: {chapter:number;isToday:boolean;scenes:Scene[];looks:WardrobeLook[];loading:boolean}) {
   const {t}=useContent(); const [openId,setOpenId]=useState<string|null>(); const display=useItineraryDisplay().data ?? {indicator:"edge",shadow:3,grain:true};
