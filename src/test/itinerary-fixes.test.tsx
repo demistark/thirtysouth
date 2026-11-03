@@ -83,7 +83,7 @@ describe("Script today marker (item 5)", () => {
     for (const dot of dots) expect(dot.getAttribute("aria-hidden")).toBe("true");
   });
   it("renders no dots when no chapter is today", () => {
-    const { container } = render(<ItineraryScript chapters={chapters} loading={false} today={undefined} />);
+    const { container } = render(<ItineraryScript chapters={chapters} loading={false} />);
     expect(container.querySelectorAll(".script-today-dot")).toHaveLength(0);
   });
   it("fades over 2.4s in ember and goes static under reduced motion", () => {
