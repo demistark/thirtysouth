@@ -213,7 +213,7 @@
 .look-tag:focus-visible { outline: 2px solid var(--deep-atlantic); outline-offset: 3px; }
 .day-heading { margin-bottom: 0; background: transparent; }
 .day-heading + .scene-timeline > .scene-timeline-item:first-child > .look-tag:first-child,
-.day-heading + div > .look-tag:first-child { margin-top: 0; }
+.day-heading + div > .look-tag:first-child { margin-top: -14px; }
 .day-heading-line { font-size: 11px; letter-spacing: .12em; font-weight: 500; text-transform: uppercase; color: var(--ember-deep); }
 .day-heading-line .day-heading-chapter, .day-heading-line .day-heading-date { display: inline; font-size: inherit; letter-spacing: inherit; margin: 0; }
 .day-heading:has(+ .scene-timeline > .scene-timeline-item:first-child > .scene-card) { margin-bottom: 28px; }
