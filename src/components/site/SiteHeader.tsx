@@ -1,6 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { LogOut, Menu } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { BACK_TO_TOP_IDLE_MS, backToTopVisible, bubbleBottom } from "@/lib/site-shell";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -25,6 +26,8 @@ export function SiteHeader() {
     (n.to !== "/travel" || !session || canViewTravel(roles)) &&
     (n.to !== "/purse" || !session || canViewPurse(roles)));
   const [open, setOpen] = useState(false);
+  const touchMenu = useRef(false);
+  const menuContent = useRef<HTMLDivElement>(null);
   const [compact, setCompact] = useState(false);
   const [homeHeaderReturned, setHomeHeaderReturned] = useState(false);
   const { pathname } = useLocation();
@@ -60,10 +63,10 @@ export function SiteHeader() {
 
   return (
     <div className={home ? "site-header-space" : "site-header-space sticky top-0 z-40"}>
-    <header className="site-header band-ink border-b bg-seafoam" data-compact={compact} data-home-returned={homeHeaderReturned}>
+    <header className="site-header band-ink border-b bg-seafoam" data-scroll-obstruction data-compact={compact} data-home-returned={homeHeaderReturned}>
       <div className="site-header-bar mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-5 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <Link to="/" className="site-wordmark wordmark min-w-0 whitespace-nowrap text-base text-foreground">
-          30° South
+          <span>30° South</span>
         </Link>
         <nav className="site-nav hidden items-center gap-5 md:flex lg:gap-8">
           {nav.map((n) => (
@@ -87,10 +90,13 @@ export function SiteHeader() {
           <div className="min-w-0 max-w-full">{authControl}</div>
         </div>
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger className="site-menu shrink-0 md:hidden" aria-label={t("nav.open_menu")}>
+          <SheetTrigger className="site-menu shrink-0 md:hidden" aria-label={t("nav.open_menu")} onPointerDown={e => { touchMenu.current = e.pointerType !== "mouse"; }} onKeyDown={() => { touchMenu.current = false; }}>
             <Menu className="h-5 w-5" strokeWidth={1.25} />
           </SheetTrigger>
           <SheetContent
+            ref={menuContent}
+            tabIndex={-1}
+            onOpenAutoFocus={e => { if (touchMenu.current) { e.preventDefault(); menuContent.current?.focus(); } }}
             side="top"
             className="band-ink h-full w-full border-0 bg-seafoam px-8 pb-10 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] data-[state=closed]:!duration-250 data-[state=open]:!duration-250 [&>button]:right-6 [&>button]:top-[calc(env(safe-area-inset-top,0px)+1.25rem)] [&>button_svg]:h-6 [&>button_svg]:w-6"
           >
@@ -127,13 +133,40 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   const { t } = useContent();
+  const footer = useRef<HTMLElement>(null);
+  const bubble = useRef<HTMLButtonElement>(null);
+  const [visible, setVisible] = useState(false);
+  const [idle, setIdle] = useState(false);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const position = () => {
+      if (!footer.current || !bubble.current) return;
+      const size = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const clearance = Number.parseFloat(getComputedStyle(bubble.current).getPropertyValue("--bubble-clearance")) || 24;
+      bubble.current.style.bottom = `${bubbleBottom(window.innerHeight, footer.current.getBoundingClientRect().top, size, clearance - 24)}px`;
+      setVisible(backToTopVisible(window.scrollY));
+    };
+    const scrolling = () => {
+      position(); setIdle(false); clearTimeout(timer);
+      timer = setTimeout(() => setIdle(true), BACK_TO_TOP_IDLE_MS);
+    };
+    scrolling();
+    const observer = new ResizeObserver(position);
+    if (footer.current) observer.observe(footer.current);
+    window.addEventListener("scroll", scrolling, { passive: true });
+    window.addEventListener("resize", position);
+    return () => { clearTimeout(timer); observer.disconnect(); window.removeEventListener("scroll", scrolling); window.removeEventListener("resize", position); };
+  }, []);
   return (
-    <footer className="band-ink footer-glow relative mt-24 border-t">
-      <Button variant="ghost" size="icon" className="back-to-top-bubble" aria-label={t("common.back_to_top")} onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })}>
-        <svg viewBox="0 0 24 24" aria-hidden="true" className="size-6"><path fill="currentColor" d="M10 19a2 2 0 0 0 4 0V9.8l3.6 3.6a2 2 0 0 0 2.8-2.8l-7-7a2 2 0 0 0-2.8 0l-7 7a2 2 0 0 0 2.8 2.8L10 9.8Z" /></svg>
+    <footer ref={footer} className="band-ink footer-glow relative mt-24 border-t">
+      <Button ref={bubble} variant="ghost" size="icon" className="back-to-top-bubble" data-visible={visible} data-idle={idle} tabIndex={visible ? 0 : -1} aria-hidden={!visible} aria-label={t("common.back_to_top")} onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })}>
+        <svg viewBox="0 0 24 28" aria-hidden="true" className="h-7 w-6"><path fill="currentColor" d="M10 24a2 2 0 0 0 4 0V9.8l3.6 3.6a2 2 0 0 0 2.8-2.8l-7-7a2 2 0 0 0-2.8 0l-7 7a2 2 0 0 0 2.8 2.8L10 9.8Z" /></svg>
       </Button>
-      <div className="footer-text mx-auto flex max-w-6xl items-center justify-center gap-3 px-5 py-[1.875rem] text-center sm:gap-6 sm:py-8">
-        {["footer.brand", "footer.place", "footer.date"].map((key) => <span key={key} className="label-caps text-foreground">{t(key)}</span>)}
+      <div className="footer-text mx-auto max-w-6xl px-5 py-[1.875rem] text-center sm:py-8">
+        <p className="label-caps text-foreground">{t("footer.wordmark")}</p>
+        <div className="mt-3 flex items-center justify-center gap-3 sm:gap-6">
+          {["footer.brand", "footer.place", "footer.date"].map((key) => <span key={key} className="label-caps text-foreground">{t(key)}</span>)}
+        </div>
       </div>
     </footer>
   );

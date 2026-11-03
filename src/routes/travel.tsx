@@ -19,6 +19,7 @@ import {
 } from "@/lib/travel-data";
 import { lookNumber } from "@/lib/itinerary-display";
 import { cn } from "@/lib/utils";
+import { scrollToContent } from "@/lib/scroll";
 
 export const Route = createFileRoute("/travel")({
   head: () => ({
@@ -85,7 +86,7 @@ function TravelPage() {
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     if ((TRAVEL_SLOTS as string[]).includes(hash))
-      document.getElementById(hash)?.scrollIntoView({ block: "start", behavior: "instant" });
+      scrollToContent(document.getElementById(hash));
   }, []);
 
   const images = imagesQ.data?.images ?? [];
@@ -152,16 +153,15 @@ function JumpBar({ active }: { active: TravelSlot }) {
   }, []);
   const go = (slot: TravelSlot) => (e: React.MouseEvent) => {
     e.preventDefault();
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    document.getElementById(slot)?.scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" });
+    scrollToContent(document.getElementById(slot));
     history.replaceState(null, "", `#${slot}`);
   };
   return (
-    <nav className={cn("travel-jumpbar", hidden && "travel-jumpbar-hidden")} aria-label="Travel sections">
+    <nav data-scroll-obstruction className={cn("travel-jumpbar", hidden && "travel-jumpbar-hidden")} aria-label="Travel sections">
       <div className="mx-auto flex max-w-5xl gap-6 overflow-x-auto px-5 shadow-[inset_0_-1px_0_var(--color-border)]">
         {TRAVEL_SLOTS.map((s) => (
           <a key={s} href={`#${s}`} onClick={go(s)} aria-current={active === s ? "true" : undefined}
-            className={cn("label-caps whitespace-nowrap border-b-[2.5px] pb-4 pt-3 transition-colors",
+            className={cn("section-tab",
               active === s ? "border-ember text-foreground" : "border-transparent text-muted-foreground hover:text-foreground")}>
             {t(`travel.section.${s}`)}
           </a>
@@ -178,7 +178,7 @@ function TravelSection({ slot, deck, media, intro, below, eager }: {
 }) {
   const { t } = useContent();
   return (
-    <section id={slot} className="travel-section scroll-mt-36" data-slot={slot}>
+    <section id={slot} className="travel-section" data-slot={slot}>
       <div className="travel-split">
         <div className="travel-split-media"><SectionMedia slot={slot} media={media} eager={eager} /></div>
         <div className="travel-split-text">
@@ -349,7 +349,7 @@ function FlightLists({ legs, transfers, directory, chapters, loading }: {
                         {l.terminal && <p className="scene-location"><MapPin aria-hidden="true" />{l.terminal}</p>}
                         {l.notes && <p className="mt-1 text-sm text-muted-foreground">{l.notes}</p>}
                         {transfer && (
-                          <a className="look-tag" href={`#transfer-${transfer.id}`}>
+                          <a className="look-tag" href={`#transfer-${transfer.id}`} onClick={e => { e.preventDefault(); scrollToContent(document.getElementById(`transfer-${transfer.id}`)); history.replaceState(null, "", `#transfer-${transfer.id}`); }}>
                             <span>{transfer.label} //</span>
                             <span className="text-deep-atlantic">{transfer.meet_time ? formatLegTime(transfer.meet_time) : ""}</span>
                           </a>
@@ -374,7 +374,7 @@ function FlightLists({ legs, transfers, directory, chapters, loading }: {
       {transfers.length > 0 && (
         <ul className="mt-10 grid gap-4 sm:grid-cols-2">
           {transfers.map((tr) => (
-            <li key={tr.id} id={`transfer-${tr.id}`} className="travel-card scroll-mt-36">
+            <li key={tr.id} id={`transfer-${tr.id}`} className="travel-card">
               <h3 className="font-display text-[23px] text-deep-atlantic">{tr.label}</h3>
               {tr.meet_time && <p className="scene-time mt-2">{formatLegDate(tr.meet_time)} · {formatLegTime(tr.meet_time)}</p>}
               {tr.meeting_point && <p className="mt-1 flex items-center gap-2 text-sm"><MapPin className="h-4 w-4 shrink-0 text-slate" aria-hidden="true" />{tr.meeting_point}</p>}

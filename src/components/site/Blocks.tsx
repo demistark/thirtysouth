@@ -3,6 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { useContent } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { SignInLink } from "./Lockouts";
+import { Button } from "@/components/ui/button";
 
 export function PhotoSlot({ className, caption }: { className?: string; caption?: string }) {
   const { t } = useContent();
@@ -71,18 +72,18 @@ export function SubTabs<T extends string>({
   return (
     <div className="mb-8 flex gap-6 overflow-x-auto shadow-[inset_0_-1px_0_var(--color-border)]" role="tablist">
       {tabs.map((tab) => (
-        <button
+        <Button variant="ghost"
           key={tab.id}
           role="tab"
           aria-selected={value === tab.id}
           onClick={() => onChange(tab.id)}
           className={cn(
-            "label-caps whitespace-nowrap border-b-[2.5px] pb-4 pt-3 transition-colors",
+            "section-tab",
             value === tab.id ? "border-ember text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >
           {tab.label}
-        </button>
+        </Button>
       ))}
       {trailing && <div className="ml-auto flex items-center pb-2">{trailing}</div>}
     </div>

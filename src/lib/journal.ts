@@ -264,17 +264,16 @@ export function contrastRatio(hexA: string, hexB: string): number {
 }
 
 // Card paper is #FFFDF9; tones are existing palette tokens.
-export const HEART_TONE_HEX: Record<HeartTone, string> = { ink: "#2D3330", ember: "#9A3A17", olive: "#6F7B4A" };
+export const HEART_TONE_HEX: Record<HeartTone, string> = { ink: "#2D3330", ember: "#9A3A17", olive: "#646E3C" };
 export const HEART_PAPER_HEX = "#FFFDF9";
 
 /**
  * Resolves a tone to a CSS colour with a contrast fallback: ember-deep passes 4.5:1 at
- * every size; olive (#6F7B4A, ~4.2:1 on the card) passes only as large text (≥24px, 3:1),
- * so smaller olive cards fall back to the dark ink.
+ * every size; olive is checked at every size, falling back only when contrast fails.
  */
 export function heartTextColor(tone: HeartTone, sizePx: number): string {
   if (tone === "ember" && contrastRatio(HEART_TONE_HEX.ember, HEART_PAPER_HEX) >= 4.5) return "var(--ember-deep)";
-  if (tone === "olive" && sizePx >= 24 && contrastRatio(HEART_TONE_HEX.olive, HEART_PAPER_HEX) >= 3) return "var(--scene-olive)";
+  if (tone === "olive" && contrastRatio(HEART_TONE_HEX.olive, HEART_PAPER_HEX) >= (sizePx >= 24 ? 3 : 4.5)) return "var(--olive)";
   return "var(--ink)";
 }
 
