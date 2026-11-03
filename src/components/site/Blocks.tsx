@@ -23,9 +23,11 @@ export function PhotoSlot({ className, caption }: { className?: string; caption?
 
 export function ComingSoon() {
   const { t } = useContent();
+  const { session, loading } = useAuth();
   return (
     <div className="fade-in border bg-card px-6 py-16 text-center">
       <p className="caption-serif text-lg">{t("common.coming_soon")}</p>
+      {!loading && !session && <div className="mt-8 flex justify-center"><SignInLink /></div>}
     </div>
   );
 }

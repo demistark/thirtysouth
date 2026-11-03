@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ComingSoon, PageShell, SubTabs } from "@/components/site/Blocks";
 import { Experiences } from "@/components/site/Experiences";
+import { SharedExpenses } from "@/components/site/SharedExpenses";
 import { PurseLockout } from "@/components/site/Lockouts";
 import { useAuth } from "@/lib/auth";
 import { useContent } from "@/lib/data";
@@ -57,6 +58,8 @@ function Purse() {
           {t("purse_experiences_deck") && <p className="caption-serif mb-8 text-lg">{t("purse_experiences_deck")}</p>}
           <Experiences currency={currency} />
         </>
+      ) : current === "expenses" ? (
+        <SharedExpenses />
       ) : (
         <ComingSoon />
       )}
