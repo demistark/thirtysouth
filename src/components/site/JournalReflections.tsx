@@ -113,6 +113,11 @@ function Notebook({ settings }: { settings: JournalSettings }) {
 
   const openPage = (date: string) => {
     if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; if (settings.reflectionsOpen) void save(body, openDate); }
+    if (date === openDate && notebookDate.current) {
+      const bottom = Math.max(0, document.querySelector(".site-header")?.getBoundingClientRect().bottom ?? 0);
+      window.scrollTo({ top: Math.max(0, notebookDate.current.getBoundingClientRect().top + window.scrollY - bottom - 8), behavior: "instant" });
+      return;
+    }
     jumpPending.current = true;
     setOpenDate(date);
   };
@@ -186,7 +191,7 @@ function EarlierPages({ entries, openDate, onOpen, readOnly }: { entries: Reflec
         {past.map((e) => (
           <li key={e.id}>
             <Button variant="ghost"
-              className="journal-earlier-page"
+              className="journal-earlier-page h-auto whitespace-normal font-normal hover:bg-paper"
               aria-current={e.entry_date === openDate ? "page" : undefined}
               onClick={() => onOpen(e.entry_date)}
               aria-label={readOnly ? `Read entry from ${formatEntryDate(e.entry_date)}` : `Open entry from ${formatEntryDate(e.entry_date)}`}
