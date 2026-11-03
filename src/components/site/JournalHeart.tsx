@@ -7,6 +7,7 @@ import {
   allowanceState,
   clampAspect,
   heartCardStyle,
+  heartCardPlace,
   heartTextColor,
   heartTilt,
   orderHeartCards,
@@ -210,6 +211,7 @@ function HeartComposer({
 
 function HeartCardView({ card, photoUrl }: { card: HeartCard; photoUrl?: string | undefined }) {
   const { t } = useContent();
+  const place = heartCardPlace(card.id, t("heart_to_places"), t("heart_to_place") || "Cape Town");
   return (
     <article
       className={cn("journal-postcard", card.pinned && "is-pinned")}
@@ -240,7 +242,7 @@ function HeartCardView({ card, photoUrl }: { card: HeartCard; photoUrl?: string 
           <div className="journal-postcard-address">
             <span className="journal-postcard-stamp">30° S</span>
             <p className="journal-address-line">TO {(t("heart_to_name") || "Demi").toUpperCase()}</p>
-            <p className="journal-address-line">{(t("heart_to_place") || "Cape Town").toUpperCase()}</p>
+            {place && <p className="journal-address-line">{place.toUpperCase()}</p>}
           </div>
         </div>
       )}

@@ -135,6 +135,8 @@ function CommonsAdmin() {
 /* ---------------- Close to Heart moderation ---------------- */
 
 function HeartAdmin() {
+  const { t } = useContent();
+  const { isHost } = useAuth();
   const queryClient = useQueryClient();
   const cardsQ = useHeartCards(true);
   const cards = useMemo(() => cardsQ.data ?? [], [cardsQ.data]);
@@ -157,6 +159,7 @@ function HeartAdmin() {
   if (cardsQ.isLoading) return <div className="h-48 border bg-card" />;
   return (
     <div className="space-y-4">
+      {isHost && <div className="space-y-4"><ContentText contentKey="heart_to_name" label="Addressed to (name)" /><ContentText contentKey="heart_to_place" label="Addressed to (place)" /><ContentText contentKey="heart_to_places" label={t("heart_to_places.label")} multiline /><p className="text-xs text-slate">{t("heart_to_places.hint")}</p></div>}
       {cards.length === 0 && <p className="caption-serif text-slate">No postcards yet.</p>}
       {cards.map((c) => (
         <div key={c.id} className="border bg-card p-4">

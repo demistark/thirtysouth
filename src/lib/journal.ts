@@ -252,6 +252,35 @@ export function heartCardStyle(id: string, bodyLength: number): HeartCardStyle {
   return { sizePx, weight, tone };
 }
 
+/** Independent weighted address pick, shared with future exports. */
+export function heartCardPlace(id: string, setting: string, fallback: string): string | undefined {
+  const pool = setting.split(/\r?\n/).flatMap(line => {
+    const comma = line.lastIndexOf(",");
+    if (comma < 0) return [];
+    const place = line.slice(0, comma).trim();
+    const weight = Number(line.slice(comma + 1).trim());
+    return place && Number.isFinite(weight) && weight > 0 ? [{ place, weight }] : [];
+  });
+  const total = pool.reduce((sum, item) => sum + item.weight, 0);
+  if (!pool.length || !Number.isFinite(total)) return fallback;
+  let pick = (hash32(`${id}#place`) / 4294967296) * total;
+  for (const item of pool) {
+    if (pick < item.weight) return item.place === "-" ? undefined : item.place;
+    pick -= item.weight;
+  }
+  return fallback;
+}
+
+/** Keep today in the notebook only, and each earlier date in the list once. */
+export function earlierReflectionPages(entries: ReflectionEntry[], today: string): ReflectionEntry[] {
+  const seen = new Set<string>();
+  return entries.filter(entry => {
+    if (entry.entry_date === today || seen.has(entry.entry_date)) return false;
+    seen.add(entry.entry_date);
+    return true;
+  });
+}
+
 /** WCAG contrast ratio between two hex colours. */
 export function contrastRatio(hexA: string, hexB: string): number {
   const lum = (hex: string) => {
