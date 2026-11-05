@@ -75,8 +75,8 @@ function HomeBefore() {
         <div className={cn("home-hero-wrap mx-auto max-w-5xl px-5", hero?.url ? "-mt-28 md:-mt-36" : "-mt-[60px] md:-mt-[70px]")}>
           <div className="fade-in border bg-card p-[22px_16px] text-center sm:p-[31px_24px] md:p-[31px_64px]">
             <p className="label-caps whitespace-nowrap text-muted-foreground">{t("home.hero.place")}</p>
-            <h1 className="home-hero-wordmark wordmark mt-2.5 whitespace-nowrap sm:mt-[32px]">30° South</h1>
-            <p className="label-caps mt-3 text-foreground sm:mt-[30px]">{t("home.hero.dates")}</p>
+            <h1 className="home-hero-wordmark wordmark mt-2.5 whitespace-nowrap sm:mt-[13px]">30° South</h1>
+            <p className="label-caps mt-3 text-foreground sm:mt-[11px]">{t("home.hero.dates")}</p>
             <div className="mx-auto mt-3.5 h-px w-16 bg-border sm:mt-4" />
             <p className="mt-2.5 font-display-light text-3xl sm:mt-4">
               <span className="text-ember">{daysToGo}</span>{" "}
@@ -102,7 +102,7 @@ const LOOK_LINKS = [
 function LookAround() {
   const { t } = useContent();
   return (
-    <section data-home-first-card className="home-look mx-auto max-w-6xl px-5">
+    <section data-home-first-card className="home-look mx-auto px-5 md:max-w-none md:px-[clamp(20px,6.5vw,120px)]">
       <p className="home-look-label label-caps">{t("home.look.heading")}</p>
       <div className="home-look-list">
         {LOOK_LINKS.map((l) => (
