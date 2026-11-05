@@ -128,12 +128,9 @@ export function HomeIntro() {
       setTimeout(() => {
         // Measure at the moment the flight begins.
         const r = real.getBoundingClientRect();
-        const t = `transform ${FLIGHT}ms ${FLY_EASE}`;
-        mark.style.transition = phone
-          ? `${t}, letter-spacing ${FLIGHT}ms ${FLY_EASE}, padding-left ${FLIGHT}ms ${FLY_EASE}`
-          : t;
-        span.style.transition = mark.style.transition.replace(/transform[^,]*,?\s*/, "");
+        mark.style.transition = `transform ${FLIGHT}ms ${FLY_EASE}`;
         if (phone) {
+          span.style.transition = `letter-spacing ${FLIGHT}ms ${FLY_EASE}, padding-left ${FLIGHT}ms ${FLY_EASE}`;
           span.style.letterSpacing = realLs;
           span.style.paddingLeft = realPad;
         }

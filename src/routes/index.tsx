@@ -213,16 +213,16 @@ function HomeBefore() {
           <div className="h-[clamp(220px,34vw,420px)] w-full" aria-hidden />
         )}
         <div className={cn("home-hero-wrap mx-auto max-w-5xl px-5", hero?.url ? "-mt-28 md:-mt-36" : "-mt-[60px] md:-mt-[70px]")}>
-          <div className="fade-in border bg-card p-[22px_16px] text-center sm:p-[31px_24px] md:p-[31px_64px]">
+          <div className="fade-in border bg-card p-[22px_20px] text-center sm:p-[31px_24px] md:p-[31px_64px]">
             <p className="label-caps whitespace-nowrap text-muted-foreground">{t("home.hero.place")}</p>
-            <h1 className="home-hero-wordmark wordmark mt-2.5 whitespace-nowrap sm:mt-[13px]">30° South</h1>
+            <h1 className="home-hero-wordmark wordmark mt-4 whitespace-nowrap sm:mt-[13px]">30° South</h1>
             <p className="label-caps mt-3 text-foreground sm:mt-[11px]">{t("home.hero.dates")}</p>
-            <div className="mx-auto mt-3.5 h-px w-16 bg-border sm:mt-4" />
-            <p className="mt-2.5 font-display-light text-3xl sm:mt-4">
+            <div className="mx-auto mt-[19px] h-px w-16 bg-border sm:mt-4" />
+            <p className="mb-0 mt-[15px] font-display-light text-3xl sm:mt-4">
               <span className="text-ember">{daysToGo}</span>{" "}
               {t(daysToGo === 1 ? "home.hero.day_to_go" : "home.hero.days_to_go")}
             </p>
-            <p className="caption-serif mx-auto mt-1.5 text-base sm:mt-2.5 sm:text-[17px]">{t(heroSubKey(daysToGo))}</p>
+            <p className="caption-serif mx-auto mt-1.5 hidden text-base sm:block sm:mt-2.5 sm:text-[17px]">{t(heroSubKey(daysToGo))}</p>
           </div>
         </div>
       </section>
