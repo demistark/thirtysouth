@@ -75,8 +75,8 @@ function HomeBefore() {
         <div className="home-hero-wrap mx-auto -mt-28 max-w-5xl px-5 md:-mt-36">
           <div className="fade-in border bg-card p-[22px_16px] text-center sm:p-[31px_24px] md:p-[31px_64px]">
             <p className="label-caps whitespace-nowrap text-muted-foreground">{t("home.hero.place")}</p>
-            <h1 className="home-hero-wordmark wordmark mt-2 whitespace-nowrap sm:mt-9">30° South</h1>
-            <p className="label-caps mt-2.5 text-foreground sm:mt-9">{t("home.hero.dates")}</p>
+            <h1 className="home-hero-wordmark wordmark mt-2 whitespace-nowrap sm:mt-[53px]">30° South</h1>
+            <p className="label-caps mt-2.5 text-foreground sm:mt-[53px]">{t("home.hero.dates")}</p>
             <div className="mx-auto mt-3.5 h-px w-16 bg-border sm:mt-4" />
             <p className="mt-2.5 font-display-light text-3xl sm:mt-4">
               <span className="text-ember">{daysToGo}</span>{" "}
