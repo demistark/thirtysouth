@@ -10,6 +10,7 @@ import { normalizeEmail } from "@/lib/email";
 import { syncGuestAccounts } from "@/lib/guest-accounts.functions";
 import { AfarAdmin } from "@/components/site/AfarAdmin";
 import { FactsAdmin } from "@/components/site/FactsAdmin";
+import { HomeAdmin } from "@/components/site/HomeAdmin";
 import { ItineraryAdmin } from "@/components/site/ItineraryAdmin";
 import { JournalAdmin } from "@/components/site/JournalAdmin";
 import { PurseAdmin } from "@/components/site/PurseAdmin";
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/admin")({
   component: Admin,
 });
 
-type Tab = "guests" | "content" | "itinerary" | "travel" | "purse" | "journal" | "settings" | "facts";
+type Tab = "guests" | "content" | "home" | "itinerary" | "travel" | "purse" | "journal" | "settings" | "facts";
 
 function Admin() {
   const { isHost, roles, loading } = useAuth();
@@ -58,6 +59,7 @@ function Admin() {
           tabs={isHost ? [
             { id: "guests", label: "Guests" },
             { id: "content", label: "Content" },
+            { id: "home", label: "Home" },
             { id: "itinerary", label: t("admin.tab.itinerary") },
             { id: "travel", label: t("admin.tab.travel") },
             { id: "purse", label: t("admin.tab.purse") },
@@ -80,6 +82,7 @@ function Admin() {
           </>
         )}
         {active === "content" && <ContentAdmin />}
+        {active === "home" && <HomeAdmin />}
         {active === "itinerary" && <ItineraryAdmin />}
         {active === "travel" && <TravelAdmin />}
         {active === "purse" && <PurseAdmin />}
