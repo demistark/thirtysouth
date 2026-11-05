@@ -59,7 +59,7 @@ function HomeBefore() {
   const hero = useHomeImage("hero").data;
   return (
     <main>
-      <section className={cn("relative pb-7 md:pb-20", !hero?.url && "hero-sky")}>
+      <section className={cn("relative pb-7 md:pb-12", !hero?.url && "hero-sky")}>
         {hero?.url ? (
           <img
             src={hero.url}
@@ -72,14 +72,11 @@ function HomeBefore() {
         ) : (
           <div className="h-[62vh] min-h-[420px] w-full" aria-hidden />
         )}
-        <div className="mx-auto -mt-28 max-w-5xl px-5 md:-mt-36">
+        <div className="home-hero-wrap mx-auto -mt-28 max-w-5xl px-5 md:-mt-36">
           <div className="fade-in border bg-card p-[22px_16px] text-center sm:p-[31px_24px] md:p-[31px_64px]">
-            <p className="label-caps text-muted-foreground">
-              <span className="hidden sm:inline">{t("home.hero.place")}</span>
-              <span className="sm:hidden">{t("home.hero.place").split(/\s*·\s*/).map((line, i) => <span key={i} className="block">{line}</span>)}</span>
-            </p>
-            <h1 className="home-hero-wordmark wordmark mt-2 whitespace-nowrap sm:mt-3.5">30° South</h1>
-            <p className="label-caps mt-2.5 text-muted-foreground sm:mt-3.5">{t("home.hero.dates")}</p>
+            <p className="label-caps whitespace-nowrap text-muted-foreground">{t("home.hero.place")}</p>
+            <h1 className="home-hero-wordmark wordmark mt-2 whitespace-nowrap sm:mt-9">30° South</h1>
+            <p className="label-caps mt-2.5 text-foreground sm:mt-9">{t("home.hero.dates")}</p>
             <div className="mx-auto mt-3.5 h-px w-16 bg-border sm:mt-4" />
             <p className="mt-2.5 font-display-light text-3xl sm:mt-4">
               <span className="text-ember">{daysToGo}</span>{" "}
