@@ -667,21 +667,22 @@
   container-type: inline-size;
 }
 .home-hero-wordmark {
-  font-size: 52px;
-  line-height: 1.1;
+  font-size: min(58px, 15.5cqw);
+  font-weight: 500;
+  line-height: 1;
   letter-spacing: 0.05em;
   padding-left: 0.05em;
 }
 @media (min-width: 640px) {
   .home-hero-wordmark {
-    font-size: min(100px, 13.4cqw);
+    font-size: min(115px, 15cqw);
     letter-spacing: 0.18em;
     padding-left: 0.18em;
   }
 }
 @media (min-width: 768px) {
   .home-hero-wordmark {
-    font-size: min(108px, 10.97cqw);
+    font-size: min(124px, 12.6cqw);
   }
 }
 
@@ -729,6 +730,7 @@
   font-weight: 300;
   font-size: clamp(26px, 3.2vw, 38px);
   line-height: 1.1;
+  letter-spacing: -0.005em;
   color: var(--ink);
   transition: color 0.25s ease;
 }
@@ -736,6 +738,7 @@
   font-family: var(--font-serif);
   font-style: italic;
   font-size: 16px;
+  line-height: 1.4;
   color: var(--muted-ink);
   transition: color 0.25s ease;
 }

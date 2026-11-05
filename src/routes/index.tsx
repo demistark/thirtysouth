@@ -64,19 +64,19 @@ function HomeBefore() {
           <img
             src={hero.url}
             alt={hero.image?.alt ?? ""}
-            className="h-[62vh] min-h-[420px] w-full object-cover"
+            className="h-[clamp(300px,50vw,640px)] w-full object-cover"
             style={{ objectPosition: `${hero.image?.focal_x ?? 50}% ${hero.image?.focal_y ?? 50}%` }}
           />
         ) : showHeroPlaceholder(isHost, false) ? (
-          <PhotoSlot caption="Add in Admin › Home" className="h-[62vh] min-h-[420px] w-full items-start border-0 bg-transparent" />
+          <PhotoSlot caption="Add in Admin › Home" className="h-[clamp(220px,34vw,420px)] w-full items-start border-0 bg-transparent" />
         ) : (
-          <div className="h-[62vh] min-h-[420px] w-full" aria-hidden />
+          <div className="h-[clamp(220px,34vw,420px)] w-full" aria-hidden />
         )}
-        <div className="home-hero-wrap mx-auto -mt-28 max-w-5xl px-5 md:-mt-36">
+        <div className={cn("home-hero-wrap mx-auto max-w-5xl px-5", hero?.url ? "-mt-28 md:-mt-36" : "-mt-[60px] md:-mt-[70px]")}>
           <div className="fade-in border bg-card p-[22px_16px] text-center sm:p-[31px_24px] md:p-[31px_64px]">
             <p className="label-caps whitespace-nowrap text-muted-foreground">{t("home.hero.place")}</p>
-            <h1 className="home-hero-wordmark wordmark mt-2 whitespace-nowrap sm:mt-3.5">30° South</h1>
-            <p className="label-caps mt-2.5 text-foreground sm:mt-3.5">{t("home.hero.dates")}</p>
+            <h1 className="home-hero-wordmark wordmark mt-2.5 whitespace-nowrap sm:mt-[13px]">30° South</h1>
+            <p className="label-caps mt-3 text-foreground sm:mt-[11px]">{t("home.hero.dates")}</p>
             <div className="mx-auto mt-3.5 h-px w-16 bg-border sm:mt-4" />
             <p className="mt-2.5 font-display-light text-3xl sm:mt-4">
               <span className="text-ember">{daysToGo}</span>{" "}
@@ -102,7 +102,7 @@ const LOOK_LINKS = [
 function LookAround() {
   const { t } = useContent();
   return (
-    <section data-home-first-card className="home-look mx-auto max-w-5xl px-5">
+    <section data-home-first-card className="home-look mx-auto max-w-6xl px-5">
       <p className="home-look-label label-caps">{t("home.look.heading")}</p>
       <div className="home-look-list">
         {LOOK_LINKS.map((l) => (
@@ -110,7 +110,7 @@ function LookAround() {
             <span className="home-look-num">{l.n}</span>
             <span>
               <span className="home-look-name block">{t(l.nameKey)}</span>
-              <span className="home-look-desc mt-1 block">{t(l.descKey)}</span>
+              <span className="home-look-desc mt-2 block md:mt-2.5">{t(l.descKey)}</span>
             </span>
             <svg className="home-look-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path d="M4 12h15M13.5 6.5 19 12l-5.5 5.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
