@@ -17,7 +17,8 @@ import { TravelAdmin } from "@/components/site/TravelAdmin";
 import { useContent } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { TripTimeZoneSelect } from "@/components/site/TripTimeInput";
-import { CPT_ZONE } from "@/lib/trip-time";
+import { CPT_ZONE, EST_ZONE, localTimeDate, tripTimeZone } from "@/lib/trip-time";
+import { DEFAULT_SETTINGS, getPhase, type TripSettings } from "@/lib/phase";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -325,11 +326,17 @@ function ContentRow({ k, initial }: { k: string; initial: string }) {
 
 /* ---------------- Settings ---------------- */
 
-const DATE_KEYS = [
-  { key: "trip_start", label: "Trip start" },
-  { key: "trip_end", label: "Trip end" },
-  { key: "after_trip_start", label: "After-trip start" },
-];
+const PHASE_STAMP = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
+
+/** Quiet "Fri 20 Nov, 7:00 AM Cape Town" equivalent under a phase boundary. */
+function capeTownLine(stamp: string, fromZone: string): string {
+  if (!PHASE_STAMP.test(stamp)) return "";
+  const d = localTimeDate(stamp, tripTimeZone(fromZone));
+  if (!Number.isFinite(d.getTime())) return "";
+  const date = new Intl.DateTimeFormat("en-US", { timeZone: CPT_ZONE, weekday: "short", day: "numeric", month: "short" }).format(d);
+  const time = new Intl.DateTimeFormat("en-US", { timeZone: CPT_ZONE, hour: "numeric", minute: "2-digit", hour12: true }).format(d);
+  return `${date}, ${time} Cape Town`;
+}
 
 function SettingsAdmin() {
   const qc = useQueryClient();
@@ -346,14 +353,26 @@ function SettingsAdmin() {
   const [settingsReady, setSettingsReady] = useState(false);
   useEffect(() => {
     if (q.data) {
-      setF(q.data);
+      setF({ ...DEFAULT_SETTINGS, ...q.data });
       setSettingsReady(true);
     }
   }, [q.data]);
 
+  const phaseZone = f["phase_timezone"] || EST_ZONE;
+  const duringOk = PHASE_STAMP.test(f["phase_during_start"] ?? "");
+  const afterOk = PHASE_STAMP.test(f["phase_after_start"] ?? "");
+  const currentPhase = settingsReady ? getPhase(new Date(), { ...DEFAULT_SETTINGS, ...f } as TripSettings) : null;
+
   const save = async () => {
-    if (!settingsReady) return;
-    const rows = [...DATE_KEYS.map((d) => ({ key: d.key, value: f[d.key] ?? "" })), { key: "timezone", value: f["timezone"] || CPT_ZONE }, { key: "otp_enabled", value: f["otp_enabled"] === "true" ? "true" : "false" }];
+    if (!settingsReady || !duringOk || !afterOk) return;
+    const rows = [
+      { key: "phase_during_start", value: f["phase_during_start"] },
+      { key: "phase_after_start", value: f["phase_after_start"] },
+      { key: "phase_timezone", value: tripTimeZone(phaseZone) },
+      { key: "phase_override", value: f["phase_override"] || "auto" },
+      { key: "timezone", value: f["timezone"] || CPT_ZONE },
+      { key: "otp_enabled", value: f["otp_enabled"] === "true" ? "true" : "false" },
+    ];
     const { error } = await supabase.from("settings").upsert(rows);
     if (error) { toast.error(error.message); return; }
     toast.success(t("admin.settings.saved"));
@@ -361,19 +380,42 @@ function SettingsAdmin() {
   };
 
   return (
-    <div className="grid max-w-md gap-4 border bg-card p-5">
-      {DATE_KEYS.map((d) => (
-        <Field key={d.key} label={d.label}>
-          <input type="date" className="field" value={f[d.key] ?? ""} onChange={(e) => setF({ ...f, [d.key]: e.target.value })} />
+    <div className="grid max-w-md gap-6">
+      <div className="grid gap-4 border bg-card p-5">
+        <p className="text-sm font-medium">Site phases</p>
+        <TripTimeZoneSelect label={t("time.trip.phase_zone")} value={tripTimeZone(phaseZone)} onChange={(zone) => setF({ ...f, phase_timezone: zone })} />
+        <Field label="During starts">
+          <input className="field" placeholder="YYYY-MM-DD HH:mm" value={f["phase_during_start"] ?? ""} onChange={(e) => setF({ ...f, phase_during_start: e.target.value })} />
+          {duringOk ? (
+            <span className="text-xs text-slate">{capeTownLine(f["phase_during_start"], phaseZone)}</span>
+          ) : (
+            <span className="text-xs text-slate">Use YYYY-MM-DD HH:mm</span>
+          )}
         </Field>
-      ))}
-      <TripTimeZoneSelect value={f["timezone"] || CPT_ZONE} onChange={(zone) => setF({ ...f, timezone: zone })} />
-      <label className="flex items-center gap-3 text-sm">
-        <input type="checkbox" checked={f["otp_enabled"] === "true"} onChange={(e) => setF({ ...f, otp_enabled: e.target.checked ? "true" : "false" })} />
-        {t("admin.settings.otp")}
-      </label>
+        <Field label="After starts">
+          <input className="field" placeholder="YYYY-MM-DD HH:mm" value={f["phase_after_start"] ?? ""} onChange={(e) => setF({ ...f, phase_after_start: e.target.value })} />
+          {afterOk ? (
+            <span className="text-xs text-slate">{capeTownLine(f["phase_after_start"], phaseZone)}</span>
+          ) : (
+            <span className="text-xs text-slate">Use YYYY-MM-DD HH:mm</span>
+          )}
+        </Field>
+        <Field label="Phase override">
+          <select className="field" value={f["phase_override"] || "auto"} onChange={(e) => setF({ ...f, phase_override: e.target.value })}>
+            {["auto", "before", "during", "after"].map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </Field>
+        <p className="text-xs text-slate">Current phase: {currentPhase ?? "…"}</p>
+      </div>
+      <div className="grid gap-4 border bg-card p-5">
+        <TripTimeZoneSelect value={tripTimeZone(f["timezone"] || CPT_ZONE)} onChange={(zone) => setF({ ...f, timezone: zone })} />
+        <label className="flex items-center gap-3 text-sm">
+          <input type="checkbox" checked={f["otp_enabled"] === "true"} onChange={(e) => setF({ ...f, otp_enabled: e.target.checked ? "true" : "false" })} />
+          {t("admin.settings.otp")}
+        </label>
+      </div>
       <div>
-        <Button variant="pill" className="btn-pill-solid" disabled={!settingsReady} onClick={save}>{t("admin.settings.save")}</Button>
+        <Button variant="pill" className="btn-pill-solid" disabled={!settingsReady || !duringOk || !afterOk} onClick={save}>{t("admin.settings.save")}</Button>
       </div>
     </div>
   );
