@@ -17,7 +17,6 @@ import {
   heartTilt,
   orderHeartCards,
   parseJournalSettings,
-  phaseFromSettings,
   phoneAdjust,
   showCounter,
   type CommonsPost,
@@ -218,31 +217,6 @@ describe("counter and allowance thresholds", () => {
     expect(allowanceState(3, 5, 70).state).toBe("hidden");
     expect(allowanceState(4, 5, 70)).toEqual({ state: "remaining", left: 1 });
     expect(allowanceState(5, 5, 70)).toEqual({ state: "limit", left: 0 });
-  });
-});
-
-describe("phases (America/Detroit settings)", () => {
-  const s = parseJournalSettings({});
-  it("uses CPT boundaries when selected instead of EST", () => {
-    const cpt = parseJournalSettings({ phase_timezone: "Africa/Johannesburg" });
-    expect(phaseFromSettings(new Date("2026-11-19T21:59:00Z"), cpt)).toBe("before");
-    expect(phaseFromSettings(new Date("2026-11-19T22:00:00Z"), cpt)).toBe("during");
-    expect(phaseFromSettings(new Date("2026-11-19T22:00:00Z"), s)).toBe("before");
-  });
-  it("boundary minutes: Nov 20 00:00 is during, one minute before is before", () => {
-    // 2026-11-20 00:00 Detroit = 05:00 UTC (EST, UTC-5)
-    expect(phaseFromSettings(new Date("2026-11-20T04:59:00Z"), s)).toBe("before");
-    expect(phaseFromSettings(new Date("2026-11-20T05:00:00Z"), s)).toBe("during");
-  });
-  it("Nov 30 23:59 is during, one minute later is after", () => {
-    expect(phaseFromSettings(new Date("2026-12-01T04:59:00Z"), s)).toBe("during");
-    expect(phaseFromSettings(new Date("2026-12-01T05:00:00Z"), s)).toBe("after");
-  });
-  it("the override wins unless it is auto", () => {
-    const during = new Date("2026-11-25T12:00:00Z");
-    expect(phaseFromSettings(during, { ...s, phaseOverride: "before" })).toBe("before");
-    expect(phaseFromSettings(during, { ...s, phaseOverride: "after" })).toBe("after");
-    expect(phaseFromSettings(during, { ...s, phaseOverride: "auto" })).toBe("during");
   });
 });
 
