@@ -23,6 +23,8 @@ export interface Scene {
   id?: string; chapter_number: number; scene_order: number; title: string; location: string; kind: SceneKind;
   call_time: string | null; wrap_time?: string | null; look_tag?: "auto" | "show" | "hide"; dot_shape?: "circle" | "square" | "triangle" | null; dot_color?: "atlantic" | "olive" | "apricot" | null; start_time: string | null; end_time: string | null; summary: string; details: string;
   experience_card: string | null; wardrobe_look: number | null; visible: boolean;
+  /** Host-picked highlight on the During Home ("Your Day"); at most four per chapter. */
+  home_highlight?: boolean;
 }
 export interface WardrobeLook {
   id?: string; chapter_number: number; look_order: number; date_label: string; look_label: string; title: string;
