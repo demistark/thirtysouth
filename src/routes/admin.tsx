@@ -390,7 +390,7 @@ function SettingsAdmin() {
         <Field label="During starts">
           <input className="field" placeholder="YYYY-MM-DD HH:mm" value={f["phase_during_start"] ?? ""} onChange={(e) => setF({ ...f, phase_during_start: e.target.value })} />
           {duringOk ? (
-            <span className="text-xs text-slate">{capeTownLine(f["phase_during_start"], phaseZone)}</span>
+            <span className="text-xs text-slate">{capeTownLine(f["phase_during_start"] ?? "", phaseZone)}</span>
           ) : (
             <span className="text-xs text-slate">Use YYYY-MM-DD HH:mm</span>
           )}
@@ -398,7 +398,7 @@ function SettingsAdmin() {
         <Field label="After starts">
           <input className="field" placeholder="YYYY-MM-DD HH:mm" value={f["phase_after_start"] ?? ""} onChange={(e) => setF({ ...f, phase_after_start: e.target.value })} />
           {afterOk ? (
-            <span className="text-xs text-slate">{capeTownLine(f["phase_after_start"], phaseZone)}</span>
+            <span className="text-xs text-slate">{capeTownLine(f["phase_after_start"] ?? "", phaseZone)}</span>
           ) : (
             <span className="text-xs text-slate">Use YYYY-MM-DD HH:mm</span>
           )}
