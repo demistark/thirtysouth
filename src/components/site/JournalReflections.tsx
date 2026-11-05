@@ -10,7 +10,6 @@ import {
   formatEntryDate,
   earlierReflectionPages,
   localEntryDate,
-  phaseFromSettings,
   type ReflectionEntry,
   type JournalSettings,
 } from "@/lib/journal";
@@ -52,8 +51,7 @@ function Notebook({ settings }: { settings: JournalSettings }) {
   const myGuestQ = useMyGuestId(true);
   const entriesQ = useReflectionEntries(true);
   const entries = useMemo(() => entriesQ.data ?? [], [entriesQ.data]);
-  const { now } = useTripClock();
-  const phase = phaseFromSettings(now, settings);
+  const { phase } = useTripClock();
 
   const [openDate, setOpenDate] = useState<string>(() => localEntryDate());
   const [body, setBody] = useState("");

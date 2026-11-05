@@ -12,7 +12,6 @@ import {
   clampAspect,
   formatBoardDay,
   groupByDay,
-  phaseFromSettings,
   phoneAdjust,
   showCounter,
   type CommonsPost,
@@ -33,13 +32,12 @@ import { useTripClock } from "@/lib/trip-clock";
 
 export function JournalCommons() {
   const { roles, loading } = useAuth();
-  const { now } = useTripClock();
+  const { phase } = useTripClock();
   const settingsQ = useJournalSettings(!loading);
   // Shantell Sans loads on Our Commons only — never on Reflections or Close to Heart.
   const font = <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shantell+Sans:wght@500&display=swap" />;
   if (loading || !settingsQ.data) return <>{font}<div className="h-48 border bg-card" /></>;
   const settings = settingsQ.data;
-  const phase = phaseFromSettings(now, settings);
   return <>{font}<CommonsBody phase={phase} roles={roles} settings={settings} /></>;
 }
 
