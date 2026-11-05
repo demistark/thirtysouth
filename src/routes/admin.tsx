@@ -369,8 +369,8 @@ function SettingsAdmin() {
   const save = async () => {
     if (!settingsReady || !duringOk || !afterOk) return;
     const rows = [
-      { key: "phase_during_start", value: f["phase_during_start"] },
-      { key: "phase_after_start", value: f["phase_after_start"] },
+      { key: "phase_during_start", value: f["phase_during_start"] ?? "" },
+      { key: "phase_after_start", value: f["phase_after_start"] ?? "" },
       { key: "phase_timezone", value: tripTimeZone(phaseZone) },
       { key: "phase_override", value: f["phase_override"] || "auto" },
       { key: "timezone", value: f["timezone"] || CPT_ZONE },
