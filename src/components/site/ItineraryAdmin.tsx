@@ -158,7 +158,7 @@ function Actions({ visible, onVisible, onSave, onDelete }: { visible: boolean; o
 
 /* ---------- Scenes ---------- */
 
-const blankScene = (chapter: number, order: number): Scene => ({ chapter_number: chapter, scene_order: order, title: "", location: "", kind: "core", call_time: null, wrap_time: null, look_tag: "auto", dot_shape: null, dot_color: null, start_time: null, end_time: null, summary: "", details: "", experience_card: null, wardrobe_look: null, visible: true });
+const blankScene = (chapter: number, order: number): Scene => ({ chapter_number: chapter, scene_order: order, title: "", location: "", kind: "core", call_time: null, wrap_time: null, look_tag: "auto", dot_shape: null, dot_color: null, start_time: null, end_time: null, summary: "", details: "", experience_card: null, wardrobe_look: null, visible: true, home_highlight: false });
 
 function ScenesPanel() {
   const { t } = useContent();
@@ -177,8 +177,8 @@ function ScenesPanel() {
       const { error } = await supabase.from("scenes").upsert(rows.map(({ id: _id, ...r }) => r), { onConflict: "chapter_number,scene_order" }); if (error) throw error; await refresh();
     }} />
     <ChapterPicker chapters={chapters} value={chapter} onChange={(n) => { setChapter(n); setAdding(false); }} />
-    <ul className="space-y-4">{list.map((s) => <SceneRow key={`${s.id}-${s.scene_order}`} s={s} />)}</ul>
-    {adding ? <ul className="mt-4"><SceneRow s={blankScene(chapter, (list.at(-1)?.scene_order ?? 0) + 1)} isNew onDone={() => setAdding(false)} /></ul>
+    <ul className="space-y-4">{list.map((s) => <SceneRow key={`${s.id}-${s.scene_order}`} s={s} tickedCount={list.filter((x) => x.home_highlight).length} />)}</ul>
+    {adding ? <ul className="mt-4"><SceneRow s={blankScene(chapter, (list.at(-1)?.scene_order ?? 0) + 1)} isNew onDone={() => setAdding(false)} tickedCount={list.filter((x) => x.home_highlight).length} /></ul>
       : <button className="btn-pill mt-4" onClick={() => setAdding(true)}>{t("admin.itin.add")}</button>}
   </div>;
 }
@@ -189,7 +189,7 @@ function ChapterPicker({ chapters, value, onChange }: { chapters: Chapter[]; val
   </select>;
 }
 
-function SceneRow({ s, isNew, onDone }: { s: Scene; isNew?: boolean; onDone?: (() => void) | undefined }) {
+function SceneRow({ s, isNew, onDone, tickedCount = 0 }: { s: Scene; isNew?: boolean; onDone?: (() => void) | undefined; tickedCount?: number }) {
   const { t } = useContent();
   const refresh = useRefresh();
   const [f, setF] = useState(s);
@@ -222,6 +222,18 @@ function SceneRow({ s, isNew, onDone }: { s: Scene; isNew?: boolean; onDone?: ((
     <F label="Summary" wide><textarea className="field" value={f.summary} onChange={(e) => set("summary", e.target.value)} /></F>
     <F label="Details" wide><textarea className="field min-h-32" value={f.details} onChange={(e) => set("details", e.target.value)} /></F>
     <F label="Experience card" wide><input className="field" value={f.experience_card ?? ""} onChange={(e) => set("experience_card", e.target.value || null)} /></F>
+    <F label="Show on Home">
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={!!f.home_highlight}
+          disabled={!f.home_highlight && tickedCount >= 4}
+          onChange={(e) => set("home_highlight", e.target.checked)}
+        />
+        Your Day highlight
+      </label>
+      {!f.home_highlight && tickedCount >= 4 && <p className="caption-serif mt-1 text-sm text-muted-foreground">Four is the most</p>}
+    </F>
     <Actions visible={f.visible} onVisible={(v) => set("visible", v)} onSave={save} onDelete={isNew ? onDone : del} />
   </li>;
 }
