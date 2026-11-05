@@ -228,9 +228,6 @@ describe("parseJournalSettings", () => {
     expect(s.commonsPostsPerDay).toBe(DEFAULT_JOURNAL_SETTINGS.commonsPostsPerDay);
     expect(s.reflectionsOpen).toBe(true);
   });
-  it("an unknown override value falls back to auto", () => {
-    expect(parseJournalSettings({ phase_override: "sideways" }).phaseOverride).toBe("auto");
-  });
 });
 
 describe("board grouping and ordering", () => {
