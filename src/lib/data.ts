@@ -55,6 +55,31 @@ export function useChapters() {
   });
 }
 
+export interface HomeImage {
+  slot: string;
+  storage_path: string;
+  alt: string;
+  focal_x: number;
+  focal_y: number;
+}
+
+export const HOME_BUCKET = "home-images";
+
+/** Home hero image with a short-lived signed URL (private bucket, public read). */
+export function useHomeImage(slot: string) {
+  return useQuery({
+    queryKey: ["home-image", slot],
+    staleTime: 50 * 60_000,
+    queryFn: async (): Promise<{ image: HomeImage | null; url: string | null }> => {
+      const { data, error } = await supabase.from("home_images").select("*").eq("slot", slot).maybeSingle();
+      if (error) throw error;
+      if (!data) return { image: null, url: null };
+      const { data: signed } = await supabase.storage.from(HOME_BUCKET).createSignedUrl(data.storage_path, 3600);
+      return { image: data as HomeImage, url: signed?.signedUrl ?? null };
+    },
+  });
+}
+
 export function formatChapterDate(d: string) {
   const [y = 0, m = 1, day = 1] = d.split("-").map(Number);
   return new Intl.DateTimeFormat("en-US", {
