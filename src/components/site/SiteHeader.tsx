@@ -68,7 +68,7 @@ export function SiteHeader() {
         if (pathname !== "/travel" || !window.matchMedia("(max-width: 767px)").matches || !(e.target instanceof Element) || e.target.closest("a,button")) return;
         if (document.querySelector(".travel-phone-nav")) window.dispatchEvent(new Event("travel-toggle-tabs"));
       }}>
-        <Link to="/" className="site-wordmark wordmark min-w-0 justify-self-start whitespace-nowrap text-base text-foreground md:justify-self-stretch">
+        <Link to="/" data-intro-wordmark className="site-wordmark wordmark min-w-0 justify-self-start whitespace-nowrap text-base text-foreground md:justify-self-stretch">
           <span>30° South</span>
         </Link>
         <nav className="site-nav hidden items-center gap-5 md:flex lg:gap-8">
