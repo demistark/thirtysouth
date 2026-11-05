@@ -5,10 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useContent } from "@/lib/data";
 import { assignCommonsLook, formatBoardDay, capeTownDay, type CardStyle, type CommonsPost, type HeartCard, type NoteTint } from "@/lib/journal";
-import { removeJournalPhoto, useCommonsPosts, useHeartCards, useJournalSettings } from "@/lib/journal-data";
+import { removeJournalPhoto, useCommonsPosts, useHeartCards } from "@/lib/journal-data";
 import { SubTabs } from "./Blocks";
-import { TripTimeZoneSelect } from "./TripTimeInput";
-import { EST_ZONE } from "@/lib/trip-time";
 
 type AdminTab = "commons" | "heart" | "reflections" | "settings";
 
