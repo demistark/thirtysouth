@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useAuth } from "./auth";
 import { useChapters, useSettings, type ChapterBasic } from "./data";
-import { DEFAULT_SETTINGS, daysToGo, getPhase, zonedDate, type Phase, type TripSettings } from "./phase";
+import { currentChapterFor, DEFAULT_SETTINGS, daysToGo, getPhase, zonedDate, type Phase, type TripSettings } from "./phase";
 
 const STORAGE_KEY = "30s-preview-at";
 
@@ -47,7 +47,7 @@ export function TripClockProvider({ children }: { children: ReactNode }) {
     return {
       now,
       phase,
-      currentChapter: phase === "during" ? (chapters.find((c) => c.date === today) ?? null) : null,
+      currentChapter: phase === "during" ? currentChapterFor(chapters, today) : null,
       daysToGo: daysToGo(now, settings),
       isPreview,
       settings,
