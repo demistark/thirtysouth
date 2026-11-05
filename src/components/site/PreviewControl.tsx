@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { formatPreviewLabel } from "@/lib/phase";
 import { useTripClock } from "@/lib/trip-clock";
 import { useContent } from "@/lib/data";
-import { localTimeDate, CPT_ZONE, type TripTimeZone } from "@/lib/trip-time";
+import { localTimeDate, tripTimeZone, CPT_ZONE, type TripTimeZone } from "@/lib/trip-time";
 import { TripTimeZoneSelect } from "./TripTimeInput";
 import { Button } from "@/components/ui/button";
 
@@ -32,10 +32,12 @@ export function PreviewControl() {
   const at = (local: string) => localTimeDate(local, zone);
   if (!isHost) return null;
 
+  const phaseZone = tripTimeZone(settings.phase_timezone);
+  const afterStart = localTimeDate(settings.phase_after_start, phaseZone);
   const presets = [
     { label: "Before", d: at("2026-11-10T09:00") },
-    { label: "Nov 24", d: at("2026-11-24T09:00") },
-    { label: "After", d: at(`${settings.after_trip_start}T10:00`) },
+    { label: "Nov 24", d: localTimeDate("2026-11-24T09:00", CPT_ZONE) },
+    { label: "After", d: new Date(afterStart.getTime() + 3 * 3_600_000) },
   ];
 
   return (

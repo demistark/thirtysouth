@@ -59,10 +59,6 @@ export interface JournalSettings {
   heartShowHonorary: boolean;
   heartShowAfar: boolean;
   reflectionsOpen: boolean;
-  phaseDuringStart: string; // "YYYY-MM-DD HH:mm" in phaseTimezone
-  phaseTimezone?: string;
-  phaseDuringEnd: string;
-  phaseOverride: "auto" | Phase;
 }
 
 export const DEFAULT_JOURNAL_SETTINGS: JournalSettings = {
@@ -77,9 +73,6 @@ export const DEFAULT_JOURNAL_SETTINGS: JournalSettings = {
   heartShowHonorary: true,
   heartShowAfar: true,
   reflectionsOpen: true,
-  phaseDuringStart: "2026-11-20 00:00",
-  phaseDuringEnd: "2026-11-30 23:59",
-  phaseOverride: "auto",
 };
 
 export function parseJournalSettings(m: Record<string, string>): JournalSettings {
@@ -88,7 +81,6 @@ export function parseJournalSettings(m: Record<string, string>): JournalSettings
     return Number.isFinite(n) && n > 0 ? n : d;
   };
   const bool = (k: string, d: boolean) => (m[k] === undefined ? d : m[k] === "true");
-  const override = m["phase_override"];
   return {
     commonsPostsPerDay: num("commons_posts_per_day", 5),
     commonsChars: num("commons_chars", 500),
@@ -101,35 +93,7 @@ export function parseJournalSettings(m: Record<string, string>): JournalSettings
     heartShowHonorary: bool("heart_show_honorary", true),
     heartShowAfar: bool("heart_show_afar", true),
     reflectionsOpen: bool("reflections_open", true),
-    phaseDuringStart: m["phase_during_start"] || "2026-11-20 00:00",
-    phaseTimezone: m["phase_timezone"] === "Africa/Johannesburg" ? "Africa/Johannesburg" : "Etc/GMT+5",
-    phaseDuringEnd: m["phase_during_end"] || "2026-11-30 23:59",
-    phaseOverride: override === "before" || override === "during" || override === "after" ? override : "auto",
   };
-}
-
-/* ---------------- phases (America/Detroit settings) ---------------- */
-
-function phaseStamp(now: Date, timeZone: string): string {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(now);
-  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
-  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}`;
-}
-
-export function phaseFromSettings(now: Date, s: JournalSettings): Phase {
-  if (s.phaseOverride !== "auto") return s.phaseOverride;
-  const stamp = phaseStamp(now, s.phaseTimezone ?? "Etc/GMT+5");
-  if (stamp < s.phaseDuringStart) return "before";
-  if (stamp > s.phaseDuringEnd) return "after";
-  return "during";
 }
 
 /* ---------------- counters and allowances ---------------- */

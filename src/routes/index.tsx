@@ -2,14 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { PhotoSlot } from "@/components/site/Blocks";
 import { useAuth } from "@/lib/auth";
-import { useContent } from "@/lib/data";
+import { showHeroPlaceholder, useContent, useHomeImage } from "@/lib/data";
 import { canViewPurse, canViewTravel, isTripParticipant } from "@/lib/locked-areas";
 import { needsReplyCount } from "@/lib/purse";
 import { useExperienceRsvps, useExperiences } from "@/lib/purse-data";
 import { formatLegDate, formatLegTime, nextLeg } from "@/lib/travel";
 import { useMyGuest, useTravelLegs } from "@/lib/travel-data";
 import { useTripClock } from "@/lib/trip-clock";
-import { zonedDate, type Phase } from "@/lib/phase";
+import { heroSubKey, zonedDate, type Phase } from "@/lib/phase";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -55,38 +55,73 @@ function HomePhasePlaceholder() {
 function HomeBefore() {
   const { t } = useContent();
   const { daysToGo } = useTripClock();
-  const { session, roles } = useAuth();
-  const showTravel = !session || canViewTravel(roles);
-  const showPurse = !session || canViewPurse(roles);
+  const { isHost } = useAuth();
+  const hero = useHomeImage("hero").data;
   return (
     <main>
-      <section className="hero-sky relative pb-16 md:pb-20">
-        <PhotoSlot className="h-[62vh] min-h-[420px] w-full items-start border-0 bg-transparent" />
+      <section className={cn("relative pb-7 md:pb-20", !hero?.url && "hero-sky")}>
+        {hero?.url ? (
+          <img
+            src={hero.url}
+            alt={hero.image?.alt ?? ""}
+            className="h-[62vh] min-h-[420px] w-full object-cover"
+            style={{ objectPosition: `${hero.image?.focal_x ?? 50}% ${hero.image?.focal_y ?? 50}%` }}
+          />
+        ) : showHeroPlaceholder(isHost, false) ? (
+          <PhotoSlot caption="Add in Admin › Home" className="h-[62vh] min-h-[420px] w-full items-start border-0 bg-transparent" />
+        ) : (
+          <div className="h-[62vh] min-h-[420px] w-full" aria-hidden />
+        )}
         <div className="mx-auto -mt-28 max-w-5xl px-5 md:-mt-36">
-          <div className="fade-in border bg-card px-6 py-10 text-center md:px-16 md:py-14">
-            <p className="label-caps text-muted-foreground">{t("home.hero.welcome")}</p>
-            <h1 className="home-hero-wordmark wordmark mt-3 whitespace-nowrap text-[3rem] !tracking-[0] sm:mt-5 sm:text-7xl sm:!tracking-[0.18em] md:text-8xl">30° South</h1>
-            <p className="label-caps mt-4 text-foreground sm:mt-6">
+          <div className="fade-in border bg-card p-[22px_16px] text-center sm:p-[31px_24px] md:p-[31px_64px]">
+            <p className="label-caps text-muted-foreground">
               <span className="hidden sm:inline">{t("home.hero.place")}</span>
               <span className="sm:hidden">{t("home.hero.place").split(/\s*·\s*/).map((line, i) => <span key={i} className="block">{line}</span>)}</span>
             </p>
-            <div className="mx-auto mt-5 h-px sm:mt-8 w-16 bg-border" />
-            <p className="mt-4 font-display-light text-3xl sm:mt-6">
+            <h1 className="home-hero-wordmark wordmark mt-2 whitespace-nowrap sm:mt-3.5">30° South</h1>
+            <p className="label-caps mt-2.5 text-muted-foreground sm:mt-3.5">{t("home.hero.dates")}</p>
+            <div className="mx-auto mt-3.5 h-px w-16 bg-border sm:mt-4" />
+            <p className="mt-2.5 font-display-light text-3xl sm:mt-4">
               <span className="text-ember">{daysToGo}</span>{" "}
               {t(daysToGo === 1 ? "home.hero.day_to_go" : "home.hero.days_to_go")}
             </p>
+            <p className="caption-serif mx-auto mt-1.5 text-base sm:mt-2.5 sm:text-[17px]">{t(heroSubKey(daysToGo))}</p>
           </div>
         </div>
       </section>
 
-      <div data-home-first-card className="mx-auto mt-20 flex max-w-6xl flex-col gap-6 px-5">
-        <MomentsCard />
-        <SectionCard n={2} to="/itinerary" tint="bg-sandstone" />
-        {showTravel && <SectionCard n={3} to="/travel" tint="bg-tint-ember" hash="flights" live={<TravelLiveLine />} />}
-        {showPurse && <SectionCard n={4} to="/purse" tint="bg-tint-sage-olive" live={<PurseLiveLine />} />}
-        <SectionCard n={5} to="/journal" tint="bg-tint-teal" polaroid />
-      </div>
+      <LookAround />
     </main>
+  );
+}
+
+const LOOK_LINKS = [
+  { n: "01", to: "/itinerary", nameKey: "nav.itinerary", descKey: "home.look.itinerary" },
+  { n: "02", to: "/travel", nameKey: "nav.travel", descKey: "home.look.travel" },
+  { n: "03", to: "/purse", nameKey: "nav.purse", descKey: "home.look.purse" },
+  { n: "04", to: "/journal", nameKey: "nav.journal", descKey: "home.look.journal" },
+] as const;
+
+function LookAround() {
+  const { t } = useContent();
+  return (
+    <section data-home-first-card className="home-look mx-auto max-w-5xl px-5">
+      <p className="home-look-label label-caps">{t("home.look.heading")}</p>
+      <div className="home-look-list">
+        {LOOK_LINKS.map((l) => (
+          <Link key={l.n} to={l.to} className="home-look-bar">
+            <span className="home-look-num">{l.n}</span>
+            <span>
+              <span className="home-look-name block">{t(l.nameKey)}</span>
+              <span className="home-look-desc mt-1 block">{t(l.descKey)}</span>
+            </span>
+            <svg className="home-look-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M4 12h15M13.5 6.5 19 12l-5.5 5.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 

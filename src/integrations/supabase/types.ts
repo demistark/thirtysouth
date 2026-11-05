@@ -463,6 +463,30 @@ export type Database = {
           },
         ]
       }
+      home_images: {
+        Row: {
+          alt: string
+          focal_x: number
+          focal_y: number
+          slot: string
+          storage_path: string
+        }
+        Insert: {
+          alt?: string
+          focal_x?: number
+          focal_y?: number
+          slot: string
+          storage_path: string
+        }
+        Update: {
+          alt?: string
+          focal_x?: number
+          focal_y?: number
+          slot?: string
+          storage_path?: string
+        }
+        Relationships: []
+      }
       packing_categories: {
         Row: {
           id: string

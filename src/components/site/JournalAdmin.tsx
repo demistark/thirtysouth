@@ -5,10 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useContent } from "@/lib/data";
 import { assignCommonsLook, formatBoardDay, capeTownDay, type CardStyle, type CommonsPost, type HeartCard, type NoteTint } from "@/lib/journal";
-import { removeJournalPhoto, useCommonsPosts, useHeartCards, useJournalSettings } from "@/lib/journal-data";
+import { removeJournalPhoto, useCommonsPosts, useHeartCards } from "@/lib/journal-data";
 import { SubTabs } from "./Blocks";
-import { TripTimeZoneSelect } from "./TripTimeInput";
-import { EST_ZONE } from "@/lib/trip-time";
 
 type AdminTab = "commons" | "heart" | "reflections" | "settings";
 
@@ -221,7 +219,6 @@ const JOURNAL_SETTING_KEYS = [
   "commons_posts_per_day", "commons_chars", "heart_cards_per_person", "heart_photos_per_person",
   "heart_chars", "counter_show_at_pct", "commons_show_honorary", "commons_show_afar",
   "heart_show_honorary", "heart_show_afar", "reflections_open",
-  "phase_during_start", "phase_during_end", "phase_override",
 ];
 
 async function saveSetting(key: string, value: string) {
@@ -306,11 +303,6 @@ function ContentText({ contentKey, label, multiline }: { contentKey: string; lab
 }
 
 function JournalSettingsAdmin() {
-  const { t } = useContent();
-  const queryClient = useQueryClient();
-  const settingsQ = useJournalSettings(true);
-  const phaseOverride = useSettingValue("phase_override");
-  const phaseTimezone = useSettingValue("phase_timezone");
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
@@ -328,35 +320,6 @@ function JournalSettingsAdmin() {
         <SettingToggle settingKey="heart_show_afar" label="Friends afar see Close to Heart" />
       </div>
       <div className="border-t pt-6">
-        <p className="text-sm font-medium">Site phases</p>
-        <div className="mt-3 max-w-md">
-          <TripTimeZoneSelect label={t("time.trip.phase_zone")} value={phaseTimezone || EST_ZONE} onChange={async (zone) => {
-            await saveSetting("phase_timezone", zone);
-            await queryClient.invalidateQueries({ queryKey: ["admin", "setting", "phase_timezone"] });
-            await queryClient.invalidateQueries({ queryKey: ["journal", "settings"] });
-          }} />
-        </div>
-        <div className="mt-3 grid gap-4 md:grid-cols-2">
-          <SettingText settingKey="phase_during_start" label="Trip begins" note="YYYY-MM-DD HH:mm" />
-          <SettingText settingKey="phase_during_end" label="Trip ends" note="YYYY-MM-DD HH:mm" />
-        </div>
-        <label className="mt-4 block text-sm">
-          <span className="font-medium">Phase override</span>
-          <select
-            className="journal-select mt-1 block"
-            value={phaseOverride || "auto"}
-            onChange={async (e) => {
-              await saveSetting("phase_override", e.target.value);
-              await queryClient.invalidateQueries({ queryKey: ["admin", "setting", "phase_override"] });
-              await queryClient.invalidateQueries({ queryKey: ["journal", "settings"] });
-            }}
-          >
-            {["auto", "before", "during", "after"].map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
-        </label>
-        <p className="mt-2 text-xs text-slate">Current phase: {settingsQ.data ? phaseFromSettingsLabel(settingsQ.data) : "…"}</p>
-      </div>
-      <div className="border-t pt-6">
         <p className="mb-3 text-sm font-medium">Close to Heart copy</p>
         <div className="space-y-4">
           <ContentText contentKey="heart_tagline" label="Tagline" />
@@ -371,6 +334,4 @@ function JournalSettingsAdmin() {
   );
 }
 
-function phaseFromSettingsLabel(s: { phaseOverride: string }) {
-  return s.phaseOverride === "auto" ? "auto (from the dates)" : s.phaseOverride;
-}
+

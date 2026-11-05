@@ -659,13 +659,117 @@
   .script-title {
     font-size: 30px;
   }
+}
+
+/* Home hero wordmark: larger, one line, optically centred (left padding = tracking). */
+.home-hero-wordmark {
+  font-size: 52px;
+  letter-spacing: 0.05em;
+  padding-left: 0.05em;
+}
+@media (min-width: 640px) {
   .home-hero-wordmark {
-    font-size: 3.1rem;
+    font-size: min(100px, 12.6vw);
+    letter-spacing: 0.18em;
+    padding-left: 0.18em;
   }
 }
-@media (max-width: 359px) {
+@media (min-width: 768px) {
   .home-hero-wordmark {
-    font-size: 2.6rem;
+    font-size: min(108px, 9.2vw);
+  }
+}
+
+/* Home "A look around" list. */
+.home-look {
+  margin-top: 54px;
+}
+.home-look-label {
+  color: var(--slate);
+  margin-bottom: 18px;
+}
+.home-look-list {
+  border-top: 1px solid var(--line);
+}
+.home-look-bar {
+  position: relative;
+  display: grid;
+  grid-template-columns: 35.6px 1fr auto;
+  align-items: center;
+  padding: 14px 16px 16px;
+  margin-inline: -16px;
+  transition: background-color 0.25s ease;
+}
+.home-look-bar::after {
+  content: "";
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 0;
+  height: 1px;
+  background: var(--line);
+  transition: background-color 0.25s ease;
+}
+.home-look-num {
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ember-deep);
+  transition: color 0.25s ease;
+}
+.home-look-name {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(26px, 3.2vw, 38px);
+  line-height: 1.1;
+  color: var(--ink);
+  transition: color 0.25s ease;
+}
+.home-look-desc {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--muted-ink);
+  transition: color 0.25s ease;
+}
+.home-look-arrow {
+  color: var(--slate);
+  transition: color 0.25s ease;
+}
+.home-look-bar:hover,
+.home-look-bar:focus-visible {
+  background: var(--ember);
+}
+.home-look-bar:hover .home-look-num,
+.home-look-bar:hover .home-look-name,
+.home-look-bar:hover .home-look-desc,
+.home-look-bar:hover .home-look-arrow,
+.home-look-bar:focus-visible .home-look-num,
+.home-look-bar:focus-visible .home-look-name,
+.home-look-bar:focus-visible .home-look-desc,
+.home-look-bar:focus-visible .home-look-arrow {
+  color: var(--paper);
+}
+.home-look-bar:hover::after,
+.home-look-bar:focus-visible::after {
+  background: transparent;
+}
+@media (min-width: 768px) {
+  .home-look-bar {
+    grid-template-columns: 64px 1fr auto;
+    padding: 19px 16px;
+  }
+  .home-look-desc {
+    font-size: 17px;
+  }
+}
+@media (max-width: 767px) {
+  /* Phone only: tighter gap under the hero card and above the footer. */
+  .home-look {
+    margin-top: 33px;
+    margin-bottom: -48px;
   }
 }
 

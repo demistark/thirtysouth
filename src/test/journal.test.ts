@@ -17,7 +17,6 @@ import {
   heartTilt,
   orderHeartCards,
   parseJournalSettings,
-  phaseFromSettings,
   phoneAdjust,
   showCounter,
   type CommonsPost,
@@ -221,31 +220,6 @@ describe("counter and allowance thresholds", () => {
   });
 });
 
-describe("phases (America/Detroit settings)", () => {
-  const s = parseJournalSettings({});
-  it("uses CPT boundaries when selected instead of EST", () => {
-    const cpt = parseJournalSettings({ phase_timezone: "Africa/Johannesburg" });
-    expect(phaseFromSettings(new Date("2026-11-19T21:59:00Z"), cpt)).toBe("before");
-    expect(phaseFromSettings(new Date("2026-11-19T22:00:00Z"), cpt)).toBe("during");
-    expect(phaseFromSettings(new Date("2026-11-19T22:00:00Z"), s)).toBe("before");
-  });
-  it("boundary minutes: Nov 20 00:00 is during, one minute before is before", () => {
-    // 2026-11-20 00:00 Detroit = 05:00 UTC (EST, UTC-5)
-    expect(phaseFromSettings(new Date("2026-11-20T04:59:00Z"), s)).toBe("before");
-    expect(phaseFromSettings(new Date("2026-11-20T05:00:00Z"), s)).toBe("during");
-  });
-  it("Nov 30 23:59 is during, one minute later is after", () => {
-    expect(phaseFromSettings(new Date("2026-12-01T04:59:00Z"), s)).toBe("during");
-    expect(phaseFromSettings(new Date("2026-12-01T05:00:00Z"), s)).toBe("after");
-  });
-  it("the override wins unless it is auto", () => {
-    const during = new Date("2026-11-25T12:00:00Z");
-    expect(phaseFromSettings(during, { ...s, phaseOverride: "before" })).toBe("before");
-    expect(phaseFromSettings(during, { ...s, phaseOverride: "after" })).toBe("after");
-    expect(phaseFromSettings(during, { ...s, phaseOverride: "auto" })).toBe("during");
-  });
-});
-
 describe("parseJournalSettings", () => {
   it("falls back to defaults and parses visibility switches", () => {
     const s = parseJournalSettings({ commons_show_afar: "false", heart_cards_per_person: "7" });
@@ -253,9 +227,6 @@ describe("parseJournalSettings", () => {
     expect(s.heartCardsPerPerson).toBe(7);
     expect(s.commonsPostsPerDay).toBe(DEFAULT_JOURNAL_SETTINGS.commonsPostsPerDay);
     expect(s.reflectionsOpen).toBe(true);
-  });
-  it("an unknown override value falls back to auto", () => {
-    expect(parseJournalSettings({ phase_override: "sideways" }).phaseOverride).toBe("auto");
   });
 });
 
