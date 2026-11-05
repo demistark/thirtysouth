@@ -23,8 +23,8 @@ declare global {
 
 function setIntroAttr(v: string | null) {
   const el = document.documentElement;
-  if (v) el.dataset.intro = v;
-  else delete el.dataset.intro;
+  if (v) el.dataset["intro"] = v;
+  else delete el.dataset["intro"];
 }
 
 export function HomeIntro() {
@@ -44,12 +44,13 @@ export function HomeIntro() {
 
   // Pick up the bootstrap's verdict once.
   useEffect(() => {
-    if (window.__30sIntro && document.documentElement.dataset.intro === "pending") {
+    if (window.__30sIntro && document.documentElement.dataset["intro"] === "pending") {
       setState("waiting");
       const id = setTimeout(() => setTimedOut(true), 1500);
       return () => clearTimeout(id);
     }
     setState("done");
+    return undefined;
   }, []);
 
   const ready = timedOut || ((settingsQ.isFetched && chaptersQ.isFetched && !authLoading));
