@@ -10,6 +10,18 @@ import { formatLegDate, formatLegTime, nextLeg } from "@/lib/travel";
 import { useMyGuest, useTravelLegs } from "@/lib/travel-data";
 import { useTripClock } from "@/lib/trip-clock";
 import { heroSubKey, zonedDate, type Phase } from "@/lib/phase";
+import { useScenes } from "@/lib/itinerary-data";
+import { useDailyVerses, useWeather } from "@/lib/home-during-data";
+import {
+  datelineFor,
+  highlightsForChapter,
+  stripTranslation,
+  toFahrenheit,
+  verseForChapter,
+  weatherKind,
+  WEATHER_LABELS,
+  type WeatherKind,
+} from "@/lib/home-during";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -28,7 +40,135 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const { phase } = useTripClock();
-  return phase === "before" ? <HomeBefore /> : <HomePhasePlaceholder />;
+  return phase === "before" ? <HomeBefore /> : phase === "during" ? <HomeDuring /> : <HomePhasePlaceholder />;
+}
+
+/* ---------- During: "Your Day" ---------- */
+
+function WeatherIcon({ kind }: { kind: WeatherKind }) {
+  const sun = (
+    <g className="home-weather-sun">
+      <circle cx="12" cy="12" r="4.5" />
+      <path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8" />
+    </g>
+  );
+  const cloud = <path d="M7 18.5h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 7.1 12.2 3.75 3.75 0 0 0 7 18.5Z" />;
+  return (
+    <svg className="home-weather-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {kind === "clear" && sun}
+      {kind === "partly" && (
+        <>
+          <g className="home-weather-sun">
+            <circle cx="8.5" cy="8.5" r="3.2" />
+            <path d="M8.5 2.5v1.8M2.5 8.5h1.8M4.2 4.2l1.3 1.3M12.8 4.2l-1.3 1.3" />
+          </g>
+          <path d="M9.5 19.5h8a3.4 3.4 0 0 0 .5-6.77 4.7 4.7 0 0 0-8.95 1.4 3.2 3.2 0 0 0 .35 5.37Z" />
+        </>
+      )}
+      {kind === "cloudy" && cloud}
+      {kind === "fog" && (
+        <>
+          {cloud}
+          <path d="M6 21.5h12M8.5 23.5h7" />
+        </>
+      )}
+      {kind === "drizzle" && (
+        <>
+          {cloud}
+          <path d="M8 21v.8M12 21v.8M16 21v.8" />
+        </>
+      )}
+      {kind === "rain" && (
+        <>
+          {cloud}
+          <path d="M8 20.5v2M12 20.5v2M16 20.5v2" />
+        </>
+      )}
+      {kind === "showers" && (
+        <>
+          {cloud}
+          <path d="M7 20.5v2.5M10.5 20.5v2.5M14 20.5v2.5M17.5 20.5v2.5" />
+        </>
+      )}
+      {kind === "thunderstorm" && (
+        <>
+          {cloud}
+          <path d="M12.5 19.5 10 23h3l-1.5 3" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+function HomeDuring() {
+  const { t } = useContent();
+  const { now, currentChapter, settings } = useTripClock();
+  const scenes = useScenes(true).data ?? [];
+  const verses = useDailyVerses().data ?? [];
+  const weather = useWeather();
+
+  const chapterScenes = currentChapter ? scenes.filter((s) => s.chapter_number === currentChapter.number) : [];
+  const highlights = highlightsForChapter(chapterScenes);
+  const verse = verseForChapter(verses, currentChapter?.number ?? 0);
+  const w = weather.data;
+  const kind = w ? weatherKind(w.code) : null;
+
+  return (
+    <main className="home-during mx-auto max-w-5xl px-5">
+      <p className="home-during-dateline label-caps">{datelineFor(now, settings.timezone)}</p>
+      <hr className="home-during-rule" />
+      <h1 className="home-during-heading">{t("home.during.heading")}</h1>
+
+      {w && kind && (
+        <div className="home-weather" aria-label={WEATHER_LABELS[kind]}>
+          <p className="home-weather-place label-caps">Cape Town</p>
+          <div className="home-weather-grid">
+            <WeatherIcon kind={kind} />
+            <div>
+              <p className="home-weather-temp">
+                <span className="home-weather-f">{toFahrenheit(w.celsius)}°F</span>
+                <span className="home-weather-c label-caps">{Math.round(w.celsius)}°C</span>
+              </p>
+              <p className="home-weather-cond">{WEATHER_LABELS[kind]}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {currentChapter && (
+        <>
+          <h2 className="home-during-title">{currentChapter.title}</h2>
+          <p className="home-during-summary">{currentChapter.summary}</p>
+          <hr className="home-during-rule home-during-rule-gap" />
+          {chapterScenes.length === 0 ? (
+            <p className="home-hl-rest">{t("home.during.rest")}</p>
+          ) : (
+            <p className="home-hl">
+              {highlights.map((s) => (
+                <span key={s.scene_order} className="home-hl-item">
+                  <span className="home-hl-dot" aria-hidden />
+                  {s.title}
+                </span>
+              ))}
+            </p>
+          )}
+          <p className="home-hl-cta">
+            <Link to="/itinerary" search={{ tab: "scenes", day: currentChapter.number }} className="btn-pill btn-pill-ember">
+              {t("home.during.button")}
+            </Link>
+          </p>
+          <hr className="home-during-rule" />
+        </>
+      )}
+
+      {verse && (
+        <div className="home-verse">
+          <p className="home-verse-text">{verse.text}</p>
+          <p className="home-verse-ref label-caps">{stripTranslation(verse.reference)}</p>
+        </div>
+      )}
+    </main>
+  );
 }
 
 function HomePhasePlaceholder() {

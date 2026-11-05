@@ -781,6 +781,153 @@
   }
 }
 
+/* Home during the trip — "Your Day". */
+.home-during {
+  padding-top: 40px;
+}
+.home-during-dateline {
+  color: var(--slate);
+}
+.home-during-rule {
+  border: 0;
+  height: 1px;
+  background: var(--line);
+  margin: 8px 0 0;
+}
+.home-during-rule-gap {
+  margin-top: 34px;
+}
+.home-during-heading {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(48px, 14vw, 60px);
+  line-height: 1.05;
+  white-space: nowrap;
+  color: var(--ink);
+  margin-top: 14px;
+}
+@media (min-width: 768px) {
+  .home-during-heading {
+    font-size: clamp(56px, 10vw, 120px);
+    margin-top: 20px;
+  }
+}
+.home-weather {
+  margin: 18px 0 0 auto;
+  width: fit-content;
+}
+.home-weather-place {
+  color: var(--slate);
+  font-size: 11px;
+  text-align: right;
+}
+.home-weather-grid {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 18px;
+  align-items: center;
+  margin-top: 10px;
+}
+.home-weather-icon {
+  width: clamp(48px, 6.2vw, 76px);
+  height: clamp(48px, 6.2vw, 76px);
+  color: var(--slate);
+}
+.home-weather-sun {
+  color: var(--ember);
+}
+.home-weather-temp {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.home-weather-f {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(44px, 6.4vw, 84px);
+  line-height: 1;
+  color: var(--ink);
+}
+.home-weather-c {
+  font-size: 12px;
+  color: var(--slate);
+  margin-top: 6px;
+}
+.home-weather-cond {
+  font-size: 18px;
+  color: var(--ink);
+  margin-top: 4px;
+}
+@media (max-width: 767px) {
+  /* Phone: the icon centres on the temperature row only. */
+  .home-weather-grid {
+    align-items: start;
+  }
+  .home-weather-icon {
+    margin-top: calc((clamp(44px, 6.4vw, 84px) - clamp(48px, 6.2vw, 76px)) / 2);
+  }
+}
+.home-during-title {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(24px, 3.4vw, 34px);
+  line-height: 1.25;
+  color: var(--ink);
+  margin-top: 34px;
+}
+.home-during-summary {
+  color: var(--slate);
+  margin-top: 10px;
+  max-width: 46rem;
+}
+.home-hl {
+  margin-top: 20px;
+  color: var(--ink);
+}
+.home-hl-item {
+  display: inline;
+  margin-right: 22px;
+}
+.home-hl-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ember);
+  margin-right: 9px;
+  vertical-align: 2px;
+}
+.home-hl-rest {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--slate);
+  margin-top: 20px;
+}
+.home-hl-cta {
+  text-align: center;
+  margin-top: 20px;
+}
+.home-hl-cta + .home-during-rule {
+  margin-top: 20px;
+}
+.home-verse {
+  text-align: center;
+  margin-top: 44px;
+}
+.home-verse-text {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(17px, 2.4vw, 25px);
+  line-height: 1.5;
+  color: var(--ink);
+  max-width: 44rem;
+  margin-inline: auto;
+}
+.home-verse-ref {
+  color: var(--slate);
+  margin-top: 12px;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -1093,6 +1240,17 @@
   &:hover {
     background: var(--ink);
     border-color: var(--ink);
+  }
+}
+
+@utility btn-pill-ember {
+  background: var(--tint-ember);
+  border-color: color-mix(in oklab, var(--ember) 45%, var(--tint-ember));
+  color: var(--ember-deep);
+  &:hover {
+    background: var(--ember-deep);
+    border-color: var(--ember-deep);
+    color: var(--cream);
   }
 }
 

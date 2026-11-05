@@ -30,9 +30,56 @@ export function HomeAdmin() {
   if (q.isPending) return <div className="h-64 border bg-card" />;
   const hero = q.data?.rows.find((r) => r.slot === "hero");
   return (
-    <div className="max-w-xl">
+    <div className="max-w-xl space-y-8">
       <HomeImageSlot image={hero} url={hero ? q.data?.urls[hero.storage_path] : undefined} onDone={refresh} />
+      <VersesAdmin />
     </div>
+  );
+}
+
+/** Admin › Home › Verses: one row per chapter plus the fallback. */
+function VersesAdmin() {
+  const qc = useQueryClient();
+  const q = useQuery({
+    queryKey: ["admin", "daily-verses"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("daily_verses").select("chapter_number,text,reference").order("chapter_number");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const rows = q.data ?? [];
+  const chapters = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0];
+  return (
+    <div>
+      <p className="label-caps text-muted-foreground">Verses</p>
+      <ul className="mt-3 space-y-4">
+        {chapters.map((n) => (
+          <VerseRow key={`${n}-${rows.find((r) => r.chapter_number === n)?.text ?? ""}`} chapter={n} row={rows.find((r) => r.chapter_number === n)} onDone={() => qc.invalidateQueries({ queryKey: ["admin", "daily-verses"] })} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function VerseRow({ chapter, row, onDone }: { chapter: number; row?: { chapter_number: number; text: string; reference: string } | undefined; onDone: () => Promise<void> }) {
+  const { t } = useContent();
+  const [text, setText] = useState(row?.text ?? "");
+  const [reference, setReference] = useState(row?.reference ?? "");
+  const save = async () => {
+    const { error } = await supabase.from("daily_verses").upsert({ chapter_number: chapter, text: text.trim(), reference: reference.trim() });
+    if (error) { toast.error(error.message); return; }
+    toast.success(t("admin.itin.saved"));
+    await onDone();
+  };
+  return (
+    <li className="border bg-card p-4">
+      <p className="label-caps text-muted-foreground">{chapter === 0 ? "Fallback" : `Chapter ${chapter}`}</p>
+      <textarea className="field mt-3 min-h-20" placeholder="Verse text" value={text} onChange={(e) => setText(e.target.value)} aria-label={`Verse text, ${chapter === 0 ? "fallback" : `chapter ${chapter}`}`} />
+      <input className="field mt-2" placeholder="Psalm 121:8" value={reference} onChange={(e) => setReference(e.target.value)} aria-label={`Verse reference, ${chapter === 0 ? "fallback" : `chapter ${chapter}`}`} />
+      <p className="caption-serif mt-1 text-sm text-muted-foreground">Book, chapter and verse only (for example Psalm 121:8). No translation.</p>
+      <button className="btn-pill mt-3" onClick={() => void save()}>{t("admin.itin.save")}</button>
+    </li>
   );
 }
 
