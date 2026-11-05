@@ -186,6 +186,24 @@ export type Database = {
           },
         ]
       }
+      daily_verses: {
+        Row: {
+          chapter_number: number
+          reference: string
+          text: string
+        }
+        Insert: {
+          chapter_number: number
+          reference?: string
+          text?: string
+        }
+        Update: {
+          chapter_number?: number
+          reference?: string
+          text?: string
+        }
+        Relationships: []
+      }
       experience_rsvps: {
         Row: {
           choice: string | null
@@ -668,6 +686,7 @@ export type Database = {
           dot_shape: string | null
           end_time: string | null
           experience_card: string | null
+          home_highlight: boolean
           id: string
           kind: string
           leave_at: string | null
@@ -690,6 +709,7 @@ export type Database = {
           dot_shape?: string | null
           end_time?: string | null
           experience_card?: string | null
+          home_highlight?: boolean
           id?: string
           kind?: string
           leave_at?: string | null
@@ -712,6 +732,7 @@ export type Database = {
           dot_shape?: string | null
           end_time?: string | null
           experience_card?: string | null
+          home_highlight?: boolean
           id?: string
           kind?: string
           leave_at?: string | null
