@@ -65,6 +65,11 @@ export interface HomeImage {
 
 export const HOME_BUCKET = "home-images";
 
+/** Empty hero slot: only the host sees the "Add in Admin › Home" placeholder. */
+export function showHeroPlaceholder(isHost: boolean, hasImage: boolean): boolean {
+  return !hasImage && isHost;
+}
+
 /** Home hero image with a short-lived signed URL (private bucket, public read). */
 export function useHomeImage(slot: string) {
   return useQuery({

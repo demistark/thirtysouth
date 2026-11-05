@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { PhotoSlot } from "@/components/site/Blocks";
 import { useAuth } from "@/lib/auth";
-import { useContent, useHomeImage } from "@/lib/data";
+import { showHeroPlaceholder, useContent, useHomeImage } from "@/lib/data";
 import { canViewPurse, canViewTravel, isTripParticipant } from "@/lib/locked-areas";
 import { needsReplyCount } from "@/lib/purse";
 import { useExperienceRsvps, useExperiences } from "@/lib/purse-data";
@@ -67,7 +67,7 @@ function HomeBefore() {
             className="h-[62vh] min-h-[420px] w-full object-cover"
             style={{ objectPosition: `${hero.image?.focal_x ?? 50}% ${hero.image?.focal_y ?? 50}%` }}
           />
-        ) : isHost ? (
+        ) : showHeroPlaceholder(isHost, false) ? (
           <PhotoSlot caption="Add in Admin › Home" className="h-[62vh] min-h-[420px] w-full items-start border-0 bg-transparent" />
         ) : (
           <div className="h-[62vh] min-h-[420px] w-full" aria-hidden />
