@@ -105,7 +105,7 @@ const LOOK_LINKS = [
 function LookAround() {
   const { t } = useContent();
   return (
-    <section className="home-look mx-auto max-w-5xl px-5">
+    <section data-home-first-card className="home-look mx-auto max-w-5xl px-5">
       <p className="home-look-label label-caps">{t("home.look.heading")}</p>
       <div className="home-look-list">
         {LOOK_LINKS.map((l) => (
