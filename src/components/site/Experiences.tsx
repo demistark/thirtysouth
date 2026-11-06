@@ -169,7 +169,7 @@ function ExperienceCard({ exp, ctx }: { exp: Experience; ctx: CardContext }) {
   );
 }
 
-function PriceLine({ exp, settings, currency }: { exp: Experience; settings: PurseSettings; currency: PurseCurrency }) {
+export function PriceLine({ exp, settings, currency }: { exp: Experience; settings: PurseSettings; currency: PurseCurrency }) {
   const { t } = useContent();
   if (exp.show_host_note) return <p className="exp-host-note">{t("host_note_instead_of_price")}</p>;
   if (exp.price_zar == null) return null;
