@@ -264,7 +264,7 @@ function RsvpBlock({ exp, ctx, myRsvp, status, counts }: {
         ))}
       </div>
       {gate.dialog}
-      {choices.length > 0 && (shownStatus === "going" || shownStatus === "maybe") && (
+      {choices.length > 0 && shownStatus === "going" && (
         <select
           className="field exp-rsvp-choice !w-auto !py-1.5 text-sm"
           value={choice}
@@ -278,7 +278,9 @@ function RsvpBlock({ exp, ctx, myRsvp, status, counts }: {
       {exp.rsvp_mode === "default_going" && status === "going" && !myRsvp && (
         <p className="exp-rsvp-hint">{t("purse.youre_going")}</p>
       )}
-      {exp.rsvp_deadline && open && <p className="exp-rsvp-deadline">{t("purse.reply_by")} {formatDeadline(exp.rsvp_deadline)}</p>}
+      {deadlineUpcoming(exp.rsvp_deadline, ctx.nowCpt) && (
+        <p className="exp-rsvp-deadline">{t("purse.reply_by")} <span className="text-ember">{formatDeadline(exp.rsvp_deadline!)}</span></p>
+      )}
       {locked && <p className="exp-rsvp-deadline">{t("purse.closed")}</p>}
       {summaryParts.length > 0 && <p className="exp-rsvp-summary">{summaryParts.join(" · ")}</p>}
     </div>
@@ -289,7 +291,7 @@ function RsvpNames({ exp, ctx }: { exp: Experience; ctx: CardContext }) {
   const { t } = useContent();
   const names = new Map(ctx.participants.map((p) => [p.id, p.display_name]));
   const mine = ctx.rsvps.filter((r) => r.experience_id === exp.id && names.has(r.guest_id));
-  const groups: { status: RsvpStatus; rows: ExperienceRsvp[] }[] = (["going", "maybe", "not_going"] as const)
+  const groups: { status: RsvpStatus; rows: ExperienceRsvp[] }[] = (["going", "not_going"] as const)
     .map((s) => ({ status: s, rows: mine.filter((r) => r.status === s) }));
   const answered = new Set(mine.map((r) => r.guest_id));
   const awaiting = exp.rsvp_mode === "must_reply" ? ctx.participants.filter((p) => !answered.has(p.id)) : [];
