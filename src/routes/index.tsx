@@ -3,9 +3,9 @@ import { useState } from "react";
 import { PhotoSlot } from "@/components/site/Blocks";
 import { useAuth } from "@/lib/auth";
 import { showHeroPlaceholder, useContent, useHomeImage } from "@/lib/data";
-import { canViewPurse, canViewTravel, isTripParticipant } from "@/lib/locked-areas";
+import { canEditPurse, canViewPurse, canViewTravel, isTripParticipant } from "@/lib/locked-areas";
 import { needsReplyCount } from "@/lib/purse";
-import { useExperienceRsvps, useExperiences } from "@/lib/purse-data";
+import { useExperienceRsvps, useExperiences, usePurseSettings } from "@/lib/purse-data";
 import { formatLegDate, formatLegTime, nextLeg } from "@/lib/travel";
 import { useMyGuest, useTravelLegs } from "@/lib/travel-data";
 import { useTripClock } from "@/lib/trip-clock";
@@ -254,6 +254,7 @@ function LookAround() {
             <span>
               <span className="home-look-name block">{t(l.nameKey)}</span>
               <span className="home-look-desc mt-2 block md:mt-2.5">{t(l.descKey)}</span>
+              {l.to === "/purse" && <PurseRsvpWaiting />}
             </span>
             <svg className="home-look-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path d="M4 12h15M13.5 6.5 19 12l-5.5 5.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
@@ -330,19 +331,24 @@ function TravelLiveLine() {
   );
 }
 
-function PurseLiveLine() {
+/** "• N RSVPs to complete" under the Purse bar — trip participants with replies owed only. */
+function PurseRsvpWaiting() {
   const { t } = useContent();
   const { session, roles } = useAuth();
   const allowed = !!session && isTripParticipant(roles);
   const myGuest = useMyGuest(allowed);
   const exps = useExperiences(allowed);
   const rsvps = useExperienceRsvps(allowed);
+  const settings = usePurseSettings(allowed);
+  if (!allowed || !myGuest.data) return null;
   const count = needsReplyCount(exps.data ?? [], rsvps.data ?? [], myGuest.data);
-  if (!count) return null;
+  const closed = (settings.data?.globalLock ?? false) && !canEditPurse(roles);
+  if (!count || closed) return null;
   return (
-    <p className="label-caps mt-4 text-ember-deep">
-      {count} {t(count === 1 ? "home.card4.live_reply_one" : "home.card4.live_reply")}
-    </p>
+    <span className="home-look-rsvp">
+      <span className="home-look-rsvp-dot" aria-hidden="true" />
+      {t(count === 1 ? "home.rsvp_waiting_one" : "home.rsvp_waiting_other").replace("{n}", String(count))}
+    </span>
   );
 }
 
