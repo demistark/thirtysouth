@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ComingSoon, PageShell, SubTabs } from "@/components/site/Blocks";
 import { Experiences } from "@/components/site/Experiences";
 import { SharedExpenses } from "@/components/site/SharedExpenses";
-import { PurseLockout } from "@/components/site/Lockouts";
+import { FactLockout, PurseLockout, PURSE_LOCKOUT_TONE } from "@/components/site/Lockouts";
 import { useAuth } from "@/lib/auth";
 import { useContent } from "@/lib/data";
 import { canViewPurse } from "@/lib/locked-areas";
