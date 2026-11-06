@@ -35,13 +35,13 @@ export function useExperienceRsvps(enabled: boolean) {
   });
 }
 
-export interface PurseSettings { zarPerUsd: number; showNames: boolean; globalLock: boolean }
+export interface PurseSettings { zarPerUsd: number; showNames: boolean; globalLock: boolean; showTotal: boolean }
 
 export function usePurseSettings(enabled: boolean) {
   return useQuery({
     queryKey: ["purse", "settings"], enabled, staleTime: 30_000,
     queryFn: async (): Promise<PurseSettings> => {
-      const { data, error } = await supabase.from("settings").select("key,value").in("key", ["zar_per_usd", "rsvp_show_names", "rsvp_global_lock"]);
+      const { data, error } = await supabase.from("settings").select("key,value").in("key", ["zar_per_usd", "rsvp_show_names", "rsvp_global_lock", "rsvp_show_total"]);
       if (error) throw error;
       const m = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]));
       const rate = Number(m["zar_per_usd"]);
@@ -49,9 +49,26 @@ export function usePurseSettings(enabled: boolean) {
         zarPerUsd: Number.isFinite(rate) && rate > 0 ? rate : 16.5,
         showNames: m["rsvp_show_names"] !== "false",
         globalLock: m["rsvp_global_lock"] === "true",
+        showTotal: m["rsvp_show_total"] === "true",
       };
     },
   });
+}
+
+/* ---------------- per-experience save queue ---------------- */
+
+const saveQueues = new Map<string, Promise<unknown>>();
+
+/**
+ * Serialises RSVP saves per experience: a new tap while one is in flight waits for it,
+ * so only the last tap is what the person ends up with. Returns the task's result.
+ */
+export function queueRsvpSave<T>(experienceId: string, task: () => Promise<T>): Promise<T> {
+  const prev = saveQueues.get(experienceId) ?? Promise.resolve();
+  const next = prev.catch(() => undefined).then(task);
+  saveQueues.set(experienceId, next);
+  void next.finally(() => { if (saveQueues.get(experienceId) === next) saveQueues.delete(experienceId); });
+  return next;
 }
 
 /** Guests whose role makes them trip participants (host, schedule manager, trip guest). */
