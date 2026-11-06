@@ -67,7 +67,8 @@ export function queueRsvpSave<T>(experienceId: string, task: () => Promise<T>): 
   const prev = saveQueues.get(experienceId) ?? Promise.resolve();
   const next = prev.catch(() => undefined).then(task);
   saveQueues.set(experienceId, next);
-  void next.finally(() => { if (saveQueues.get(experienceId) === next) saveQueues.delete(experienceId); });
+  const cleanup = () => { if (saveQueues.get(experienceId) === next) saveQueues.delete(experienceId); };
+  void next.then(cleanup, cleanup);
   return next;
 }
 
