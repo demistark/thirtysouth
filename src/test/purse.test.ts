@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { canEditPurse, canViewPurse, isTripParticipant } from "@/lib/locked-areas";
 import {
-  capeTownNow, choiceList, effectiveStatus, experienceExpandable, exportExperiencesCsv, formatDeadline,
-  formatPriceZar, formatWhenList, needsReplyCount, parseExperiencesCsv, priceLineParts, readPurseCurrency,
-  rsvpCounts, rsvpOpen, sceneExperienceTags, showCurrencyToggle, storePurseCurrency, usdFromZar,
+  alsoGoingList, capeTownNow, choiceList, deadlineUpcoming, effectiveStatus, experienceExpandable,
+  exportExperiencesCsv, flowSteps, formatDeadline, formatPriceZar, formatWhenList, needsReplyCount,
+  parseExperiencesCsv, priceLineParts, readPurseCurrency, readRsvpDraft, rsvpCounts, rsvpOpen,
+  runningTotalZar, sceneExperienceTags, showCurrencyToggle, storePurseCurrency, unfinishedByGuest,
+  usdFromZar, whatsAppUrl, writeRsvpDraft, clearRsvpDraft, RSVP_DRAFT_PREFIX, RSVP_DRAFT_MAX_AGE_MS,
   type Experience, type ExperienceRsvp,
 } from "@/lib/purse";
+import { queueRsvpSave } from "@/lib/purse-data";
 
 const exp = (over: Partial<Experience>): Experience => ({
   id: "e1", rank: "", sort_order: 1, card: "Aquila Safari", level: "big", parent_id: null,
@@ -82,11 +85,14 @@ describe("dates and deadlines", () => {
     expect(formatWhenList("Fri Nov 27 - Sat Nov 28")).toBe("Fri Nov 27, Sat Nov 28");
     expect(formatWhenList("Fri Nov 27")).toBe("Fri Nov 27");
   });
-  it("closes RSVPs after the deadline or under the global lock", () => {
-    expect(rsvpOpen("2026-11-10 18:00", false, "2026-11-10 17:59")).toBe(true);
-    expect(rsvpOpen("2026-11-10 18:00", false, "2026-11-10 18:00")).toBe(false);
-    expect(rsvpOpen(null, true, "2026-11-01 12:00")).toBe(false);
-    expect(rsvpOpen(null, false, "2026-11-01 12:00")).toBe(true);
+  it("closes RSVPs only under the global lock; deadlines are reminders", () => {
+    expect(rsvpOpen(false)).toBe(true);
+    expect(rsvpOpen(true)).toBe(false);
+  });
+  it("shows a deadline as a reminder only while it is in the future", () => {
+    expect(deadlineUpcoming("2026-11-10 18:00", "2026-11-10 17:59")).toBe(true);
+    expect(deadlineUpcoming("2026-11-10 18:00", "2026-11-10 18:00")).toBe(false);
+    expect(deadlineUpcoming(null, "2026-11-01 12:00")).toBe(false);
   });
   it("formats the reply-by date", () => expect(formatDeadline("2026-11-10 18:00")).toBe("Nov 10"));
   it("reads Cape Town wall time", () => {
@@ -237,17 +243,17 @@ describe("scene experience tags", () => {
   const scene = { id: "s1", experience_card: null as string | null };
 
   it("shows one tag per linked experience with the viewer's own status", () => {
-    const tags = sceneExperienceTags(scene, all, links, [{ experience_id: "e1", guest_id: "g1", status: "maybe", choice: null }], "g1", true);
+    const tags = sceneExperienceTags(scene, all, links, [{ experience_id: "e1", guest_id: "g1", status: "not_going", choice: null }], "g1", true);
     expect(tags.map((t) => t.id)).toEqual(["e1", "e2"]);
-    expect(tags[0]?.status).toBe("maybe");
+    expect(tags[0]?.status).toBe("not_going");
     expect(tags[1]?.status).toBe("going"); // default_going, no row
   });
   it("marks an unanswered must_reply as needs_reply", () => {
     const tags = sceneExperienceTags(scene, all, links, [], "g1", true);
     expect(tags[0]?.status).toBe("needs_reply");
   });
-  it("shows going/maybe/not_going straight from the reply", () => {
-    for (const status of ["going", "maybe", "not_going"] as const) {
+  it("shows going/not_going straight from the reply", () => {
+    for (const status of ["going", "not_going"] as const) {
       const tags = sceneExperienceTags(scene, all, links, [{ experience_id: "e1", guest_id: "g1", status, choice: null }], "g1", true);
       expect(tags[0]?.status).toBe(status);
     }
