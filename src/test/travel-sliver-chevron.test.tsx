@@ -6,7 +6,7 @@ import { TravelSliverChevron } from "@/components/site/TravelSliverChevron";
 afterEach(cleanup);
 
 it("uses paper only on the active middle segment and flips only while open", () => {
-  const css = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
+  const css = readFileSync("src/styles.css", "utf8");
   const style = document.createElement("style");
   style.textContent = (css.match(/\.travel-sliver-chevron(?:\[data-(?:active|open)="true"\])?\s*\{[^}]*\}/g) ?? []).join("\n");
   document.head.appendChild(style);
