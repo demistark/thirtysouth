@@ -46,7 +46,8 @@ afterEach(() => {
 describe("FactsAdmin single delete", () => {
   it("asks inline, Keep cancels, Delete removes the row", async () => {
     renderAdmin();
-    const { row } = rowOf(await screen.findByText("Fact one"));
+    await screen.findByText("Fact one");
+    const { row } = rowOf("Fact one");
     fireEvent.click(row.getByText("facts.delete"));
     expect(row.getByText("facts.delete_confirm")).toBeInTheDocument();
     fireEvent.click(row.getByText("facts.keep"));
@@ -56,13 +57,13 @@ describe("FactsAdmin single delete", () => {
     row.getByText("facts.delete_confirm");
     const confirmButtons = row.getAllByText("facts.delete");
     fireEvent.click(confirmButtons[confirmButtons.length - 1]!);
-    expect(await screen.findByText("Fact one")).toBeInTheDocument();
-    expect(state.deleted).toEqual(["f1"]);
+    await vi.waitFor(() => expect(state.deleted).toEqual(["f1"]));
   });
 
   it("edit and hide still render alongside delete", async () => {
     renderAdmin();
-    const { row } = rowOf(await screen.findByText("Fact two"));
+    await screen.findByText("Fact two");
+    const { row } = rowOf("Fact two");
     expect(row.getByText("facts.edit")).toBeInTheDocument();
     expect(row.getByText("facts.hide")).toBeInTheDocument();
     expect(row.getByText("facts.delete")).toBeInTheDocument();
@@ -96,6 +97,6 @@ describe("FactsAdmin bulk delete", () => {
     screen.getByText("facts.delete_selected_confirm");
     const confirm = screen.getAllByText("facts.delete");
     fireEvent.click(confirm[confirm.length - 1]!);
-    expect(state.deleted).toEqual(["f1", "f2", "f3"]);
+    await vi.waitFor(() => expect(state.deleted).toEqual(["f1", "f2", "f3"]));
   });
 });
