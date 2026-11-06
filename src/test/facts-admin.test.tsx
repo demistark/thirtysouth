@@ -94,9 +94,8 @@ describe("FactsAdmin bulk delete", () => {
     expect(rowOf("Fact two").checkbox).toBeChecked();
     expect(rowOf("Fact three").checkbox).toBeChecked();
     fireEvent.click(screen.getByText(/facts.delete_selected/));
-    screen.getByText("facts.delete_selected_confirm");
-    const confirm = screen.getAllByText("facts.delete");
-    fireEvent.click(confirm[confirm.length - 1]!);
+    const confirmText = screen.getByText("facts.delete_selected_confirm");
+    fireEvent.click(within(confirmText.parentElement as HTMLElement).getByText("facts.delete"));
     await vi.waitFor(() => expect(state.deleted).toEqual(["f1", "f2", "f3"]));
   });
 });
