@@ -126,3 +126,75 @@ describe("Experiences single removal", () => {
     expect(checkbox("Child")).toBeInTheDocument();
   });
 });
+
+describe("RSVPs panel", () => {
+  async function openRsvps() {
+    mount();
+    fireEvent.click(await screen.findByRole("tab", { name: "admin.purse.rsvps" }));
+    await screen.findByText("admin.purse.unfinished_title");
+  }
+
+  it("lists who hasn't finished, most left first, across all must-reply cards", async () => {
+    state.participants = [
+      { id: "g1", display_name: "Ada" },
+      { id: "g2", display_name: "Bo" },
+    ];
+    state.rsvps = [{ experience_id: "parent", guest_id: "g1", status: "going", choice: null }];
+    await openRsvps();
+    const block = screen.getByText("admin.purse.unfinished_title").closest("div")!.parentElement!;
+    expect(within(block).getByText(/Bo · /)).toBeInTheDocument();
+    expect(within(block).queryByText(/Ada/)).toBeNull();
+  });
+  it("says everyone has replied when nothing is left", async () => {
+    state.participants = [{ id: "g1", display_name: "Ada" }];
+    state.rsvps = [{ experience_id: "parent", guest_id: "g1", status: "not_going", choice: null }];
+    await openRsvps();
+    expect(screen.getByText("admin.purse.all_done")).toBeInTheDocument();
+  });
+  it("offers a WhatsApp nudge with the Purse link encoded, plus one for a must-reply experience", async () => {
+    state.participants = [{ id: "g1", display_name: "Ada" }];
+    await openRsvps();
+    const general = screen.getByRole("link", { name: "admin.purse.whatsapp" });
+    expect(general).toHaveAttribute("href", `https://wa.me/?text=${encodeURIComponent("admin.purse.whatsapp_default")}`);
+    expect(general).toHaveAttribute("rel", "noopener");
+    expect(general).toHaveAttribute("target", "_blank");
+    // The first experience (Parent) is must-reply, so the per-experience nudge shows.
+    expect(screen.getByRole("link", { name: "admin.purse.whatsapp_exp" })).toBeInTheDocument();
+  });
+  it("hides the per-experience nudge when the selected experience is not must-reply", async () => {
+    state.participants = [{ id: "g1", display_name: "Ada" }];
+    await openRsvps();
+    fireEvent.change(screen.getByRole("combobox", { name: "Experience" }), { target: { value: "child" } });
+    expect(screen.queryByRole("link", { name: "admin.purse.whatsapp_exp" })).toBeNull();
+  });
+  it("has no Maybe option in the per-person dropdown", async () => {
+    state.participants = [{ id: "g1", display_name: "Ada" }];
+    await openRsvps();
+    const select = screen.getByRole("combobox", { name: "RSVP for Ada" });
+    expect(within(select).queryByRole("option", { name: "Maybe" })).toBeNull();
+    expect(within(select).getByRole("option", { name: "Going" })).toBeInTheDocument();
+    expect(within(select).getByRole("option", { name: "Not going" })).toBeInTheDocument();
+  });
+  it("Clear all needs CLEAR typed, then deletes every RSVP in one request", async () => {
+    state.participants = [{ id: "g1", display_name: "Ada" }];
+    state.rsvps = [{ experience_id: "parent", guest_id: "g1", status: "going", choice: null }];
+    await openRsvps();
+    fireEvent.click(screen.getByRole("button", { name: "admin.purse.clear_all" }));
+    expect(screen.getByText("admin.purse.clear_all_confirm")).toBeInTheDocument();
+    const clear = screen.getAllByRole("button", { name: "admin.purse.clear_all" })[1]!;
+    expect(clear).toBeDisabled();
+    fireEvent.change(screen.getByRole("textbox", { name: "admin.purse.clear_all" }), { target: { value: "clear" } });
+    expect(clear).toBeEnabled();
+    fireEvent.click(clear);
+    await vi.waitFor(() => expect(state.clearRequests).toBe(1));
+    await vi.waitFor(() => expect(toast.success).toHaveBeenCalledWith("admin.purse.clear_all_done"));
+  });
+  it("Keep cancels Clear all without a request", async () => {
+    state.participants = [{ id: "g1", display_name: "Ada" }];
+    await openRsvps();
+    fireEvent.click(screen.getByRole("button", { name: "admin.purse.clear_all" }));
+    fireEvent.click(screen.getByRole("button", { name: "purse.admin.keep" }));
+    expect(state.clearRequests).toBe(0);
+    expect(screen.queryByText("admin.purse.clear_all_confirm")).toBeNull();
+  });
+});
