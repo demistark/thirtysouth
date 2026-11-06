@@ -150,7 +150,7 @@ function HomeDuring() {
               {highlights.map((s) => (
                 <span key={s.scene_order} className="home-hl-item">
                   <span className="home-hl-dot" aria-hidden />
-                  {s.title}
+                  <span className="home-hl-title">{s.title}</span>
                 </span>
               ))}
             </p>

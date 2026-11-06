@@ -934,21 +934,32 @@ html[data-intro="reveal"] .home-during > :nth-child(n + 10) { animation-delay: 7
   max-width: 46rem;
 }
 .home-hl {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 6px;
   margin-top: 20px;
   color: var(--ink);
 }
 .home-hl-item {
-  display: inline;
+  display: inline-flex;
+  align-items: baseline;
+  max-width: 100%;
+  min-width: 0;
   margin-right: 22px;
 }
 .home-hl-dot {
-  display: inline-block;
+  flex-shrink: 0;
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: var(--ember);
   margin-right: 9px;
-  vertical-align: 2px;
+  position: relative;
+  top: -2px;
+}
+.home-hl-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .home-hl-rest {
   font-family: var(--font-serif);
@@ -1197,12 +1208,28 @@ html[data-intro="reveal"] .home-during > :nth-child(n + 10) { animation-delay: 7
 .footer-text > p .label-caps {
   font-size: 0.65625rem;
 }
+.footer-text > p,
+.footer-text > div {
+  padding-left: 0.08em;
+  font-size: 0.5625rem;
+}
+.footer-text > p {
+  font-size: 0.65625rem;
+}
 @media (min-width: 640px) {
   .footer-text .label-caps {
     letter-spacing: 0.18em;
     font-size: 0.6875rem;
   }
   .footer-text > p .label-caps {
+    font-size: 0.8125rem;
+  }
+  .footer-text > p,
+  .footer-text > div {
+    padding-left: 0.18em;
+    font-size: 0.6875rem;
+  }
+  .footer-text > p {
     font-size: 0.8125rem;
   }
   .site-header-bar {
@@ -1567,6 +1594,27 @@ html[data-intro="reveal"] .home-during > :nth-child(n + 10) { animation-delay: 7
 }
 .travel-tab-track > span {
   flex: 1;
+  position: relative;
+}
+.travel-sliver-chevron {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  pointer-events: none;
+  color: var(--ember);
+  transform: rotate(0deg);
+  transition: transform 0.2s ease;
+}
+.travel-sliver-chevron[data-active="true"] {
+  color: var(--paper);
+}
+.travel-sliver-chevron[data-open="true"] {
+  transform: rotate(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .travel-sliver-chevron {
+    transition: none;
+  }
 }
 .travel-tab-panel {
   position: absolute;
