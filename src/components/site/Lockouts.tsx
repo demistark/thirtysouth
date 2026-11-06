@@ -66,11 +66,15 @@ export function FactLockout({ tone }: { tone: string }) {
   }, [data]);
   const fact = data.find((item) => item.id === currentId);
   const previous = data.find((item) => item.id === previousId);
-  return <section className="lockout-band bg-band-sage">
+  return <section className={`lockout-band ${tone}`}>
     {fact && <div className="w-full max-w-2xl"><div className="grid items-center font-serif text-3xl italic leading-relaxed md:text-4xl">
       {previous && <p key={`out-${currentId}`} aria-hidden="true" className="fact-out col-start-1 row-start-1">{previous.text}</p>}
       <p key={currentId} className="fact-in col-start-1 row-start-1">{fact.text}</p>
     </div><div className="mx-auto mt-8 h-px w-20 bg-border" /></div>}
     <SignInLink />
   </section>;
+}
+
+export function TravelLockout() {
+  return <FactLockout tone={TRAVEL_LOCKOUT_TONE} />;
 }
