@@ -304,7 +304,7 @@ describe("Home RSVP line", () => {
 
 describe("currency toggle row", () => {
   it("sits in its own row outside the tab row on Purse", async () => {
-    state.session = false;
+    state.session = true;
     const Purse = (PurseRoute as unknown as { options: { component: React.ComponentType } }).options.component;
     mount(<Purse />);
     const row = await screen.findByLabelText("Price currency");
