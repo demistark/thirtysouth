@@ -35,7 +35,12 @@ export function ReflectionsLockout() {
   return <section className="lockout-band bg-paper"><div className="mx-auto flex w-full max-w-sm rotate-[-2deg] flex-col items-center gap-6 bg-ochre px-6 py-14"><ReflectionsDescription /><SignInLink /></div></section>;
 }
 
-export function TravelLockout() {
+// Band colours for the signed-out fact lockout; easy to change per page.
+export const TRAVEL_LOCKOUT_TONE = "bg-band-sage";
+export const PURSE_LOCKOUT_TONE = "bg-tint-ember";
+export const JOURNAL_LOCKOUT_TONE = "bg-tint-teal";
+
+export function FactLockout({ tone }: { tone: string }) {
   const { data = EMPTY_FACTS } = useQuery(factsOptions);
   const [currentId, setCurrentId] = useState<string>();
   const [previousId, setPreviousId] = useState<string>();
