@@ -896,7 +896,6 @@ html[data-intro="pending"] body::after {
   top: 0;
   transform-origin: 0 0;
   white-space: nowrap;
-  will-change: transform;
 }
 .home-intro-mark > span {
   display: inline-block;
