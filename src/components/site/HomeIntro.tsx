@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useRouterState } from "@tanstack/react-router";
+import { useRouterState, useSearch } from "@tanstack/react-router";
 import { useChapters, useSettings } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { useTripClock } from "@/lib/trip-clock";
@@ -29,10 +29,11 @@ function setIntroAttr(v: string | null) {
 
 export function HomeIntro() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const replay = useSearch({ strict: false }).intro === "replay";
   const { phase } = useTripClock();
   const settingsQ = useSettings();
   const chaptersQ = useChapters();
-  const { loading: authLoading } = useAuth();
+  const { loading: authLoading, isHost } = useAuth();
   const [state, setState] = useState<"idle" | "waiting" | "playing" | "done">("idle");
   const [timedOut, setTimedOut] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -53,18 +54,20 @@ export function HomeIntro() {
     return undefined;
   }, []);
 
-  const ready = timedOut || ((settingsQ.isFetched && chaptersQ.isFetched && !authLoading));
+  const ready = replay
+    ? !authLoading && settingsQ.isFetched && chaptersQ.isFetched
+    : timedOut || ((settingsQ.isFetched && chaptersQ.isFetched && !authLoading));
 
   useEffect(() => {
     if (state !== "waiting" || !ready) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!shouldPlayIntro({ pathname, phase, firstOfDay: true, reducedMotion: reduced })) {
+    if (!shouldPlayIntro({ pathname, phase, firstOfDay: true, reducedMotion: reduced, replay, isHost })) {
       setIntroAttr(null);
       setState("done");
       return;
     }
     setState("playing");
-  }, [state, ready, pathname, phase]);
+  }, [state, ready, pathname, phase, replay, isHost]);
 
   // Layout effect: the mark's font, size, colour and start transform are applied
   // before the browser paints, so no unstyled frame can show.

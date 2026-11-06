@@ -3,7 +3,7 @@
 
 export const INTRO_DAY_KEY = "30s-intro-day";
 
-// The intro only exists during the trip; outside this window the bootstrap does nothing at all.
+// Normal visits only animate during the trip; an explicit replay bypasses this window.
 export const INTRO_WINDOW = { start: "2026-11-20", end: "2026-11-30" } as const;
 
 /** True when a Cape Town day (YYYY-MM-DD) falls inside the intro window, boundaries included. */
@@ -30,8 +30,11 @@ export function claimIntroDay(storage: MiniStorage | null | undefined, today: st
   }
 }
 
-export function shouldPlayIntro(o: { pathname: string; phase: string; firstOfDay: boolean; reducedMotion: boolean }): boolean {
-  return o.pathname === "/" && o.phase === "during" && o.firstOfDay && !o.reducedMotion;
+// The replay branch precedes all day/window/storage access. Kept inline in the root head.
+export const INTRO_BOOTSTRAP = `(function(){try{if(new URLSearchParams(location.search).get("intro")==="replay"){if(location.pathname==="/"&&!matchMedia("(prefers-reduced-motion: reduce)").matches){window.__30sIntro=true;document.documentElement.setAttribute("data-intro","pending");}return;}var d=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Johannesburg"}).format(new Date());if(d<"2026-11-20"||d>"2026-11-30")return;var k="30s-intro-day";if(localStorage.getItem(k)===d)return;localStorage.setItem(k,d);if(location.pathname==="/"&&!matchMedia("(prefers-reduced-motion: reduce)").matches){window.__30sIntro=true;document.documentElement.setAttribute("data-intro","pending");}}catch(e){}})();`;
+
+export function shouldPlayIntro(o: { pathname: string; phase: string; firstOfDay: boolean; reducedMotion: boolean; replay?: boolean; isHost?: boolean }): boolean {
+  return o.pathname === "/" && o.phase === "during" && !o.reducedMotion && (o.replay ? o.isHost === true : o.firstOfDay);
 }
 
 export interface PointerMark {

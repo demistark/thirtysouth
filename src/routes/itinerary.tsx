@@ -77,7 +77,10 @@ function Itinerary() {
     if (tab === "scenes") scrollToContent(target);
     return undefined;
   },[hash,tab,loading,displayQ.isPending,scenesQ.isPending,looksQ.isPending]);
-  if (!loading && !session) return <PageShell titleKey="itinerary.title" introKey="itinerary.intro">
+  if (loading) return <PageShell titleKey="itinerary.title" introKey="itinerary.intro">
+    <div className="min-h-80" />
+  </PageShell>;
+  if (!session) return <PageShell titleKey="itinerary.title" introKey="itinerary.intro">
     <div className="itinerary-recording"><RecordingLockout /></div>
   </PageShell>;
   return <PageShell titleKey="itinerary.title" introKey="itinerary.intro">

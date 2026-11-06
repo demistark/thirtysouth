@@ -25,6 +25,9 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    intro: typeof search["intro"] === "string" ? search["intro"] : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "30° South · Demilade’s 30th in Cape Town" },
