@@ -3,23 +3,37 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({
-  rows: [] as { id: string; card: string; parent_id: string | null; visible: boolean }[],
+  rows: [] as { id: string; card: string; parent_id: string | null; visible: boolean; rsvp_mode?: string }[],
+  rsvps: [] as { experience_id: string; guest_id: string; status: string; choice: string | null }[],
+  participants: [] as { id: string; display_name: string }[],
   requests: [] as string[][],
+  clearRequests: 0,
   failure: false,
 }));
-vi.mock("@/integrations/supabase/client", () => ({ supabase: { from: (table: string) => ({
-  select: () => {
-    const result = { data: table === "experiences" ? state.rows : [], error: null };
-    const ordered = { ...result, order: async () => result };
-    return { then: (resolve: (value: typeof result) => unknown) => Promise.resolve(result).then(resolve), order: () => ordered };
-  },
-  delete: () => ({ in: async (_column: string, ids: string[]) => {
-    state.requests.push(ids);
-    if (state.failure) return { error: { message: "failed" } };
-    state.rows = state.rows.filter((row) => !ids.includes(row.id)).map((row) => ({ ...row, parent_id: row.parent_id && ids.includes(row.parent_id) ? null : row.parent_id }));
-    return { error: null };
-  } }),
-}) } }));
+vi.mock("@/integrations/supabase/client", () => ({ supabase: {
+  from: (table: string) => ({
+    select: () => {
+      const result = { data: table === "experiences" ? state.rows : table === "experience_rsvps" ? state.rsvps : [], error: null };
+      const ordered = { ...result, order: async () => result };
+      return { then: (resolve: (value: typeof result) => unknown) => Promise.resolve(result).then(resolve), order: () => ordered };
+    },
+    delete: () => ({
+      in: async (_column: string, ids: string[]) => {
+        state.requests.push(ids);
+        if (state.failure) return { error: { message: "failed" } };
+        state.rows = state.rows.filter((row) => !ids.includes(row.id)).map((row) => ({ ...row, parent_id: row.parent_id && ids.includes(row.parent_id) ? null : row.parent_id }));
+        return { error: null };
+      },
+      not: async () => {
+        state.clearRequests += 1;
+        if (state.failure) return { error: { message: "failed" } };
+        state.rsvps = [];
+        return { error: null };
+      },
+    }),
+  }),
+  rpc: async (name: string) => (name === "participant_directory" ? { data: state.participants, error: null } : { data: [], error: null }),
+} }));
 vi.mock("@/lib/data", () => ({ useContent: () => ({ t: (key: string) => key === "purse.admin.select" ? "Select {card}" : key }) }));
 vi.mock("@/components/site/TripTimeInput", () => ({ TripTimeInput: () => null }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
@@ -40,11 +54,13 @@ function row(card: string) {
 }
 beforeEach(() => {
   state.rows = [
-    { id: "parent", card: "Parent", parent_id: null, visible: true },
-    { id: "child", card: "Child", parent_id: "parent", visible: true },
-    { id: "hidden", card: "Hidden", parent_id: null, visible: false },
+    { id: "parent", card: "Parent", parent_id: null, visible: true, rsvp_mode: "must_reply" },
+    { id: "child", card: "Child", parent_id: "parent", visible: true, rsvp_mode: "default_going" },
+    { id: "hidden", card: "Hidden", parent_id: null, visible: false, rsvp_mode: "none" },
   ];
-  state.requests = []; state.failure = false; vi.clearAllMocks();
+  state.rsvps = [];
+  state.participants = [];
+  state.requests = []; state.clearRequests = 0; state.failure = false; vi.clearAllMocks();
 });
 afterEach(cleanup);
 
