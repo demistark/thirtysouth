@@ -332,7 +332,7 @@ function TravelLiveLine() {
 }
 
 /** "• N RSVPs to complete" under the Purse bar — trip participants with replies owed only. */
-function PurseRsvpWaiting() {
+export function PurseRsvpWaiting() {
   const { t } = useContent();
   const { session, roles } = useAuth();
   const allowed = !!session && isTripParticipant(roles);
