@@ -2,7 +2,7 @@ import Papa from "papaparse";
 import { CSV_MAX_ROWS, type ImportResult, type RowError } from "./itinerary";
 
 export type RsvpMode = "must_reply" | "default_going" | "none";
-export type RsvpStatus = "going" | "maybe" | "not_going";
+export type RsvpStatus = "going" | "not_going";
 export type ExperienceLevel = "big" | "group" | "sub";
 export type PriceStatus = "published" | "estimate" | "confirmed";
 
@@ -42,7 +42,7 @@ export function effectiveStatus(exp: Pick<Experience, "rsvp_mode">, rsvp: Pick<E
   return exp.rsvp_mode === "default_going" ? "going" : "unconfirmed";
 }
 
-export interface RsvpCounts { going: number; maybe: number; not_going: number; awaiting: number }
+export interface RsvpCounts { going: number; not_going: number; awaiting: number }
 
 /** Counts cover participants only — never honorary guests or friends afar. */
 export function rsvpCounts(
@@ -56,7 +56,6 @@ export function rsvpCounts(
   const noRow = participantIds.filter((id) => !answered.has(id)).length;
   return {
     going: byStatus("going") + (exp.rsvp_mode === "default_going" ? noRow : 0),
-    maybe: byStatus("maybe"),
     not_going: byStatus("not_going"),
     awaiting: exp.rsvp_mode === "must_reply" ? noRow : 0,
   };
@@ -185,11 +184,14 @@ export function needsReplyCount(
   ).length;
 }
 
-/** RSVP writes close at the deadline (Cape Town local) or under the global lock. */
-export function rsvpOpen(deadline: string | null | undefined, globalLock: boolean, nowCpt: string) {
-  if (globalLock) return false;
-  if (!deadline) return true;
-  return deadline > nowCpt;
+/** RSVP writes close only under the host's global lock; deadlines are reminders. */
+export function rsvpOpen(globalLock: boolean) {
+  return !globalLock;
+}
+
+/** A deadline is shown as a reminder only while it is still in the future. */
+export function deadlineUpcoming(deadline: string | null | undefined, nowCpt: string) {
+  return !!deadline && deadline > nowCpt;
 }
 
 /** Current Cape Town wall time as "YYYY-MM-DD HH:MM", comparable to stored deadlines. */
