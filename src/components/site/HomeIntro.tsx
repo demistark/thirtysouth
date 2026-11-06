@@ -90,27 +90,34 @@ export function HomeIntro() {
     const fontSize = parseFloat(cs.fontSize);
     const realLs = cs.letterSpacing;
     const realPad = cs.paddingLeft;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const lineHeight = parseFloat(cs.lineHeight);
+    const trackingEm = (parseFloat(realLs) || 0) / fontSize;
+    const paddingEm = (parseFloat(realPad) || 0) / fontSize;
 
     Object.assign(span.style, {
       fontFamily: cs.fontFamily,
       fontSize: cs.fontSize,
       fontWeight: cs.fontWeight,
       textTransform: cs.textTransform,
-      lineHeight: cs.lineHeight,
+      lineHeight: Number.isFinite(lineHeight) ? `${lineHeight / fontSize}` : cs.lineHeight,
       color: cs.color,
-      letterSpacing: phone ? `${0.05 * fontSize}px` : realLs,
-      paddingLeft: phone ? `${0.05 * fontSize}px` : realPad,
+      letterSpacing: phone ? "0.05em" : `${trackingEm}em`,
+      paddingLeft: phone ? "0.05em" : `${paddingEm}em`,
     });
+    // Draw at the opening size; the flight only ever shrinks this raster.
+    const bigFontSize = phone
+      ? fontSize * (0.88 * vw) / span.getBoundingClientRect().width
+      : Math.min(104, Math.max(30, 0.084 * vw));
+    const endScale = fontSize / bigFontSize;
+    span.style.fontSize = `${bigFontSize}px`;
     realLink.style.visibility = "hidden";
     setIntroAttr("playing");
 
-    // Start state: real font-size, scaled up and centred.
-    const w0 = span.offsetWidth;
-    const h0 = span.offsetHeight;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const s = phone ? (0.88 * vw) / w0 : Math.min(104, Math.max(30, 0.084 * vw)) / fontSize;
-    mark.style.transform = `translate(${vw / 2 - (w0 * s) / 2}px, ${vh / 2 - (h0 * s) / 2}px) scale(${s})`;
+    // Start state: full-size text, centred without scaling up.
+    const startRect = span.getBoundingClientRect();
+    mark.style.transform = `translate(${vw / 2 - startRect.width / 2}px, ${vh / 2 - startRect.height / 2}px) scale(1)`;
 
     const finish = (instant: boolean) => {
       if (finished) return;
@@ -137,10 +144,10 @@ export function HomeIntro() {
         mark.style.transition = `transform ${FLIGHT}ms ${FLY_EASE}`;
         if (phone) {
           span.style.transition = `letter-spacing ${FLIGHT}ms ${FLY_EASE}, padding-left ${FLIGHT}ms ${FLY_EASE}`;
-          span.style.letterSpacing = realLs;
-          span.style.paddingLeft = realPad;
+          span.style.letterSpacing = `${(parseFloat(realLs) || 0) / endScale}px`;
+          span.style.paddingLeft = `${(parseFloat(realPad) || 0) / endScale}px`;
         }
-        mark.style.transform = `translate(${r.left}px, ${r.top}px) scale(1)`;
+        mark.style.transform = `translate(${r.left}px, ${r.top}px) scale(${endScale})`;
         veil.style.transition = `opacity ${FLIGHT}ms ${VEIL_EASE}`;
         veil.style.opacity = "0";
         mark.addEventListener("transitionend", (e) => {
