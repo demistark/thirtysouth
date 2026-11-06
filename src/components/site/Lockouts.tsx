@@ -35,7 +35,12 @@ export function ReflectionsLockout() {
   return <section className="lockout-band bg-paper"><div className="mx-auto flex w-full max-w-sm rotate-[-2deg] flex-col items-center gap-6 bg-ochre px-6 py-14"><ReflectionsDescription /><SignInLink /></div></section>;
 }
 
-export function TravelLockout() {
+// Band colours for the signed-out fact lockout; easy to change per page.
+export const TRAVEL_LOCKOUT_TONE = "bg-band-sage";
+export const PURSE_LOCKOUT_TONE = "bg-tint-ember";
+export const JOURNAL_LOCKOUT_TONE = "bg-tint-teal";
+
+export function FactLockout({ tone }: { tone: string }) {
   const { data = EMPTY_FACTS } = useQuery(factsOptions);
   const [currentId, setCurrentId] = useState<string>();
   const [previousId, setPreviousId] = useState<string>();
@@ -61,11 +66,15 @@ export function TravelLockout() {
   }, [data]);
   const fact = data.find((item) => item.id === currentId);
   const previous = data.find((item) => item.id === previousId);
-  return <section className="lockout-band bg-band-sage">
+  return <section className={`lockout-band ${tone}`}>
     {fact && <div className="w-full max-w-2xl"><div className="grid items-center font-serif text-3xl italic leading-relaxed md:text-4xl">
       {previous && <p key={`out-${currentId}`} aria-hidden="true" className="fact-out col-start-1 row-start-1">{previous.text}</p>}
       <p key={currentId} className="fact-in col-start-1 row-start-1">{fact.text}</p>
     </div><div className="mx-auto mt-8 h-px w-20 bg-border" /></div>}
     <SignInLink />
   </section>;
+}
+
+export function TravelLockout() {
+  return <FactLockout tone={TRAVEL_LOCKOUT_TONE} />;
 }

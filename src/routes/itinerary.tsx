@@ -48,7 +48,7 @@ export const Route = createFileRoute("/itinerary")({
 
 
 function Itinerary() {
-  const {t} = useContent(); const {roles,loading,isHost} = useAuth(); const {now,phase,settings} = useTripClock();
+  const {t} = useContent(); const {session,roles,loading,isHost} = useAuth(); const {now,phase,settings} = useTripClock();
   const displayQ = useItineraryDisplay();
   const wardrobeHidden = displayQ.data?.wardrobeVisible === false;
   const showWardrobe = wardrobeVisible(wardrobeHidden ? "false" : undefined,isHost);
@@ -77,6 +77,9 @@ function Itinerary() {
     if (tab === "scenes") scrollToContent(target);
     return undefined;
   },[hash,tab,loading,displayQ.isPending,scenesQ.isPending,looksQ.isPending]);
+  if (!loading && !session) return <PageShell titleKey="itinerary.title" introKey="itinerary.intro">
+    <div className="itinerary-recording"><RecordingLockout /></div>
+  </PageShell>;
   return <PageShell titleKey="itinerary.title" introKey="itinerary.intro">
     <SubTabs tabs={itineraryTabs().map(id => ({id,label:t(`itinerary.tab.${id}`)}))} value={tab} onChange={next => void navigate({search:{tab:next,day:chapter},hash:""})} />
     {tab === "script" ? <ItineraryScript chapters={chapters} loading={chaptersQ.isLoading} /> : loading || (tab === "wardrobe" && displayQ.isPending) ? <div className="min-h-80 bg-card" /> : tab === "wardrobe" && !showWardrobe ? <div className="wardrobe-context-slot" data-hidden><ComingSoon /></div> : !allowed ? <div className="itinerary-recording"><RecordingLockout /></div> : <>

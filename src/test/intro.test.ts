@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { capeTownDay, claimIntroDay, INTRO_DAY_KEY, isCleanTap, shouldPlayIntro } from "@/lib/intro";
+import { capeTownDay, claimIntroDay, inIntroWindow, INTRO_DAY_KEY, INTRO_WINDOW, isCleanTap, shouldPlayIntro } from "@/lib/intro";
 
 function mem() {
   const m = new Map<string, string>();
@@ -40,6 +40,16 @@ describe("intro decision", () => {
     const broken = { getItem: () => { throw new Error("no"); }, setItem: () => {} };
     expect(claimIntroDay(broken, "2026-11-24")).toBe(false);
     expect(claimIntroDay(null, "2026-11-24")).toBe(false);
+  });
+
+  it("the intro window covers only the trip, boundaries included", () => {
+    expect(INTRO_WINDOW).toEqual({ start: "2026-11-20", end: "2026-11-30" });
+    expect(inIntroWindow("2026-11-19")).toBe(false);
+    expect(inIntroWindow("2026-11-20")).toBe(true);
+    expect(inIntroWindow("2026-11-24")).toBe(true);
+    expect(inIntroWindow("2026-11-30")).toBe(true);
+    expect(inIntroWindow("2026-12-01")).toBe(false);
+    expect(inIntroWindow("2026-11-06")).toBe(false);
   });
 
   it("uses the Cape Town date", () => {

@@ -112,9 +112,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
-// Mirrors claimIntroDay in src/lib/intro.ts: claim the Cape Town day on the first page load,
+// Mirrors claimIntroDay + INTRO_WINDOW in src/lib/intro.ts: outside the trip window the
+// bootstrap does nothing at all; inside it, claim the Cape Town day on the first page load
 // and draw the veil early only when that first page is Home and motion is allowed.
-const INTRO_BOOTSTRAP = `(function(){try{var d=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Johannesburg"}).format(new Date());var k="30s-intro-day";if(localStorage.getItem(k)===d)return;localStorage.setItem(k,d);if(location.pathname==="/"&&!matchMedia("(prefers-reduced-motion: reduce)").matches){window.__30sIntro=true;document.documentElement.setAttribute("data-intro","pending");}}catch(e){}})();`;
+const INTRO_BOOTSTRAP = `(function(){try{var d=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Johannesburg"}).format(new Date());if(d<"2026-11-20"||d>"2026-11-30")return;var k="30s-intro-day";if(localStorage.getItem(k)===d)return;localStorage.setItem(k,d);if(location.pathname==="/"&&!matchMedia("(prefers-reduced-motion: reduce)").matches){window.__30sIntro=true;document.documentElement.setAttribute("data-intro","pending");}}catch(e){}})();`;
 
 function RootShell({ children }: { children: ReactNode }) {
   return (

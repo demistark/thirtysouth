@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { useChapters, useSettings } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
@@ -66,7 +66,9 @@ export function HomeIntro() {
     setState("playing");
   }, [state, ready, pathname, phase]);
 
-  useEffect(() => {
+  // Layout effect: the mark's font, size, colour and start transform are applied
+  // before the browser paints, so no unstyled frame can show.
+  useLayoutEffect(() => {
     if (state !== "playing") return;
     const realLink = document.querySelector<HTMLElement>("[data-intro-wordmark]");
     const real = realLink?.querySelector<HTMLElement>(":scope > span");

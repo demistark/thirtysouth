@@ -169,6 +169,13 @@
       "when": 1793856328098,
       "tag": "0023_home_during_highlights_verses",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793932853461,
+      "tag": "0024_facts_admin_delete_keys",
+      "breakpoints": true
     }
   ]
 }

@@ -14,6 +14,9 @@ export function FactsAdmin() {
   const [text, setText] = useState("");
   const [active, setActive] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [confirmingId, setConfirmingId] = useState<string>();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmingBulk, setConfirmingBulk] = useState(false);
   const facts = useQuery({
     queryKey: ["admin", "facts"],
     queryFn: async () => {
@@ -43,6 +46,21 @@ export function FactsAdmin() {
     if (error) toast.error(t("facts.error"));
     else await refresh();
   };
+  const remove = async (ids: string[]) => {
+    setBusy(true);
+    try {
+      const { error } = await supabase.from("fun_facts").delete().in("id", ids);
+      if (error) throw error;
+      setConfirmingId(undefined); setConfirmingBulk(false);
+      setSelected((prev) => { const next = new Set(prev); ids.forEach((id) => next.delete(id)); return next; });
+      await refresh(); toast.success(t("facts.deleted"));
+    } catch { toast.error(t("facts.error")); }
+    finally { setBusy(false); }
+  };
+  const toggleSelected = (id: string, on: boolean) => {
+    setSelected((prev) => { const next = new Set(prev); if (on) next.add(id); else next.delete(id); return next; });
+    setConfirmingBulk(false);
+  };
   const importCsv = async (file: File) => {
     setBusy(true);
     try {
@@ -55,8 +73,12 @@ export function FactsAdmin() {
     } catch { toast.error(t("facts.error")); }
     finally { setBusy(false); if (fileInput.current) fileInput.current.value = ""; }
   };
+  const rows = facts.data ?? [];
+  const allSelected = rows.length > 0 && rows.every((fact) => selected.has(fact.id));
   return <div className="space-y-8">
-    <div className="flex justify-end"><Button variant="pill" disabled={busy} onClick={() => fileInput.current?.click()}>{t("facts.import")}</Button>
+    <div className="flex flex-col items-end gap-2">
+      <Button variant="pill" disabled={busy} onClick={() => fileInput.current?.click()}>{t("facts.import")}</Button>
+      <p className="caption-serif">{t("facts.import_hint")}</p>
       <input ref={fileInput} type="file" accept=".csv,text/csv" className="hidden" aria-label={t("facts.import")} onChange={(event) => { const file = event.target.files?.[0]; if (file) void importCsv(file); }} />
     </div>
     <form onSubmit={save} className="space-y-4">
@@ -65,11 +87,35 @@ export function FactsAdmin() {
       <div className="flex gap-3"><Button variant="pill" type="submit" disabled={busy || !text.trim()}>{t(editing ? "facts.save" : "facts.add")}</Button>{editing && <Button variant="pill" type="button" onClick={reset}>{t("facts.cancel")}</Button>}</div>
     </form>
     {facts.isError && <p className="caption-serif">{t("facts.error")}</p>}
-    {facts.data?.length === 0 && <p className="caption-serif">{t("facts.empty")}</p>}
-    <ul className="divide-y border-y">{facts.data?.map((fact) => <li key={fact.id} className="flex flex-wrap items-center gap-4 py-5">
+    {rows.length === 0 && !facts.isPending && <p className="caption-serif">{t("facts.empty")}</p>}
+    {rows.length > 0 && <div className="flex flex-wrap items-center justify-between gap-3">
+      <label className="label-caps flex items-center gap-2"><input type="checkbox" checked={allSelected} onChange={(event) => { setSelected(event.target.checked ? new Set(rows.map((fact) => fact.id)) : new Set()); setConfirmingBulk(false); }} />{t("facts.select_all")}</label>
+      {selected.size > 0 && (confirmingBulk ? (
+        <span className="flex flex-wrap items-center gap-3">
+          <span className="caption-serif">{t("facts.delete_selected_confirm").replace("{n}", String(selected.size))}</span>
+          <Button variant="pill" disabled={busy} onClick={() => void remove([...selected])}>{t("facts.delete")}</Button>
+          <Button variant="pill" disabled={busy} onClick={() => setConfirmingBulk(false)}>{t("facts.keep")}</Button>
+        </span>
+      ) : (
+        <Button variant="pill" disabled={busy} onClick={() => setConfirmingBulk(true)}>{t("facts.delete_selected")} ({selected.size})</Button>
+      ))}
+    </div>}
+    <ul className="divide-y border-y">{rows.map((fact) => <li key={fact.id} className="flex flex-wrap items-center gap-4 py-5">
+      <input type="checkbox" aria-label={fact.text} checked={selected.has(fact.id)} onChange={(event) => toggleSelected(fact.id, event.target.checked)} />
       <p className={`min-w-0 flex-1 font-serif italic ${fact.active ? "text-foreground" : "text-muted-foreground"}`}>{fact.text}</p>
-      <Button variant="pill" onClick={() => { setEditing(fact.id); setText(fact.text); setActive(fact.active); }}>{t("facts.edit")}</Button>
-      <Button variant="pill" onClick={() => toggle(fact.id, !fact.active)}>{t(fact.active ? "facts.hide" : "facts.show")}</Button>
+      {confirmingId === fact.id ? (
+        <span className="flex flex-wrap items-center gap-3">
+          <span className="caption-serif">{t("facts.delete_confirm")}</span>
+          <Button variant="pill" disabled={busy} onClick={() => void remove([fact.id])}>{t("facts.delete")}</Button>
+          <Button variant="pill" disabled={busy} onClick={() => setConfirmingId(undefined)}>{t("facts.keep")}</Button>
+        </span>
+      ) : (
+        <>
+          <Button variant="pill" onClick={() => { setEditing(fact.id); setText(fact.text); setActive(fact.active); }}>{t("facts.edit")}</Button>
+          <Button variant="pill" onClick={() => toggle(fact.id, !fact.active)}>{t(fact.active ? "facts.hide" : "facts.show")}</Button>
+          <Button variant="pill" onClick={() => setConfirmingId(fact.id)}>{t("facts.delete")}</Button>
+        </>
+      )}
     </li>)}</ul>
   </div>;
 }
