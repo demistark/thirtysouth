@@ -181,7 +181,7 @@ describe("RSVPs panel", () => {
     await openRsvps();
     fireEvent.click(screen.getByRole("button", { name: "admin.purse.clear_all" }));
     expect(screen.getByText("admin.purse.clear_all_confirm")).toBeInTheDocument();
-    const clear = screen.getAllByRole("button", { name: "admin.purse.clear_all" })[1]!;
+    const clear = screen.getByRole("button", { name: "admin.purse.clear_all" });
     expect(clear).toBeDisabled();
     fireEvent.change(screen.getByRole("textbox", { name: "admin.purse.clear_all" }), { target: { value: "clear" } });
     expect(clear).toBeEnabled();
