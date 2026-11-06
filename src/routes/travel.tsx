@@ -20,6 +20,7 @@ import { lookNumber } from "@/lib/itinerary-display";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TravelFlights } from "@/components/site/TravelFlights";
+import { TravelSliverChevron } from "@/components/site/TravelSliverChevron";
 
 export const Route = createFileRoute("/travel")({
   head: () => ({
@@ -156,7 +157,7 @@ function JumpBar({ active }: { active: TravelSlot }) {
   const tabs=<>{TRAVEL_SLOTS.map(s=><Button key={s} variant="ghost" onClick={()=>go(s)} aria-current={active===s ? "true" : undefined} className={cn("section-tab rounded-none",active===s ? "border-ember text-foreground" : "border-transparent text-muted-foreground")}>{t(`travel.section.${s}`)}</Button>)}</>;
   return <>
     <nav ref={bar} className="travel-jumpbar" aria-label={t("travel.title")}><div className="travel-tab-row">{tabs}</div></nav>
-    {out && <div ref={panel} className="travel-phone-nav"><Button variant="ghost" className="travel-tab-line" aria-label={t("travel.title")} aria-expanded={open} onClick={()=>setOpen(!open)}><span className="travel-tab-track">{TRAVEL_SLOTS.map(s=><span key={s} className={s===active ? "bg-ember" : "bg-border"}/>)}</span></Button>{open && <nav className="travel-tab-panel" aria-label={t("travel.title")}>{tabs}</nav>}</div>}
+    {out && <div ref={panel} className="travel-phone-nav"><Button variant="ghost" className="travel-tab-line" aria-label={t("travel.title")} aria-expanded={open} onClick={()=>setOpen(!open)}><span className="travel-tab-track">{TRAVEL_SLOTS.map((s,index)=><span key={s} className={s===active ? "bg-ember" : "bg-border"}>{index===2 && <TravelSliverChevron active={s===active} open={open} />}</span>)}</span></Button>{open && <nav className="travel-tab-panel" aria-label={t("travel.title")}>{tabs}</nav>}</div>}
   </>;
 }
 
