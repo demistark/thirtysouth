@@ -231,6 +231,187 @@ describe("price line in both directions", () => {
   });
 });
 
+describe("RSVP flow steps", () => {
+  const list = [
+    exp({ id: "b", sort_order: 2, card: "Second" }),
+    exp({ id: "a", sort_order: 1, card: "First" }),
+    exp({ id: "g", rsvp_mode: "must_reply", level: "group" }),
+    exp({ id: "d", rsvp_mode: "default_going" }),
+    exp({ id: "h", rsvp_mode: "must_reply", visible: false }),
+  ];
+  it("lists unanswered, visible, non-group must-reply cards in date order", () => {
+    expect(flowSteps(list, [], "g1")).toEqual(["a", "b"]);
+  });
+  it("is empty when everything is answered or the guest is missing", () => {
+    expect(flowSteps(list, [{ experience_id: "a", guest_id: "g1" }, { experience_id: "b", guest_id: "g1" }], "g1")).toEqual([]);
+    expect(flowSteps(list, [], null)).toEqual([]);
+  });
+});
+
+describe("also down as going", () => {
+  const list = [
+    exp({ id: "m", rsvp_mode: "must_reply", card: "Must" }),
+    exp({ id: "d1", rsvp_mode: "default_going", card: "Beach", sort_order: 2 }),
+    exp({ id: "d2", rsvp_mode: "default_going", card: "Braai", sort_order: 1 }),
+    exp({ id: "dg", rsvp_mode: "default_going", level: "group", card: "Group" }),
+    exp({ id: "dh", rsvp_mode: "default_going", visible: false, card: "Hidden" }),
+  ];
+  it("lists unanswered default-going cards in date order", () => {
+    expect(alsoGoingList(list, [], "g1")).toEqual(["Braai", "Beach"]);
+  });
+  it("drops cards the guest has answered", () => {
+    expect(alsoGoingList(list, [{ experience_id: "d2", guest_id: "g1" }], "g1")).toEqual(["Beach"]);
+    expect(alsoGoingList(list, [], null)).toEqual([]);
+  });
+});
+
+describe("running total", () => {
+  const list = [
+    exp({ id: "m1", rsvp_mode: "must_reply", price_zar: 1000 }),
+    exp({ id: "m2", rsvp_mode: "must_reply", price_zar: 500 }),
+    exp({ id: "d1", rsvp_mode: "default_going", price_zar: 300 }),
+    exp({ id: "np", rsvp_mode: "must_reply", price_zar: null }),
+    exp({ id: "gp", rsvp_mode: "default_going", level: "group", price_zar: 999 }),
+  ];
+  it("sums going answers plus untouched default-going prices", () => {
+    const total = runningTotalZar(list, { m1: { status: "going", choice: null } }, [], "g1");
+    expect(total).toBe(1000 + 300);
+  });
+  it("skips not-going answers, answered default-going cards and priceless cards", () => {
+    const total = runningTotalZar(
+      list,
+      { m1: { status: "not_going", choice: null }, m2: { status: "going", choice: null } },
+      [{ experience_id: "d1", guest_id: "g1" }],
+      "g1",
+    );
+    expect(total).toBe(500);
+  });
+  it("is 0 with nothing going", () => {
+    expect(runningTotalZar(list, { m1: { status: "not_going", choice: null }, m2: { status: "not_going", choice: null } }, [{ experience_id: "d1", guest_id: "g1" }], "g1")).toBe(0);
+    expect(runningTotalZar(list, {}, [], null)).toBe(0);
+  });
+});
+
+describe("RSVP draft on the phone", () => {
+  const mem = () => {
+    const m = new Map<string, string>();
+    return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v), removeItem: (k: string) => void m.delete(k), map: m };
+  };
+  const list = [
+    exp({ id: "a", rsvp_mode: "must_reply" }),
+    exp({ id: "b", rsvp_mode: "must_reply" }),
+    exp({ id: "g", rsvp_mode: "must_reply", level: "group" }),
+    exp({ id: "h", rsvp_mode: "must_reply", visible: false }),
+  ];
+  const now = Date.now();
+  it("round-trips answers and the current step", () => {
+    const s = mem();
+    writeRsvpDraft(s, "g1", { answers: { a: { status: "going", choice: "Early" } }, step: 1, savedAt: now });
+    const draft = readRsvpDraft(s, "g1", list, [], now);
+    expect(draft?.answers).toEqual({ a: { status: "going", choice: "Early" } });
+    expect(draft?.step).toBe(1);
+  });
+  it("drops answers for experiences now answered, hidden, group or gone", () => {
+    const s = mem();
+    writeRsvpDraft(s, "g1", {
+      answers: {
+        a: { status: "going", choice: null },
+        b: { status: "not_going", choice: null },
+        g: { status: "going", choice: null },
+        h: { status: "going", choice: null },
+        zz: { status: "going", choice: null },
+      },
+      step: 0,
+      savedAt: now,
+    });
+    const draft = readRsvpDraft(s, "g1", list, [{ experience_id: "a", guest_id: "g1" }], now);
+    expect(draft?.answers).toEqual({ b: { status: "not_going", choice: null } });
+  });
+  it("never keeps a choice on a not-going answer", () => {
+    const s = mem();
+    s.setItem(RSVP_DRAFT_PREFIX + "g1", JSON.stringify({ answers: { a: { status: "not_going", choice: "Late" } }, step: 0, savedAt: now }));
+    expect(readRsvpDraft(s, "g1", list, [], now)?.answers["a"]).toEqual({ status: "not_going", choice: null });
+  });
+  it("ignores drafts older than 14 days", () => {
+    const s = mem();
+    writeRsvpDraft(s, "g1", { answers: { a: { status: "going", choice: null } }, step: 0, savedAt: now - RSVP_DRAFT_MAX_AGE_MS - 1 });
+    expect(readRsvpDraft(s, "g1", list, [], now)).toBeNull();
+  });
+  it("survives blocked storage", () => {
+    const blocked = { getItem: () => { throw new Error("blocked"); }, setItem: () => { throw new Error("blocked"); }, removeItem: () => { throw new Error("blocked"); } };
+    expect(readRsvpDraft(blocked, "g1", list, [], now)).toBeNull();
+    expect(() => writeRsvpDraft(blocked, "g1", { answers: {}, step: 0, savedAt: now })).not.toThrow();
+    expect(() => clearRsvpDraft(blocked, "g1")).not.toThrow();
+  });
+});
+
+describe("who hasn't finished", () => {
+  const list = [
+    exp({ id: "a", rsvp_mode: "must_reply" }),
+    exp({ id: "b", rsvp_mode: "must_reply" }),
+    exp({ id: "c", rsvp_mode: "must_reply" }),
+    exp({ id: "g", rsvp_mode: "must_reply", level: "group" }),
+    exp({ id: "h", rsvp_mode: "must_reply", visible: false }),
+    exp({ id: "d", rsvp_mode: "default_going" }),
+  ];
+  const participants = [
+    { id: "g1", display_name: "Ada" },
+    { id: "g2", display_name: "Bo" },
+    { id: "g3", display_name: "Cy" },
+  ];
+  it("counts unanswered must-reply cards per participant, most left first", () => {
+    const rsvps = [
+      { experience_id: "a", guest_id: "g1" },
+      { experience_id: "b", guest_id: "g1" },
+      { experience_id: "a", guest_id: "g2" },
+    ];
+    expect(unfinishedByGuest(list, rsvps, participants)).toEqual([
+      { id: "g3", display_name: "Cy", left: 3, total: 3 },
+      { id: "g2", display_name: "Bo", left: 2, total: 3 },
+      { id: "g1", display_name: "Ada", left: 1, total: 3 },
+    ]);
+  });
+  it("is empty when everyone has replied", () => {
+    const rsvps = participants.flatMap((p) => ["a", "b", "c"].map((id) => ({ experience_id: id, guest_id: p.id })));
+    expect(unfinishedByGuest(list, rsvps, participants)).toEqual([]);
+  });
+});
+
+describe("WhatsApp nudge link", () => {
+  it("fills {link} and encodes the message", () => {
+    const url = whatsAppUrl("New RSVP up on 30° SOUTH. Takes 10 seconds: {link}", "https://example.com/purse");
+    expect(url).toBe(`https://wa.me/?text=${encodeURIComponent("New RSVP up on 30° SOUTH. Takes 10 seconds: https://example.com/purse")}`);
+  });
+  it("fills {experience} for the per-experience nudge", () => {
+    const url = whatsAppUrl("New RSVP up: {experience}. Takes 10 seconds: {link}", "https://example.com/purse", "Aquila Safari");
+    expect(decodeURIComponent(url)).toContain("New RSVP up: Aquila Safari. Takes 10 seconds: https://example.com/purse");
+  });
+});
+
+describe("per-experience save queue", () => {
+  const tick = () => new Promise((r) => setTimeout(r, 5));
+  it("serialises saves so two quick taps end on the last one", async () => {
+    const order: string[] = [];
+    const slow = queueRsvpSave("e1", async () => { await tick(); order.push("first"); return "first"; });
+    const fast = queueRsvpSave("e1", async () => { order.push("second"); return "second"; });
+    await Promise.all([slow, fast]);
+    expect(order).toEqual(["first", "second"]);
+  });
+  it("runs the next save even after a failure", async () => {
+    const failing = queueRsvpSave("e2", async () => { throw new Error("nope"); });
+    await expect(failing).rejects.toThrow("nope");
+    await expect(queueRsvpSave("e2", async () => "ok")).resolves.toBe("ok");
+  });
+  it("keeps queues for different experiences independent", async () => {
+    const order: string[] = [];
+    await Promise.all([
+      queueRsvpSave("e3", async () => { await tick(); order.push("e3"); }),
+      queueRsvpSave("e4", async () => { order.push("e4"); }),
+    ]);
+    expect(order).toEqual(["e4", "e3"]);
+  });
+});
+
 describe("scene experience tags", () => {
   const safari = exp({ id: "e1", card: "Aquila Safari", rsvp_mode: "must_reply" });
   const wine = exp({ id: "e2", card: "Winelands", rsvp_mode: "default_going" });
