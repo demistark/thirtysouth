@@ -9,6 +9,7 @@ import { CSV_MAX_BYTES, type ImportResult, type RowError } from "@/lib/itinerary
 import type { Scene } from "@/lib/itinerary";
 import {
   EXPERIENCE_CSV_COLUMNS, effectiveStatus, exportExperiencesCsv, parseExperiencesCsv,
+  unfinishedByGuest, whatsAppUrl,
   type Experience, type ExperienceImportRow, type ExperienceRsvp, type RsvpStatus,
 } from "@/lib/purse";
 import { useParticipantDirectory } from "@/lib/purse-data";
@@ -244,7 +245,10 @@ function ExperiencesPanel() {
         <F label="Choices (; separated)"><input className="field" value={form.choices} onChange={(e) => setForm({ ...form, choices: e.target.value })} /></F>
         <F label="When"><input className="field" value={form.when_text} onChange={(e) => setForm({ ...form, when_text: e.target.value })} placeholder="Fri Nov 27" /></F>
         <F label="Location"><input className="field" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></F>
-        <TripTimeInput label={t("time.rsvp.label")} value={form.rsvp_deadline} onChange={(value) => setForm({ ...form, rsvp_deadline: value })} />
+        <div>
+          <TripTimeInput label={t("time.rsvp.label")} value={form.rsvp_deadline} onChange={(value) => setForm({ ...form, rsvp_deadline: value })} />
+          <p className="mt-1 text-xs text-muted-foreground">{t("admin.purse.deadline_hint")}</p>
+        </div>
         <F label="Summary" wide><textarea className="field min-h-16" value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} /></F>
         <F label="Details" wide><textarea className="field min-h-24" value={form.details} onChange={(e) => setForm({ ...form, details: e.target.value })} /></F>
         <F label="Price (ZAR)"><input className="field" inputMode="numeric" value={form.price_zar} onChange={(e) => setForm({ ...form, price_zar: e.target.value })} /></F>
@@ -431,8 +435,37 @@ function RsvpsPanel() {
   if (expsQ.isPending) return <div className="h-48 border bg-card" />;
   if (!experiences.length) return <p className="py-12 text-center text-sm">No experiences with RSVPs yet.</p>;
 
+  const purseLink = `${window.location.origin}/purse`;
+
   return (
     <div className="space-y-8">
+      <div className="border bg-card p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="label-caps text-ember-deep">{t("admin.purse.unfinished_title")}</p>
+          <div className="flex flex-wrap gap-2">
+            <a className="btn-pill" href={whatsAppUrl(t("admin.purse.whatsapp_default"), purseLink)} target="_blank" rel="noopener">
+              {t("admin.purse.whatsapp")}
+            </a>
+            {exp?.rsvp_mode === "must_reply" && (
+              <a className="btn-pill" href={whatsAppUrl(t("admin.purse.whatsapp_exp_text"), purseLink, exp.card)} target="_blank" rel="noopener">
+                {t("admin.purse.whatsapp_exp")}
+              </a>
+            )}
+          </div>
+        </div>
+        {unfinished.length === 0 ? (
+          <p className="caption-serif mt-2">{t("admin.purse.all_done")}</p>
+        ) : (
+          <ul className="mt-2 space-y-1 text-sm">
+            {unfinished.map((g) => (
+              <li key={g.id}>
+                {g.display_name} · {t("admin.purse.unfinished_left").replace("{n}", String(g.left)).replace("{total}", String(g.total))}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <select className="field max-w-72" value={exp?.id ?? ""} onChange={(e) => setSelected(e.target.value)} aria-label="Experience">
           {experiences.map((e) => <option key={e.id} value={e.id}>{e.card}</option>)}
