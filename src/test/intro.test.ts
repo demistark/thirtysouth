@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { capeTownDay, claimIntroDay, inIntroWindow, INTRO_DAY_KEY, INTRO_WINDOW, isCleanTap, shouldPlayIntro } from "@/lib/intro";
+import { describe, expect, it, vi } from "vitest";
+import { capeTownDay, claimIntroDay, inIntroWindow, INTRO_BOOTSTRAP, INTRO_DAY_KEY, INTRO_WINDOW, isCleanTap, shouldPlayIntro } from "@/lib/intro";
 
 function mem() {
   const m = new Map<string, string>();
@@ -34,6 +34,32 @@ describe("intro decision", () => {
     expect(claimIntroDay(s, "2026-11-24")).toBe(false);
     expect(s.writes).toBe(1);
     expect(claimIntroDay(s, "2026-11-25")).toBe(true);
+  });
+
+  it("replay bypasses the daily claim only for host + during", () => {
+    const replay = { ...base, replay: true, firstOfDay: false, isHost: true };
+    expect(shouldPlayIntro(replay)).toBe(true);
+    expect(shouldPlayIntro({ ...replay, isHost: false })).toBe(false);
+    expect(shouldPlayIntro({ ...replay, phase: "before" })).toBe(false);
+    expect(shouldPlayIntro({ ...replay, phase: "after" })).toBe(false);
+    expect(shouldPlayIntro({ ...replay, reducedMotion: true })).toBe(false);
+    expect(shouldPlayIntro({ ...replay, pathname: "/travel" })).toBe(false);
+  });
+
+  it.each(["2026-11-06", "2026-12-01"])("replay bootstraps outside the window on %s without touching the day flag", (today) => {
+    const getItem = vi.fn(() => "2026-11-24");
+    const setItem = vi.fn();
+    const setAttribute = vi.fn();
+    const win: { __30sIntro?: boolean } = {};
+    const format = vi.fn(() => today);
+    const run = new Function("location", "matchMedia", "window", "document", "localStorage", "Intl", INTRO_BOOTSTRAP);
+    run({ pathname: "/", search: "?intro=replay" }, () => ({ matches: false }), win,
+      { documentElement: { setAttribute } }, { getItem, setItem }, { DateTimeFormat: function () { return { format }; } });
+    expect(win.__30sIntro).toBe(true);
+    expect(setAttribute).toHaveBeenCalledWith("data-intro", "pending");
+    expect(getItem).not.toHaveBeenCalled();
+    expect(setItem).not.toHaveBeenCalled();
+    expect(format).not.toHaveBeenCalled();
   });
 
   it("does not play when storage is unavailable", () => {
