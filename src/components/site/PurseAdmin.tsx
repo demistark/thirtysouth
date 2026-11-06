@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { SubTabs } from "@/components/site/Blocks";
 import { supabase } from "@/integrations/supabase/client";
 import { useContent } from "@/lib/data";
@@ -73,6 +74,10 @@ function ExperiencesPanel() {
   });
   const [editing, setEditing] = useState<(Experience & { id: string }) | null>(null);
   const [form, setForm] = useState<ExpForm>(emptyExp);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmingId, setConfirmingId] = useState<string>();
+  const [confirmingBulk, setConfirmingBulk] = useState(false);
+  const [removing, setRemoving] = useState(false);
 
   useEffect(() => {
     setForm(
@@ -90,6 +95,12 @@ function ExperiencesPanel() {
 
   const experiences = q.data?.experiences ?? [];
   const scenes = q.data?.scenes ?? [];
+  const selectedIds = experiences.filter((e) => selected.has(e.id)).map((e) => e.id);
+  const allSelected = experiences.length > 0 && selectedIds.length === experiences.length;
+  const toggleSelected = (id: string, on: boolean) => {
+    setSelected((prev) => { const next = new Set(prev); if (on) next.add(id); else next.delete(id); return next; });
+    setConfirmingBulk(false);
+  };
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,11 +140,20 @@ function ExperiencesPanel() {
     await refresh();
   };
 
-  const remove = async (exp: Experience & { id: string }) => {
-    if (!confirm(`Remove "${exp.card}"? Its RSVPs go with it.`)) return;
-    const { error } = await supabase.from("experiences").delete().eq("id", exp.id);
-    if (error) { toast.error(error.message); return; }
-    await refresh();
+  const remove = async (ids: string[]) => {
+    if (removing || ids.length === 0) return;
+    setRemoving(true);
+    try {
+      const { error } = await supabase.from("experiences").delete().in("id", ids);
+      if (error) throw error;
+      setConfirmingId(undefined);
+      setConfirmingBulk(false);
+      setSelected((prev) => { const next = new Set(prev); ids.forEach((id) => next.delete(id)); return next; });
+      if (editing && ids.includes(editing.id)) setEditing(null);
+      await refresh();
+      toast.success(t("purse.admin.deleted"));
+    } catch { toast.error(t("admin.itin.error")); }
+    finally { setRemoving(false); }
   };
 
   const commit = async (rows: ExperienceImportRow[]) => {
@@ -190,6 +210,7 @@ function ExperiencesPanel() {
         filename="experiences"
         parse={(csv) => parseExperiencesCsv(csv, experiences, scenes.map((s) => s.title))}
         commit={commit}
+        hint={t("purse.admin.import_hint")}
       />
       <div className="flex justify-end">
         <button className="btn-pill" onClick={exportCsv}>{t("admin.purse.export")}</button>
@@ -243,20 +264,46 @@ function ExperiencesPanel() {
         </div>
       </form>
 
+      {experiences.length > 0 && <div className="flex flex-wrap items-center justify-between gap-3">
+        <label className="label-caps flex items-center gap-2">
+          <input type="checkbox" disabled={removing} checked={allSelected} onChange={(event) => {
+            setSelected(event.target.checked ? new Set(experiences.map((e) => e.id)) : new Set());
+            setConfirmingBulk(false);
+          }} />{t("purse.admin.select_all")}
+        </label>
+        {selectedIds.length > 0 && (confirmingBulk ? (
+          <span className="flex flex-wrap items-center gap-3">
+            <span className="caption-serif">{t("purse.admin.delete_selected_confirm").replace("{n}", String(selectedIds.length))}</span>
+            <Button variant="pill" disabled={removing} onClick={() => void remove(selectedIds)}>{t("purse.admin.delete")}</Button>
+            <Button variant="pill" disabled={removing} onClick={() => setConfirmingBulk(false)}>{t("purse.admin.keep")}</Button>
+          </span>
+        ) : (
+          <Button variant="pill" disabled={removing} onClick={() => { setConfirmingId(undefined); setConfirmingBulk(true); }}>{t("purse.admin.delete_selected")} ({selectedIds.length})</Button>
+        ))}
+      </div>}
       <ul className="divide-y border-y">
         {experiences.map((e) => (
           <li key={e.id} className="flex flex-wrap items-center gap-3 py-3">
+            <input type="checkbox" disabled={removing} aria-label={t("purse.admin.select").replace("{card}", e.card)} checked={selected.has(e.id)} onChange={(event) => toggleSelected(e.id, event.target.checked)} />
             <div className="min-w-0 flex-1">
               <p className="font-display-light text-lg">
                 {e.card} <span className="text-sm text-muted-foreground">· {e.level}{e.rank ? ` · ${e.rank}` : ""}{e.visible ? "" : " · hidden"}</span>
               </p>
               <p className="truncate text-xs text-muted-foreground">{e.when_text}{e.price_zar != null ? ` · R${e.price_zar}` : ""} · {e.rsvp_mode}</p>
             </div>
-            <button className="btn-pill !px-3 !py-1.5" onClick={() => move(e, -1)} aria-label={`Move ${e.card} up`}>↑</button>
-            <button className="btn-pill !px-3 !py-1.5" onClick={() => move(e, 1)} aria-label={`Move ${e.card} down`}>↓</button>
-            <button className="btn-pill !px-3 !py-1.5" onClick={() => toggleVisible(e)}>{e.visible ? "Hide" : "Show"}</button>
-            <button className="btn-pill !px-3 !py-1.5" onClick={() => setEditing(e)}>Edit</button>
-            <button className="btn-pill !px-3 !py-1.5" onClick={() => remove(e)}>Remove</button>
+            {confirmingId === e.id ? (
+              <span className="flex flex-wrap items-center gap-3">
+                <span className="caption-serif">{t("purse.admin.remove_confirm")}</span>
+                <Button variant="pill" disabled={removing} onClick={() => void remove([e.id])}>{t("purse.admin.remove")}</Button>
+                <Button variant="pill" disabled={removing} onClick={() => setConfirmingId(undefined)}>{t("purse.admin.keep")}</Button>
+              </span>
+            ) : <>
+              <Button variant="pill" className="!px-3 !py-1.5" disabled={removing} onClick={() => move(e, -1)} aria-label={`Move ${e.card} up`}>↑</Button>
+              <Button variant="pill" className="!px-3 !py-1.5" disabled={removing} onClick={() => move(e, 1)} aria-label={`Move ${e.card} down`}>↓</Button>
+              <Button variant="pill" className="!px-3 !py-1.5" disabled={removing} onClick={() => toggleVisible(e)}>{e.visible ? "Hide" : "Show"}</Button>
+              <Button variant="pill" className="!px-3 !py-1.5" disabled={removing} onClick={() => setEditing(e)}>Edit</Button>
+              <Button variant="pill" className="!px-3 !py-1.5" disabled={removing} onClick={() => { setConfirmingBulk(false); setConfirmingId(e.id); }}>{t("purse.admin.remove")}</Button>
+            </>}
           </li>
         ))}
       </ul>
@@ -266,9 +313,10 @@ function ExperiencesPanel() {
 
 /* ---------- shared CSV box (same pattern as Travel) ---------- */
 
-function CsvBox<T>({ columns, filename, parse, commit }: {
+function CsvBox<T>({ columns, filename, parse, commit, hint }: {
   columns: readonly string[]; filename: string;
   parse: (csv: string) => ImportResult<T>; commit: (rows: T[]) => Promise<void>;
+  hint?: string;
 }) {
   const { t } = useContent();
   const input = useRef<HTMLInputElement>(null);
@@ -296,6 +344,7 @@ function CsvBox<T>({ columns, filename, parse, commit }: {
         <button className="btn-pill" onClick={() => input.current?.click()}>{t("admin.itin.import")}</button>
         <input ref={input} type="file" accept=".csv,text/csv" className="hidden" aria-label={t("admin.itin.import")} onChange={(e) => { const f = e.target.files?.[0]; if (f) void pick(f); }} />
       </div>
+      {hint && <p className="caption-serif">{hint}</p>}
       {result && (
         <div className="border bg-card p-4 text-sm">
           {result.errors.length ? (
