@@ -41,7 +41,7 @@ vi.mock("@/components/site/JournalHeart", () => ({ JournalHeart: () => <div>hear
 vi.mock("@/components/site/JournalReflections", () => ({ JournalReflections: () => <div>reflections-content</div> }));
 vi.mock("@/components/site/ItineraryDays", () => ({ ItineraryDays: () => <div>days-content</div> }));
 vi.mock("@/components/site/ItineraryScript", () => ({ ItineraryScript: () => <div>script-content</div> }));
-vi.mock("@/lib/purse-data", () => ({ useExperiences: () => ({ data: [] }), useExperienceScenes: () => ({ data: [] }), useExperienceRsvps: () => ({ data: [] }) }));
+vi.mock("@/lib/purse-data", () => ({ useExperiences: () => ({ data: [] }), useExperienceScenes: () => ({ data: [] }), useExperienceRsvps: () => ({ data: [] }), usePurseSettings: () => ({ data: undefined, isPending: false }) }));
 vi.mock("@/lib/itinerary-data", () => ({ useScenes: () => ({ data: [], isPending: false }), useLooks: () => ({ data: [], isPending: false }), usePhotoUrls: () => ({ data: {} }) }));
 vi.mock("@/lib/itinerary-display-data", () => ({ useItineraryDisplay: () => ({ data: undefined, isPending: false }) }));
 vi.mock("@/lib/journal-data", () => ({ useMyGuestId: () => ({ data: null }) }));
