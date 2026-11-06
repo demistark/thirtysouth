@@ -63,9 +63,9 @@ const saveQueues = new Map<string, Promise<unknown>>();
  * Serialises RSVP saves per experience: a new tap while one is in flight waits for it,
  * so only the last tap is what the person ends up with. Returns the task's result.
  */
-export function queueRsvpSave<T>(experienceId: string, task: () => Promise<T>): Promise<T> {
+export function queueRsvpSave<T>(experienceId: string, task: () => PromiseLike<T>): Promise<T> {
   const prev = saveQueues.get(experienceId) ?? Promise.resolve();
-  const next = prev.catch(() => undefined).then(task);
+  const next = prev.catch(() => undefined).then(() => task());
   saveQueues.set(experienceId, next);
   const cleanup = () => { if (saveQueues.get(experienceId) === next) saveQueues.delete(experienceId); };
   void next.then(cleanup, cleanup);

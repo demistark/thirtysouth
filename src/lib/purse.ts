@@ -298,7 +298,12 @@ export function readRsvpDraft(
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<RsvpDraft>;
     if (typeof parsed.savedAt !== "number" || nowMs - parsed.savedAt > RSVP_DRAFT_MAX_AGE_MS) return null;
-    const open = new Set(flowSteps(experiences, rsvps, guestId));
+    const open = new Set(
+      experiences
+        .filter((e) => e.visible && e.rsvp_mode === "must_reply" && e.level !== "group"
+          && !rsvps.some((r) => r.experience_id === e.id && r.guest_id === guestId))
+        .map((e) => e.id),
+    );
     const answers: Record<string, RsvpAnswer> = {};
     for (const [id, a] of Object.entries(parsed.answers ?? {})) {
       if (!open.has(id)) continue;
