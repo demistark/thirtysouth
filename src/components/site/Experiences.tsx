@@ -10,12 +10,12 @@ import { useScenes } from "@/lib/itinerary-data";
 import { useItineraryDisplay } from "@/lib/itinerary-display-data";
 import { canEditPurse, isTripParticipant } from "@/lib/locked-areas";
 import {
-  capeTownNow, choiceList, effectiveStatus, experienceExpandable, formatDeadline,
+  capeTownNow, choiceList, deadlineUpcoming, effectiveStatus, experienceExpandable, formatDeadline,
   formatWhenList, priceLineParts, rsvpCounts, rsvpOpen,
   type Experience, type ExperienceRsvp, type PurseCurrency, type RsvpStatus,
 } from "@/lib/purse";
 import {
-  useExperienceRsvps, useExperienceScenes, useExperiences, useParticipantDirectory, usePurseSettings,
+  queueRsvpSave, useExperienceRsvps, useExperienceScenes, useExperiences, useParticipantDirectory, usePurseSettings,
   type PurseSettings,
 } from "@/lib/purse-data";
 import { useMyGuest } from "@/lib/travel-data";
@@ -77,7 +77,7 @@ export function Experiences({ currency }: { currency: PurseCurrency }) {
     related: relatedQ.data ?? [],
     rsvps: rsvpsQ.data ?? [],
     participants: partsQ.data ?? [],
-    settings: settingsQ.data ?? { zarPerUsd: 16.5, showNames: true, globalLock: false },
+    settings: settingsQ.data ?? { zarPerUsd: 16.5, showNames: true, globalLock: false, showTotal: false },
     myGuestId: myGuestQ.data ?? null,
     participant: isTripParticipant(roles),
     editor: canEditPurse(roles),
@@ -193,54 +193,57 @@ function RsvpBlock({ exp, ctx, myRsvp, status, counts }: {
   const [choice, setChoice] = useState(myRsvp?.choice ?? "");
   const [pendingGoing, setPendingGoing] = useState(false);
   const choices = choiceList(exp.choices);
-  const open = rsvpOpen(exp.rsvp_deadline, ctx.settings.globalLock, ctx.nowCpt);
+  const open = rsvpOpen(ctx.settings.globalLock);
   const locked = !open && !ctx.editor;
-  const options: RsvpStatus[] = exp.rsvp_mode === "must_reply" ? ["going", "maybe", "not_going"] : ["going", "not_going"];
+  const options: RsvpStatus[] = ["going", "not_going"];
   const shownStatus = pendingGoing ? "going" : status;
 
   const save = async (next: RsvpStatus, nextChoice: string | null) => {
-    if (!ctx.myGuestId || !exp.id) return;
+    if (!exp.id) return;
+    if (!ctx.myGuestId) { toast.error(t("purse.no_guest")); return; }
+    const guestId = ctx.myGuestId;
     const key = ["purse", "rsvps"];
-    const prev = qc.getQueryData<ExperienceRsvp[]>(key);
-    qc.setQueryData<ExperienceRsvp[]>(key, [
-      ...(prev ?? []).filter((r) => !(r.experience_id === exp.id && r.guest_id === ctx.myGuestId)),
-      { experience_id: exp.id, guest_id: ctx.myGuestId!, status: next, choice: nextChoice },
+    qc.setQueryData<ExperienceRsvp[]>(key, (prev) => [
+      ...(prev ?? []).filter((r) => !(r.experience_id === exp.id && r.guest_id === guestId)),
+      { experience_id: exp.id!, guest_id: guestId, status: next, choice: nextChoice },
     ]);
-    const { error } = await supabase.from("experience_rsvps").upsert(
-      { experience_id: exp.id, guest_id: ctx.myGuestId, status: next, choice: nextChoice },
-      { onConflict: "experience_id,guest_id" },
-    );
+    const { error } = await queueRsvpSave(exp.id, () =>
+      supabase.from("experience_rsvps").upsert(
+        { experience_id: exp.id!, guest_id: guestId, status: next, choice: nextChoice },
+        { onConflict: "experience_id,guest_id" },
+      ));
     if (error) {
-      qc.setQueryData(key, prev);
       toast.error(t("purse.error_closed"));
     } else {
       toast.success(t("purse.saved"));
     }
+    // Whether the save worked or failed, show the server's truth once the queue settles.
+    await qc.invalidateQueries({ queryKey: key });
   };
 
   const pick = (next: RsvpStatus) => {
     if (locked || !ctx.participant) return;
+    if (next === "not_going") setChoice("");
     if (next === "going" && choices.length > 0 && !choice) {
       setPendingGoing(true);
       toast.message(t("purse.choice_required"));
       return;
     }
     setPendingGoing(false);
-    void save(next, choices.length ? choice || null : null);
+    void save(next, next === "not_going" ? null : choices.length ? choice || null : null);
   };
 
   const pickChoice = (value: string) => {
     setChoice(value);
     if (locked || !ctx.participant) return;
-    if (shownStatus === "going" || shownStatus === "maybe") {
+    if (shownStatus === "going") {
       setPendingGoing(false);
-      void save(shownStatus, value || null);
+      void save("going", value || null);
     }
   };
 
   const summaryParts = [
     counts.going > 0 ? `${counts.going} ${t("purse.rsvp_summary.going")}` : "",
-    counts.maybe > 0 ? `${counts.maybe} ${t("purse.rsvp_summary.maybe")}` : "",
     counts.not_going > 0 ? `${counts.not_going} ${t("purse.rsvp_summary.not_going")}` : "",
     counts.awaiting > 0 ? `${counts.awaiting} ${t("purse.rsvp_summary.awaiting")}` : "",
   ].filter(Boolean);
