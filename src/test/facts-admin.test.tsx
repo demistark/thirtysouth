@@ -32,7 +32,7 @@ function renderAdmin() {
 }
 
 function rowOf(text: string) {
-  const checkbox = screen.getByLabelText(text);
+  const checkbox = screen.getByRole("checkbox", { name: text });
   const row = checkbox.closest("li");
   if (!row) throw new Error("row not found");
   return { row: within(row), checkbox };
@@ -47,12 +47,12 @@ describe("FactsAdmin single delete", () => {
   it("asks inline, Keep cancels, Delete removes the row", async () => {
     renderAdmin();
     const { row } = rowOf(await screen.findByText("Fact one"));
-    row.getByText("facts.delete").click();
+    fireEvent.click(row.getByText("facts.delete"));
     expect(row.getByText("facts.delete_confirm")).toBeInTheDocument();
-    row.getByText("facts.keep").click();
+    fireEvent.click(row.getByText("facts.keep"));
     expect(row.queryByText("facts.delete_confirm")).toBeNull();
     expect(state.deleted).toEqual([]);
-    row.getByText("facts.delete").click();
+    fireEvent.click(row.getByText("facts.delete"));
     row.getByText("facts.delete_confirm");
     const confirmButtons = row.getAllByText("facts.delete");
     fireEvent.click(confirmButtons[confirmButtons.length - 1]!);
@@ -70,17 +70,17 @@ describe("FactsAdmin single delete", () => {
 });
 
 describe("FactsAdmin bulk delete", () => {
-  it("ticks, select all, the confirm step, and Keep cancels", async () => {
+  it("ticks, the confirm step, and Keep cancels", async () => {
     renderAdmin();
     await screen.findByText("Fact one");
     expect(screen.queryByText(/facts.delete_selected/)).toBeNull();
-    rowOf("Fact one").checkbox.click();
-    rowOf("Fact three").checkbox.click();
+    fireEvent.click(rowOf("Fact one").checkbox);
+    fireEvent.click(rowOf("Fact three").checkbox);
     const bulk = screen.getByText(/facts.delete_selected/);
     expect(bulk.textContent).toContain("(2)");
-    bulk.click();
+    fireEvent.click(bulk);
     expect(screen.getByText("facts.delete_selected_confirm")).toBeInTheDocument();
-    screen.getByText("facts.keep").click();
+    fireEvent.click(screen.getByText("facts.keep"));
     expect(screen.queryByText("facts.delete_selected_confirm")).toBeNull();
     expect(state.deleted).toEqual([]);
   });
@@ -88,11 +88,11 @@ describe("FactsAdmin bulk delete", () => {
   it("select all ticks every row and Delete removes them in one request", async () => {
     renderAdmin();
     await screen.findByText("Fact one");
-    screen.getByLabelText("facts.select_all").click();
+    fireEvent.click(screen.getByRole("checkbox", { name: "facts.select_all" }));
     expect(rowOf("Fact one").checkbox).toBeChecked();
     expect(rowOf("Fact two").checkbox).toBeChecked();
     expect(rowOf("Fact three").checkbox).toBeChecked();
-    screen.getByText(/facts.delete_selected/).click();
+    fireEvent.click(screen.getByText(/facts.delete_selected/));
     screen.getByText("facts.delete_selected_confirm");
     const confirm = screen.getAllByText("facts.delete");
     fireEvent.click(confirm[confirm.length - 1]!);
