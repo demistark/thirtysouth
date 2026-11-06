@@ -55,7 +55,12 @@ vi.mock("@/lib/auth", () => ({
     isFriend: true,
   }),
 }));
-vi.mock("@/lib/data", () => ({ useContent: () => ({ t: (key: string) => key }) }));
+vi.mock("@/lib/data", () => ({
+  useContent: () => ({
+    t: (key: string) =>
+      ({ "home.rsvp_waiting_one": "1 RSVP to complete", "home.rsvp_waiting_other": "{n} RSVPs to complete" })[key] ?? key,
+  }),
+}));
 vi.mock("@/lib/trip-clock", () => ({
   useTripClock: () => ({ now: new Date("2026-11-01T10:00:00Z"), phase: "before", settings: { timezone: "Africa/Johannesburg" } }),
 }));
@@ -240,12 +245,11 @@ describe("RSVP flow", () => {
     expect(screen.getByRole("button", { name: "purse.flow.retry" })).toBeInTheDocument();
     expect(screen.getByText("Card e1")).toBeInTheDocument(); // answers still listed
   });
-  it("shows the closed message when the global lock is on at save time", async () => {
+  it("shows the closed message when the global lock turns on while the flow is open", async () => {
     state.upsertError = true;
-    state.settings["rsvp_global_lock"] = "true";
-    state.roles = ["host"]; // editors are never locked, so the flow can open
     await openFlow();
     answer("going"); next(); answer("going"); next(); answer("going"); next(); answer("going"); next();
+    state.settings["rsvp_global_lock"] = "true"; // the host locks replies mid-flow
     fireEvent.click(screen.getByRole("button", { name: "purse.flow.save" }));
     expect(await screen.findByText("purse.banner.closed")).toBeInTheDocument();
   });
