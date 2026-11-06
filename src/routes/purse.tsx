@@ -41,6 +41,20 @@ function Purse() {
     setCurrency(c);
     storePurseCurrency(c, null);
   };
+  if (loading) {
+    return (
+      <PageShell titleKey="purse.title" introKey="purse.intro">
+        <div className={`min-h-80 ${PURSE_LOCKOUT_TONE}`} />
+      </PageShell>
+    );
+  }
+  if (!session) {
+    return (
+      <PageShell titleKey="purse.title" introKey="purse.intro">
+        <FactLockout tone={PURSE_LOCKOUT_TONE} />
+      </PageShell>
+    );
+  }
   return (
     <PageShell titleKey="purse.title" introKey="purse.intro">
       <SubTabs
@@ -49,9 +63,7 @@ function Purse() {
         onChange={setTab}
         trailing={showCurrencyToggle(current) ? <CurrencyToggle value={currency} onChange={pickCurrency} /> : null}
       />
-      {loading ? (
-        <div className="min-h-80 bg-tint-ember" />
-      ) : !allowed ? (
+      {!allowed ? (
         <PurseLockout />
       ) : current === "experiences" ? (
         <>
