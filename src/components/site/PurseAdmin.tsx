@@ -9,6 +9,7 @@ import { CSV_MAX_BYTES, type ImportResult, type RowError } from "@/lib/itinerary
 import type { Scene } from "@/lib/itinerary";
 import {
   EXPERIENCE_CSV_COLUMNS, effectiveStatus, exportExperiencesCsv, parseExperiencesCsv,
+  unfinishedByGuest, whatsAppUrl,
   type Experience, type ExperienceImportRow, type ExperienceRsvp, type RsvpStatus,
 } from "@/lib/purse";
 import { useParticipantDirectory } from "@/lib/purse-data";
@@ -244,7 +245,10 @@ function ExperiencesPanel() {
         <F label="Choices (; separated)"><input className="field" value={form.choices} onChange={(e) => setForm({ ...form, choices: e.target.value })} /></F>
         <F label="When"><input className="field" value={form.when_text} onChange={(e) => setForm({ ...form, when_text: e.target.value })} placeholder="Fri Nov 27" /></F>
         <F label="Location"><input className="field" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></F>
-        <TripTimeInput label={t("time.rsvp.label")} value={form.rsvp_deadline} onChange={(value) => setForm({ ...form, rsvp_deadline: value })} />
+        <div>
+          <TripTimeInput label={t("time.rsvp.label")} value={form.rsvp_deadline} onChange={(value) => setForm({ ...form, rsvp_deadline: value })} />
+          <p className="mt-1 text-xs text-muted-foreground">{t("admin.purse.deadline_hint")}</p>
+        </div>
         <F label="Summary" wide><textarea className="field min-h-16" value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} /></F>
         <F label="Details" wide><textarea className="field min-h-24" value={form.details} onChange={(e) => setForm({ ...form, details: e.target.value })} /></F>
         <F label="Price (ZAR)"><input className="field" inputMode="numeric" value={form.price_zar} onChange={(e) => setForm({ ...form, price_zar: e.target.value })} /></F>
@@ -392,6 +396,9 @@ function RsvpsPanel() {
   });
   const partsQ = useParticipantDirectory(true);
   const [selected, setSelected] = useState("");
+  const [clearing, setClearing] = useState(false);
+  const [clearText, setClearText] = useState("");
+  const [clearBusy, setClearBusy] = useState(false);
 
   const experiences = (expsQ.data ?? []).filter((e) => e.rsvp_mode !== "none");
   const exp = experiences.find((e) => e.id === selected) ?? experiences[0];
@@ -400,6 +407,19 @@ function RsvpsPanel() {
   const rsvps = (rsvpsQ.data ?? []).filter((r) => r.experience_id === exp?.id && names.has(r.guest_id));
   const answered = new Set(rsvps.map((r) => r.guest_id));
   const awaiting = exp?.rsvp_mode === "must_reply" ? participants.filter((p) => !answered.has(p.id)) : [];
+  const unfinished = unfinishedByGuest(expsQ.data ?? [], rsvpsQ.data ?? [], participants);
+
+  const clearAll = async () => {
+    if (clearBusy || clearText.trim().toUpperCase() !== "CLEAR") return;
+    setClearBusy(true);
+    const { error } = await supabase.from("experience_rsvps").delete().not("guest_id", "is", null);
+    setClearBusy(false);
+    if (error) { toast.error(t("admin.itin.error")); return; }
+    setClearing(false);
+    setClearText("");
+    await refresh();
+    toast.success(t("admin.purse.clear_all_done"));
+  };
 
   const setRsvp = async (guestId: string, status: string) => {
     if (!exp?.id) return;
@@ -431,8 +451,37 @@ function RsvpsPanel() {
   if (expsQ.isPending) return <div className="h-48 border bg-card" />;
   if (!experiences.length) return <p className="py-12 text-center text-sm">No experiences with RSVPs yet.</p>;
 
+  const purseLink = `${window.location.origin}/purse`;
+
   return (
     <div className="space-y-8">
+      <div className="border bg-card p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="label-caps text-ember-deep">{t("admin.purse.unfinished_title")}</p>
+          <div className="flex flex-wrap gap-2">
+            <a className="btn-pill" href={whatsAppUrl(t("admin.purse.whatsapp_default"), purseLink)} target="_blank" rel="noopener">
+              {t("admin.purse.whatsapp")}
+            </a>
+            {exp?.rsvp_mode === "must_reply" && (
+              <a className="btn-pill" href={whatsAppUrl(t("admin.purse.whatsapp_exp_text"), purseLink, exp.card)} target="_blank" rel="noopener">
+                {t("admin.purse.whatsapp_exp")}
+              </a>
+            )}
+          </div>
+        </div>
+        {unfinished.length === 0 ? (
+          <p className="caption-serif mt-2">{t("admin.purse.all_done")}</p>
+        ) : (
+          <ul className="mt-2 space-y-1 text-sm">
+            {unfinished.map((g) => (
+              <li key={g.id}>
+                {g.display_name} · {t("admin.purse.unfinished_left").replace("{n}", String(g.left)).replace("{total}", String(g.total))}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <select className="field max-w-72" value={exp?.id ?? ""} onChange={(e) => setSelected(e.target.value)} aria-label="Experience">
           {experiences.map((e) => <option key={e.id} value={e.id}>{e.card}</option>)}
@@ -465,13 +514,36 @@ function RsvpsPanel() {
               >
                 <option value="">{shown === "awaiting" ? "Awaiting" : "No reply"}</option>
                 <option value="going">Going</option>
-                <option value="maybe">Maybe</option>
                 <option value="not_going">Not going</option>
               </select>
             </li>
           );
         })}
       </ul>
+
+      <div className="border-t pt-6">
+        {clearing ? (
+          <div className="space-y-3">
+            <p className="caption-serif">{t("admin.purse.clear_all_confirm")}</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                className="field max-w-40"
+                value={clearText}
+                onChange={(e) => setClearText(e.target.value)}
+                aria-label={t("admin.purse.clear_all")}
+              />
+              <Button variant="pill" disabled={clearBusy || clearText.trim().toUpperCase() !== "CLEAR"} onClick={() => void clearAll()}>
+                {t("admin.purse.clear_all")}
+              </Button>
+              <Button variant="pill" disabled={clearBusy} onClick={() => { setClearing(false); setClearText(""); }}>
+                {t("purse.admin.keep")}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button variant="pill" onClick={() => setClearing(true)}>{t("admin.purse.clear_all")}</Button>
+        )}
+      </div>
     </div>
   );
 }
@@ -485,7 +557,7 @@ function PurseSettingsPanel() {
     queryKey: ["admin", "purse-settings"],
     queryFn: async () => {
       const [s, c] = await Promise.all([
-        supabase.from("settings").select("key,value").in("key", ["zar_per_usd", "rsvp_show_names", "rsvp_global_lock"]),
+        supabase.from("settings").select("key,value").in("key", ["zar_per_usd", "rsvp_show_names", "rsvp_global_lock", "rsvp_show_total"]),
         supabase.from("site_content").select("key,value").in("key", ["host_note_instead_of_price", "purse_experiences_deck"]),
       ]);
       if (s.error) throw s.error;
@@ -506,6 +578,7 @@ function PurseSettingsPanel() {
       { key: "zar_per_usd", value: f["zar_per_usd"] || "16.5" },
       { key: "rsvp_show_names", value: f["rsvp_show_names"] === "true" ? "true" : "false" },
       { key: "rsvp_global_lock", value: f["rsvp_global_lock"] === "true" ? "true" : "false" },
+      { key: "rsvp_show_total", value: f["rsvp_show_total"] === "true" ? "true" : "false" },
     ];
     const contentRows = [
       { key: "host_note_instead_of_price", value: f["host_note_instead_of_price"] ?? "" },
@@ -531,6 +604,10 @@ function PurseSettingsPanel() {
       <label className="flex items-center gap-3 text-sm">
         <input type="checkbox" checked={f["rsvp_global_lock"] === "true"} onChange={(e) => setF({ ...f, rsvp_global_lock: e.target.checked ? "true" : "false" })} />
         {t("admin.purse.global_lock")}
+      </label>
+      <label className="flex items-center gap-3 text-sm">
+        <input type="checkbox" checked={f["rsvp_show_total"] === "true"} onChange={(e) => setF({ ...f, rsvp_show_total: e.target.checked ? "true" : "false" })} />
+        {t("admin.purse.show_total")}
       </label>
       <F label="Host note (shown instead of a price)" wide>
         <textarea className="field min-h-16" value={f["host_note_instead_of_price"] ?? ""} onChange={(e) => setF({ ...f, host_note_instead_of_price: e.target.value })} />

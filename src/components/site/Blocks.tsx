@@ -65,14 +65,17 @@ export function SubTabs<T extends string>({
   value,
   onChange,
   trailing,
+  flush,
 }: {
   tabs: { id: T; label: string }[];
   value: T;
   onChange: (v: T) => void;
   trailing?: ReactNode;
+  /** Removes the bottom margin; used when a tight row follows the tab hairline. */
+  flush?: boolean;
 }) {
   return (
-    <div className="mb-8 flex gap-6 overflow-x-auto shadow-[inset_0_-1px_0_var(--color-border)]" role="tablist">
+    <div className={cn("flex gap-6 overflow-x-auto shadow-[inset_0_-1px_0_var(--color-border)]", flush ? "mb-0" : "mb-8")} role="tablist">
       {tabs.map((tab) => (
         <Button variant="ghost"
           key={tab.id}

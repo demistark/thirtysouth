@@ -2,7 +2,7 @@ import Papa from "papaparse";
 import { CSV_MAX_ROWS, type ImportResult, type RowError } from "./itinerary";
 
 export type RsvpMode = "must_reply" | "default_going" | "none";
-export type RsvpStatus = "going" | "maybe" | "not_going";
+export type RsvpStatus = "going" | "not_going";
 export type ExperienceLevel = "big" | "group" | "sub";
 export type PriceStatus = "published" | "estimate" | "confirmed";
 
@@ -42,7 +42,7 @@ export function effectiveStatus(exp: Pick<Experience, "rsvp_mode">, rsvp: Pick<E
   return exp.rsvp_mode === "default_going" ? "going" : "unconfirmed";
 }
 
-export interface RsvpCounts { going: number; maybe: number; not_going: number; awaiting: number }
+export interface RsvpCounts { going: number; not_going: number; awaiting: number }
 
 /** Counts cover participants only — never honorary guests or friends afar. */
 export function rsvpCounts(
@@ -56,7 +56,6 @@ export function rsvpCounts(
   const noRow = participantIds.filter((id) => !answered.has(id)).length;
   return {
     going: byStatus("going") + (exp.rsvp_mode === "default_going" ? noRow : 0),
-    maybe: byStatus("maybe"),
     not_going: byStatus("not_going"),
     awaiting: exp.rsvp_mode === "must_reply" ? noRow : 0,
   };
@@ -185,11 +184,14 @@ export function needsReplyCount(
   ).length;
 }
 
-/** RSVP writes close at the deadline (Cape Town local) or under the global lock. */
-export function rsvpOpen(deadline: string | null | undefined, globalLock: boolean, nowCpt: string) {
-  if (globalLock) return false;
-  if (!deadline) return true;
-  return deadline > nowCpt;
+/** RSVP writes close only under the host's global lock; deadlines are reminders. */
+export function rsvpOpen(globalLock: boolean) {
+  return !globalLock;
+}
+
+/** A deadline is shown as a reminder only while it is still in the future. */
+export function deadlineUpcoming(deadline: string | null | undefined, nowCpt: string) {
+  return !!deadline && deadline > nowCpt;
 }
 
 /** Current Cape Town wall time as "YYYY-MM-DD HH:MM", comparable to stored deadlines. */
@@ -206,6 +208,154 @@ export function formatDeadline(deadline: string) {
   const [d] = deadline.split(" ");
   const [y = 1970, m = 1, day = 1] = (d ?? "").split("-").map(Number);
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, day)));
+}
+
+/* ---------------- RSVP flow ("Come to everything!") ---------------- */
+
+export interface RsvpAnswer { status: RsvpStatus; choice: string | null }
+
+/** Steps of the reply flow: unanswered, visible, non-group must-reply cards in date order. */
+export function flowSteps(
+  experiences: Pick<Experience, "id" | "rsvp_mode" | "level" | "visible" | "sort_order">[],
+  rsvps: Pick<ExperienceRsvp, "experience_id" | "guest_id">[],
+  myGuestId: string | null | undefined,
+): string[] {
+  if (!myGuestId) return [];
+  return experiences
+    .filter((e) => e.visible && e.rsvp_mode === "must_reply" && e.level !== "group"
+      && !rsvps.some((r) => r.experience_id === e.id && r.guest_id === myGuestId))
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((e) => e.id!);
+}
+
+/** Visible, non-group default-going experiences the guest has not answered. */
+export function alsoGoingList(
+  experiences: Pick<Experience, "id" | "rsvp_mode" | "level" | "visible" | "sort_order" | "card">[],
+  rsvps: Pick<ExperienceRsvp, "experience_id" | "guest_id">[],
+  myGuestId: string | null | undefined,
+): string[] {
+  if (!myGuestId) return [];
+  return experiences
+    .filter((e) => e.visible && e.rsvp_mode === "default_going" && e.level !== "group"
+      && !rsvps.some((r) => r.experience_id === e.id && r.guest_id === myGuestId))
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((e) => e.card);
+}
+
+/**
+ * Running total in ZAR: the person's Going answers in the flow plus the default-going
+ * experiences they have not answered. Experiences with no price add nothing.
+ */
+export function runningTotalZar(
+  experiences: Pick<Experience, "id" | "rsvp_mode" | "level" | "visible" | "price_zar">[],
+  answers: Readonly<Record<string, RsvpAnswer>>,
+  rsvps: Pick<ExperienceRsvp, "experience_id" | "guest_id">[],
+  myGuestId: string | null | undefined,
+): number {
+  if (!myGuestId) return 0;
+  let total = 0;
+  for (const e of experiences) {
+    if (!e.visible || e.level === "group" || e.price_zar == null) continue;
+    const answer = answers[e.id!];
+    if (answer) {
+      if (answer.status === "going") total += e.price_zar;
+      continue;
+    }
+    const mine = rsvps.some((r) => r.experience_id === e.id && r.guest_id === myGuestId);
+    if (!mine && e.rsvp_mode === "default_going") total += e.price_zar;
+  }
+  return total;
+}
+
+/* ---------------- on-device draft ---------------- */
+
+export const RSVP_DRAFT_PREFIX = "30s-rsvp-draft:";
+export const RSVP_DRAFT_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
+
+export interface RsvpDraft { answers: Record<string, RsvpAnswer>; step: number; savedAt: number }
+
+type DraftStorage = Pick<Storage, "getItem" | "setItem" | "removeItem"> | null | undefined;
+
+function draftStore(storage: DraftStorage): Pick<Storage, "getItem" | "setItem" | "removeItem"> | null {
+  try { return storage ?? window.localStorage; } catch { return null; }
+}
+
+/**
+ * Reads the saved draft, keeping only answers for experiences that are still unanswered
+ * on the server, visible, must-reply and not a group. Drafts older than 14 days are ignored.
+ */
+export function readRsvpDraft(
+  storage: DraftStorage,
+  guestId: string,
+  experiences: Pick<Experience, "id" | "rsvp_mode" | "level" | "visible">[],
+  rsvps: Pick<ExperienceRsvp, "experience_id" | "guest_id">[],
+  nowMs: number,
+): RsvpDraft | null {
+  const store = draftStore(storage);
+  if (!store) return null;
+  try {
+    const raw = store.getItem(RSVP_DRAFT_PREFIX + guestId);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<RsvpDraft>;
+    if (typeof parsed.savedAt !== "number" || nowMs - parsed.savedAt > RSVP_DRAFT_MAX_AGE_MS) return null;
+    const open = new Set(
+      experiences
+        .filter((e) => e.visible && e.rsvp_mode === "must_reply" && e.level !== "group"
+          && !rsvps.some((r) => r.experience_id === e.id && r.guest_id === guestId))
+        .map((e) => e.id),
+    );
+    const answers: Record<string, RsvpAnswer> = {};
+    for (const [id, a] of Object.entries(parsed.answers ?? {})) {
+      if (!open.has(id)) continue;
+      if (a && (a.status === "going" || a.status === "not_going")) {
+        answers[id] = { status: a.status, choice: a.status === "going" ? a.choice ?? null : null };
+      }
+    }
+    return { answers, step: typeof parsed.step === "number" ? parsed.step : 0, savedAt: parsed.savedAt };
+  } catch {
+    return null;
+  }
+}
+
+export function writeRsvpDraft(storage: DraftStorage, guestId: string, draft: RsvpDraft): void {
+  const store = draftStore(storage);
+  if (!store) return;
+  try { store.setItem(RSVP_DRAFT_PREFIX + guestId, JSON.stringify(draft)); } catch { /* storage blocked */ }
+}
+
+export function clearRsvpDraft(storage: DraftStorage, guestId: string): void {
+  const store = draftStore(storage);
+  if (!store) return;
+  try { store.removeItem(RSVP_DRAFT_PREFIX + guestId); } catch { /* storage blocked */ }
+}
+
+/* ---------------- host tools ---------------- */
+
+export interface UnfinishedGuest { id: string; display_name: string; left: number; total: number }
+
+/** Per participant: how many of the visible, non-group must-reply cards are still unanswered. */
+export function unfinishedByGuest(
+  experiences: Pick<Experience, "id" | "rsvp_mode" | "level" | "visible">[],
+  rsvps: Pick<ExperienceRsvp, "experience_id" | "guest_id">[],
+  participants: readonly { id: string; display_name: string }[],
+): UnfinishedGuest[] {
+  const mustReply = experiences.filter((e) => e.visible && e.rsvp_mode === "must_reply" && e.level !== "group");
+  const total = mustReply.length;
+  return participants
+    .map((p) => ({
+      id: p.id,
+      display_name: p.display_name,
+      total,
+      left: mustReply.filter((e) => !rsvps.some((r) => r.experience_id === e.id && r.guest_id === p.id)).length,
+    }))
+    .filter((g) => g.left > 0)
+    .sort((a, b) => b.left - a.left || a.display_name.localeCompare(b.display_name));
+}
+
+/** Opens WhatsApp with a ready message; {link} and {experience} are filled in first. */
+export function whatsAppUrl(template: string, link: string, experience?: string): string {
+  const message = template.replaceAll("{link}", link).replaceAll("{experience}", experience ?? "");
+  return `https://wa.me/?text=${encodeURIComponent(message)}`;
 }
 
 /* ---------------- CSV ---------------- */

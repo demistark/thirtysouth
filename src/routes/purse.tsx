@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ComingSoon, PageShell, SubTabs } from "@/components/site/Blocks";
 import { Experiences } from "@/components/site/Experiences";
+import { RsvpBanner } from "@/components/site/RsvpFlow";
 import { SharedExpenses } from "@/components/site/SharedExpenses";
 import { FactLockout, PurseLockout, PURSE_LOCKOUT_TONE } from "@/components/site/Lockouts";
 import { useAuth } from "@/lib/auth";
@@ -61,15 +62,21 @@ function Purse() {
         tabs={ids.map((id) => ({ id, label: t(`purse.tab.${id}`) }))}
         value={current}
         onChange={setTab}
-        trailing={showCurrencyToggle(current) ? <CurrencyToggle value={currency} onChange={pickCurrency} /> : null}
+        flush={showCurrencyToggle(current)}
       />
+      {showCurrencyToggle(current) && (
+        <div className="purse-currency-row">
+          <CurrencyToggle value={currency} onChange={pickCurrency} />
+        </div>
+      )}
       {!allowed ? (
         <PurseLockout />
       ) : current === "experiences" ? (
-        <>
+        <div id="purse-experiences">
+          <RsvpBanner currency={currency} />
           {t("purse_experiences_deck") && <p className="caption-serif mb-8 text-lg">{t("purse_experiences_deck")}</p>}
           <Experiences currency={currency} />
-        </>
+        </div>
       ) : current === "expenses" ? (
         <SharedExpenses />
       ) : (

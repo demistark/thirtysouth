@@ -10,12 +10,12 @@ import { useScenes } from "@/lib/itinerary-data";
 import { useItineraryDisplay } from "@/lib/itinerary-display-data";
 import { canEditPurse, isTripParticipant } from "@/lib/locked-areas";
 import {
-  capeTownNow, choiceList, effectiveStatus, experienceExpandable, formatDeadline,
+  capeTownNow, choiceList, deadlineUpcoming, effectiveStatus, experienceExpandable, formatDeadline,
   formatWhenList, priceLineParts, rsvpCounts, rsvpOpen,
   type Experience, type ExperienceRsvp, type PurseCurrency, type RsvpStatus,
 } from "@/lib/purse";
 import {
-  useExperienceRsvps, useExperienceScenes, useExperiences, useParticipantDirectory, usePurseSettings,
+  queueRsvpSave, useExperienceRsvps, useExperienceScenes, useExperiences, useParticipantDirectory, usePurseSettings,
   type PurseSettings,
 } from "@/lib/purse-data";
 import { useMyGuest } from "@/lib/travel-data";
@@ -77,7 +77,7 @@ export function Experiences({ currency }: { currency: PurseCurrency }) {
     related: relatedQ.data ?? [],
     rsvps: rsvpsQ.data ?? [],
     participants: partsQ.data ?? [],
-    settings: settingsQ.data ?? { zarPerUsd: 16.5, showNames: true, globalLock: false },
+    settings: settingsQ.data ?? { zarPerUsd: 16.5, showNames: true, globalLock: false, showTotal: false },
     myGuestId: myGuestQ.data ?? null,
     participant: isTripParticipant(roles),
     editor: canEditPurse(roles),
@@ -169,7 +169,7 @@ function ExperienceCard({ exp, ctx }: { exp: Experience; ctx: CardContext }) {
   );
 }
 
-function PriceLine({ exp, settings, currency }: { exp: Experience; settings: PurseSettings; currency: PurseCurrency }) {
+export function PriceLine({ exp, settings, currency }: { exp: Experience; settings: PurseSettings; currency: PurseCurrency }) {
   const { t } = useContent();
   if (exp.show_host_note) return <p className="exp-host-note">{t("host_note_instead_of_price")}</p>;
   if (exp.price_zar == null) return null;
@@ -193,54 +193,57 @@ function RsvpBlock({ exp, ctx, myRsvp, status, counts }: {
   const [choice, setChoice] = useState(myRsvp?.choice ?? "");
   const [pendingGoing, setPendingGoing] = useState(false);
   const choices = choiceList(exp.choices);
-  const open = rsvpOpen(exp.rsvp_deadline, ctx.settings.globalLock, ctx.nowCpt);
+  const open = rsvpOpen(ctx.settings.globalLock);
   const locked = !open && !ctx.editor;
-  const options: RsvpStatus[] = exp.rsvp_mode === "must_reply" ? ["going", "maybe", "not_going"] : ["going", "not_going"];
+  const options: RsvpStatus[] = ["going", "not_going"];
   const shownStatus = pendingGoing ? "going" : status;
 
   const save = async (next: RsvpStatus, nextChoice: string | null) => {
-    if (!ctx.myGuestId || !exp.id) return;
+    if (!exp.id) return;
+    if (!ctx.myGuestId) { toast.error(t("purse.no_guest")); return; }
+    const guestId = ctx.myGuestId;
     const key = ["purse", "rsvps"];
-    const prev = qc.getQueryData<ExperienceRsvp[]>(key);
-    qc.setQueryData<ExperienceRsvp[]>(key, [
-      ...(prev ?? []).filter((r) => !(r.experience_id === exp.id && r.guest_id === ctx.myGuestId)),
-      { experience_id: exp.id, guest_id: ctx.myGuestId!, status: next, choice: nextChoice },
+    qc.setQueryData<ExperienceRsvp[]>(key, (prev) => [
+      ...(prev ?? []).filter((r) => !(r.experience_id === exp.id && r.guest_id === guestId)),
+      { experience_id: exp.id!, guest_id: guestId, status: next, choice: nextChoice },
     ]);
-    const { error } = await supabase.from("experience_rsvps").upsert(
-      { experience_id: exp.id, guest_id: ctx.myGuestId, status: next, choice: nextChoice },
-      { onConflict: "experience_id,guest_id" },
-    );
+    const { error } = await queueRsvpSave(exp.id, () =>
+      supabase.from("experience_rsvps").upsert(
+        { experience_id: exp.id!, guest_id: guestId, status: next, choice: nextChoice },
+        { onConflict: "experience_id,guest_id" },
+      ));
     if (error) {
-      qc.setQueryData(key, prev);
       toast.error(t("purse.error_closed"));
     } else {
       toast.success(t("purse.saved"));
     }
+    // Whether the save worked or failed, show the server's truth once the queue settles.
+    await qc.invalidateQueries({ queryKey: key });
   };
 
   const pick = (next: RsvpStatus) => {
     if (locked || !ctx.participant) return;
+    if (next === "not_going") setChoice("");
     if (next === "going" && choices.length > 0 && !choice) {
       setPendingGoing(true);
       toast.message(t("purse.choice_required"));
       return;
     }
     setPendingGoing(false);
-    void save(next, choices.length ? choice || null : null);
+    void save(next, next === "not_going" ? null : choices.length ? choice || null : null);
   };
 
   const pickChoice = (value: string) => {
     setChoice(value);
     if (locked || !ctx.participant) return;
-    if (shownStatus === "going" || shownStatus === "maybe") {
+    if (shownStatus === "going") {
       setPendingGoing(false);
-      void save(shownStatus, value || null);
+      void save("going", value || null);
     }
   };
 
   const summaryParts = [
     counts.going > 0 ? `${counts.going} ${t("purse.rsvp_summary.going")}` : "",
-    counts.maybe > 0 ? `${counts.maybe} ${t("purse.rsvp_summary.maybe")}` : "",
     counts.not_going > 0 ? `${counts.not_going} ${t("purse.rsvp_summary.not_going")}` : "",
     counts.awaiting > 0 ? `${counts.awaiting} ${t("purse.rsvp_summary.awaiting")}` : "",
   ].filter(Boolean);
@@ -261,7 +264,7 @@ function RsvpBlock({ exp, ctx, myRsvp, status, counts }: {
         ))}
       </div>
       {gate.dialog}
-      {choices.length > 0 && (shownStatus === "going" || shownStatus === "maybe") && (
+      {choices.length > 0 && shownStatus === "going" && (
         <select
           className="field exp-rsvp-choice !w-auto !py-1.5 text-sm"
           value={choice}
@@ -275,7 +278,9 @@ function RsvpBlock({ exp, ctx, myRsvp, status, counts }: {
       {exp.rsvp_mode === "default_going" && status === "going" && !myRsvp && (
         <p className="exp-rsvp-hint">{t("purse.youre_going")}</p>
       )}
-      {exp.rsvp_deadline && open && <p className="exp-rsvp-deadline">{t("purse.reply_by")} {formatDeadline(exp.rsvp_deadline)}</p>}
+      {deadlineUpcoming(exp.rsvp_deadline, ctx.nowCpt) && (
+        <p className="exp-rsvp-deadline">{t("purse.reply_by")} <span className="text-ember">{formatDeadline(exp.rsvp_deadline!)}</span></p>
+      )}
       {locked && <p className="exp-rsvp-deadline">{t("purse.closed")}</p>}
       {summaryParts.length > 0 && <p className="exp-rsvp-summary">{summaryParts.join(" · ")}</p>}
     </div>
@@ -286,7 +291,7 @@ function RsvpNames({ exp, ctx }: { exp: Experience; ctx: CardContext }) {
   const { t } = useContent();
   const names = new Map(ctx.participants.map((p) => [p.id, p.display_name]));
   const mine = ctx.rsvps.filter((r) => r.experience_id === exp.id && names.has(r.guest_id));
-  const groups: { status: RsvpStatus; rows: ExperienceRsvp[] }[] = (["going", "maybe", "not_going"] as const)
+  const groups: { status: RsvpStatus; rows: ExperienceRsvp[] }[] = (["going", "not_going"] as const)
     .map((s) => ({ status: s, rows: mine.filter((r) => r.status === s) }));
   const answered = new Set(mine.map((r) => r.guest_id));
   const awaiting = exp.rsvp_mode === "must_reply" ? ctx.participants.filter((p) => !answered.has(p.id)) : [];

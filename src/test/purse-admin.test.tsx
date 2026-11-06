@@ -3,23 +3,37 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({
-  rows: [] as { id: string; card: string; parent_id: string | null; visible: boolean }[],
+  rows: [] as { id: string; card: string; parent_id: string | null; visible: boolean; rsvp_mode?: string }[],
+  rsvps: [] as { experience_id: string; guest_id: string; status: string; choice: string | null }[],
+  participants: [] as { id: string; display_name: string }[],
   requests: [] as string[][],
+  clearRequests: 0,
   failure: false,
 }));
-vi.mock("@/integrations/supabase/client", () => ({ supabase: { from: (table: string) => ({
-  select: () => {
-    const result = { data: table === "experiences" ? state.rows : [], error: null };
-    const ordered = { ...result, order: async () => result };
-    return { then: (resolve: (value: typeof result) => unknown) => Promise.resolve(result).then(resolve), order: () => ordered };
-  },
-  delete: () => ({ in: async (_column: string, ids: string[]) => {
-    state.requests.push(ids);
-    if (state.failure) return { error: { message: "failed" } };
-    state.rows = state.rows.filter((row) => !ids.includes(row.id)).map((row) => ({ ...row, parent_id: row.parent_id && ids.includes(row.parent_id) ? null : row.parent_id }));
-    return { error: null };
-  } }),
-}) } }));
+vi.mock("@/integrations/supabase/client", () => ({ supabase: {
+  from: (table: string) => ({
+    select: () => {
+      const result = { data: table === "experiences" ? state.rows : table === "experience_rsvps" ? state.rsvps : [], error: null };
+      const ordered = { ...result, order: async () => result };
+      return { then: (resolve: (value: typeof result) => unknown) => Promise.resolve(result).then(resolve), order: () => ordered };
+    },
+    delete: () => ({
+      in: async (_column: string, ids: string[]) => {
+        state.requests.push(ids);
+        if (state.failure) return { error: { message: "failed" } };
+        state.rows = state.rows.filter((row) => !ids.includes(row.id)).map((row) => ({ ...row, parent_id: row.parent_id && ids.includes(row.parent_id) ? null : row.parent_id }));
+        return { error: null };
+      },
+      not: async () => {
+        state.clearRequests += 1;
+        if (state.failure) return { error: { message: "failed" } };
+        state.rsvps = [];
+        return { error: null };
+      },
+    }),
+  }),
+  rpc: async (name: string) => (name === "participant_directory" ? { data: state.participants, error: null } : { data: [], error: null }),
+} }));
 vi.mock("@/lib/data", () => ({ useContent: () => ({ t: (key: string) => key === "purse.admin.select" ? "Select {card}" : key }) }));
 vi.mock("@/components/site/TripTimeInput", () => ({ TripTimeInput: () => null }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
@@ -40,11 +54,13 @@ function row(card: string) {
 }
 beforeEach(() => {
   state.rows = [
-    { id: "parent", card: "Parent", parent_id: null, visible: true },
-    { id: "child", card: "Child", parent_id: "parent", visible: true },
-    { id: "hidden", card: "Hidden", parent_id: null, visible: false },
+    { id: "parent", card: "Parent", parent_id: null, visible: true, rsvp_mode: "must_reply" },
+    { id: "child", card: "Child", parent_id: "parent", visible: true, rsvp_mode: "default_going" },
+    { id: "hidden", card: "Hidden", parent_id: null, visible: false, rsvp_mode: "none" },
   ];
-  state.requests = []; state.failure = false; vi.clearAllMocks();
+  state.rsvps = [];
+  state.participants = [];
+  state.requests = []; state.clearRequests = 0; state.failure = false; vi.clearAllMocks();
 });
 afterEach(cleanup);
 
@@ -108,5 +124,77 @@ describe("Experiences single removal", () => {
     await vi.waitFor(() => expect(screen.queryByRole("checkbox", { name: "Select Parent" })).toBeNull());
     expect(state.rows.find((r) => r.id === "child")?.parent_id).toBeNull();
     expect(checkbox("Child")).toBeInTheDocument();
+  });
+});
+
+describe("RSVPs panel", () => {
+  async function openRsvps() {
+    mount();
+    fireEvent.click(await screen.findByRole("tab", { name: "admin.purse.rsvps" }));
+    await screen.findByText("admin.purse.unfinished_title");
+  }
+
+  it("lists who hasn't finished, most left first, across all must-reply cards", async () => {
+    state.participants = [
+      { id: "g1", display_name: "Ada" },
+      { id: "g2", display_name: "Bo" },
+    ];
+    state.rsvps = [{ experience_id: "parent", guest_id: "g1", status: "going", choice: null }];
+    await openRsvps();
+    const block = screen.getByText("admin.purse.unfinished_title").closest("div")!.parentElement!;
+    expect(within(block).getByText(/Bo · /)).toBeInTheDocument();
+    expect(within(block).queryByText(/Ada/)).toBeNull();
+  });
+  it("says everyone has replied when nothing is left", async () => {
+    state.participants = [{ id: "g1", display_name: "Ada" }];
+    state.rsvps = [{ experience_id: "parent", guest_id: "g1", status: "not_going", choice: null }];
+    await openRsvps();
+    expect(screen.getByText("admin.purse.all_done")).toBeInTheDocument();
+  });
+  it("offers a WhatsApp nudge with the Purse link encoded, plus one for a must-reply experience", async () => {
+    state.participants = [{ id: "g1", display_name: "Ada" }];
+    await openRsvps();
+    const general = screen.getByRole("link", { name: "admin.purse.whatsapp" });
+    expect(general).toHaveAttribute("href", `https://wa.me/?text=${encodeURIComponent("admin.purse.whatsapp_default")}`);
+    expect(general).toHaveAttribute("rel", "noopener");
+    expect(general).toHaveAttribute("target", "_blank");
+    // The first experience (Parent) is must-reply, so the per-experience nudge shows.
+    expect(screen.getByRole("link", { name: "admin.purse.whatsapp_exp" })).toBeInTheDocument();
+  });
+  it("hides the per-experience nudge when the selected experience is not must-reply", async () => {
+    state.participants = [{ id: "g1", display_name: "Ada" }];
+    await openRsvps();
+    fireEvent.change(screen.getByRole("combobox", { name: "Experience" }), { target: { value: "child" } });
+    expect(screen.queryByRole("link", { name: "admin.purse.whatsapp_exp" })).toBeNull();
+  });
+  it("has no Maybe option in the per-person dropdown", async () => {
+    state.participants = [{ id: "g1", display_name: "Ada" }];
+    await openRsvps();
+    const select = screen.getByRole("combobox", { name: "RSVP for Ada" });
+    expect(within(select).queryByRole("option", { name: "Maybe" })).toBeNull();
+    expect(within(select).getByRole("option", { name: "Going" })).toBeInTheDocument();
+    expect(within(select).getByRole("option", { name: "Not going" })).toBeInTheDocument();
+  });
+  it("Clear all needs CLEAR typed, then deletes every RSVP in one request", async () => {
+    state.participants = [{ id: "g1", display_name: "Ada" }];
+    state.rsvps = [{ experience_id: "parent", guest_id: "g1", status: "going", choice: null }];
+    await openRsvps();
+    fireEvent.click(screen.getByRole("button", { name: "admin.purse.clear_all" }));
+    expect(screen.getByText("admin.purse.clear_all_confirm")).toBeInTheDocument();
+    const clear = screen.getByRole("button", { name: "admin.purse.clear_all" });
+    expect(clear).toBeDisabled();
+    fireEvent.change(screen.getByRole("textbox", { name: "admin.purse.clear_all" }), { target: { value: "clear" } });
+    expect(clear).toBeEnabled();
+    fireEvent.click(clear);
+    await vi.waitFor(() => expect(state.clearRequests).toBe(1));
+    await vi.waitFor(() => expect(toast.success).toHaveBeenCalledWith("admin.purse.clear_all_done"));
+  });
+  it("Keep cancels Clear all without a request", async () => {
+    state.participants = [{ id: "g1", display_name: "Ada" }];
+    await openRsvps();
+    fireEvent.click(screen.getByRole("button", { name: "admin.purse.clear_all" }));
+    fireEvent.click(screen.getByRole("button", { name: "purse.admin.keep" }));
+    expect(state.clearRequests).toBe(0);
+    expect(screen.queryByText("admin.purse.clear_all_confirm")).toBeNull();
   });
 });

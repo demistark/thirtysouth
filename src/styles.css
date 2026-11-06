@@ -2100,10 +2100,6 @@ html[data-intro="reveal"] .home-during > :nth-child(n + 10) { animation-delay: 7
   background: var(--scene-olive);
   color: var(--cream);
 }
-.exp-rsvp-pill button[aria-pressed="true"][data-status="maybe"] {
-  background: var(--scene-apricot);
-  color: var(--ink);
-}
 .exp-rsvp-pill button[aria-pressed="true"][data-status="not_going"] {
   background: var(--ember-deep);
   color: var(--cream);
@@ -2733,6 +2729,296 @@ html[data-intro="reveal"] .home-during > :nth-child(n + 10) { animation-delay: 7
 .currency-toggle button[aria-pressed="true"] {
   color: var(--deep-atlantic);
   border-bottom-color: var(--ember);
+}
+
+/* Purse: the ZAR | USD toggle sits in its own tight row under the tab hairline */
+.purse-currency-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+  margin-bottom: 20px;
+}
+.purse-currency-row .currency-toggle button {
+  padding: 0 1px 1px;
+}
+
+/* RSVP banner ("Come to everything!") */
+.rsvp-banner {
+  background: var(--tint-ember);
+  border: 1px solid color-mix(in oklab, var(--ember) 45%, var(--tint-ember));
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.rsvp-banner-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--ember-deep);
+}
+.rsvp-banner-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  margin-top: 8px;
+}
+@media (min-width: 768px) {
+  .rsvp-banner {
+    padding: 28px;
+  }
+  .rsvp-banner-title {
+    font-size: 36px;
+  }
+}
+
+/* RSVP flow: full-screen, one question at a time */
+.rsvp-flow {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--cream);
+  overflow-y: auto;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  outline: none;
+}
+.rsvp-flow-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  max-width: 560px;
+  margin-inline: auto;
+  padding: 16px 20px 0;
+}
+.rsvp-flow-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rsvp-flow-close {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--slate);
+  background: none;
+  border: none;
+  padding: 8px 0;
+  cursor: pointer;
+}
+.rsvp-flow-close:hover {
+  color: var(--ink);
+}
+.rsvp-flow-of {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--slate);
+}
+.rsvp-flow-progress {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+.rsvp-flow-progress span {
+  flex: 1;
+  height: 3px;
+  background: var(--line);
+}
+.rsvp-flow-progress span[data-filled="true"] {
+  background: var(--ember);
+}
+.rsvp-flow-step {
+  flex: 1;
+  padding-top: 28px;
+  animation: rsvp-flow-in 0.2s ease;
+}
+@keyframes rsvp-flow-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rsvp-flow-step {
+    animation: none;
+  }
+}
+.rsvp-flow-replyby {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+.rsvp-flow-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 44px;
+  line-height: 1.05;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  margin-top: 10px;
+  outline: none;
+}
+@media (min-width: 768px) {
+  .rsvp-flow-title {
+    font-size: 56px;
+  }
+}
+.rsvp-flow-more {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--deep-atlantic);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--deep-atlantic);
+  padding: 0 0 1px;
+  cursor: pointer;
+}
+.rsvp-flow-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 28px;
+}
+.rsvp-flow-answer {
+  height: 56px;
+  width: 100%;
+  border: 1px solid var(--ink);
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--ink);
+  cursor: pointer;
+}
+.rsvp-flow-answer[aria-pressed="true"][data-status="going"] {
+  background: var(--scene-olive);
+  border-color: var(--scene-olive);
+  color: var(--cream);
+}
+.rsvp-flow-answer[aria-pressed="true"][data-status="not_going"] {
+  background: var(--ember-deep);
+  border-color: var(--ember-deep);
+  color: var(--cream);
+}
+.rsvp-flow-review {
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.rsvp-flow-review li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.rsvp-flow-review-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 20px;
+  color: var(--ink);
+}
+.rsvp-flow-review-status {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+.rsvp-flow-review-status[data-status="going"] {
+  color: var(--scene-olive);
+}
+.rsvp-flow-review-status[data-status="not_going"] {
+  color: var(--ember-deep);
+}
+.rsvp-flow-change {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--deep-atlantic);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--deep-atlantic);
+  padding: 0 0 1px;
+  margin-top: 4px;
+  cursor: pointer;
+}
+.rsvp-flow-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--cream);
+  border-top: 1px solid var(--line);
+  margin-top: 32px;
+  padding: 14px 0 calc(14px + env(safe-area-inset-bottom));
+}
+.rsvp-flow-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rsvp-flow-error {
+  font-size: 13px;
+  color: var(--ember-deep);
+  margin-bottom: 10px;
+}
+.rsvp-flow-leave {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklab, var(--ink) 35%, transparent);
+  padding: 20px;
+}
+.rsvp-flow-leave-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 24px;
+  max-width: 380px;
+  width: 100%;
+}
+
+/* Home: "• N RSVPs to complete" under the Purse bar's description */
+.home-look-rsvp {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ember-deep);
+  transition: color 0.25s ease;
+}
+.home-look-rsvp-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--ember);
+  transition: background-color 0.25s ease;
+}
+.home-look-bar:hover .home-look-rsvp,
+.home-look-bar:focus-visible .home-look-rsvp {
+  color: var(--paper);
+}
+.home-look-bar:hover .home-look-rsvp-dot,
+.home-look-bar:focus-visible .home-look-rsvp-dot {
+  background: var(--paper);
 }
 
 /* Scenes: experience tags sit at the very bottom of the expanded section, right-aligned */
