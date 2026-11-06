@@ -557,7 +557,7 @@ function PurseSettingsPanel() {
     queryKey: ["admin", "purse-settings"],
     queryFn: async () => {
       const [s, c] = await Promise.all([
-        supabase.from("settings").select("key,value").in("key", ["zar_per_usd", "rsvp_show_names", "rsvp_global_lock"]),
+        supabase.from("settings").select("key,value").in("key", ["zar_per_usd", "rsvp_show_names", "rsvp_global_lock", "rsvp_show_total"]),
         supabase.from("site_content").select("key,value").in("key", ["host_note_instead_of_price", "purse_experiences_deck"]),
       ]);
       if (s.error) throw s.error;
@@ -578,6 +578,7 @@ function PurseSettingsPanel() {
       { key: "zar_per_usd", value: f["zar_per_usd"] || "16.5" },
       { key: "rsvp_show_names", value: f["rsvp_show_names"] === "true" ? "true" : "false" },
       { key: "rsvp_global_lock", value: f["rsvp_global_lock"] === "true" ? "true" : "false" },
+      { key: "rsvp_show_total", value: f["rsvp_show_total"] === "true" ? "true" : "false" },
     ];
     const contentRows = [
       { key: "host_note_instead_of_price", value: f["host_note_instead_of_price"] ?? "" },
@@ -603,6 +604,10 @@ function PurseSettingsPanel() {
       <label className="flex items-center gap-3 text-sm">
         <input type="checkbox" checked={f["rsvp_global_lock"] === "true"} onChange={(e) => setF({ ...f, rsvp_global_lock: e.target.checked ? "true" : "false" })} />
         {t("admin.purse.global_lock")}
+      </label>
+      <label className="flex items-center gap-3 text-sm">
+        <input type="checkbox" checked={f["rsvp_show_total"] === "true"} onChange={(e) => setF({ ...f, rsvp_show_total: e.target.checked ? "true" : "false" })} />
+        {t("admin.purse.show_total")}
       </label>
       <F label="Host note (shown instead of a price)" wide>
         <textarea className="field min-h-16" value={f["host_note_instead_of_price"] ?? ""} onChange={(e) => setF({ ...f, host_note_instead_of_price: e.target.value })} />
