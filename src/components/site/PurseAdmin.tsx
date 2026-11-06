@@ -396,6 +396,9 @@ function RsvpsPanel() {
   });
   const partsQ = useParticipantDirectory(true);
   const [selected, setSelected] = useState("");
+  const [clearing, setClearing] = useState(false);
+  const [clearText, setClearText] = useState("");
+  const [clearBusy, setClearBusy] = useState(false);
 
   const experiences = (expsQ.data ?? []).filter((e) => e.rsvp_mode !== "none");
   const exp = experiences.find((e) => e.id === selected) ?? experiences[0];
@@ -404,6 +407,19 @@ function RsvpsPanel() {
   const rsvps = (rsvpsQ.data ?? []).filter((r) => r.experience_id === exp?.id && names.has(r.guest_id));
   const answered = new Set(rsvps.map((r) => r.guest_id));
   const awaiting = exp?.rsvp_mode === "must_reply" ? participants.filter((p) => !answered.has(p.id)) : [];
+  const unfinished = unfinishedByGuest(expsQ.data ?? [], rsvpsQ.data ?? [], participants);
+
+  const clearAll = async () => {
+    if (clearBusy || clearText.trim().toUpperCase() !== "CLEAR") return;
+    setClearBusy(true);
+    const { error } = await supabase.from("experience_rsvps").delete().not("guest_id", "is", null);
+    setClearBusy(false);
+    if (error) { toast.error(t("admin.itin.error")); return; }
+    setClearing(false);
+    setClearText("");
+    await refresh();
+    toast.success(t("admin.purse.clear_all_done"));
+  };
 
   const setRsvp = async (guestId: string, status: string) => {
     if (!exp?.id) return;
@@ -498,13 +514,36 @@ function RsvpsPanel() {
               >
                 <option value="">{shown === "awaiting" ? "Awaiting" : "No reply"}</option>
                 <option value="going">Going</option>
-                <option value="maybe">Maybe</option>
                 <option value="not_going">Not going</option>
               </select>
             </li>
           );
         })}
       </ul>
+
+      <div className="border-t pt-6">
+        {clearing ? (
+          <div className="space-y-3">
+            <p className="caption-serif">{t("admin.purse.clear_all_confirm")}</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                className="field max-w-40"
+                value={clearText}
+                onChange={(e) => setClearText(e.target.value)}
+                aria-label={t("admin.purse.clear_all")}
+              />
+              <Button variant="pill" disabled={clearBusy || clearText.trim().toUpperCase() !== "CLEAR"} onClick={() => void clearAll()}>
+                {t("admin.purse.clear_all")}
+              </Button>
+              <Button variant="pill" disabled={clearBusy} onClick={() => { setClearing(false); setClearText(""); }}>
+                {t("purse.admin.keep")}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button variant="pill" onClick={() => setClearing(true)}>{t("admin.purse.clear_all")}</Button>
+        )}
+      </div>
     </div>
   );
 }
