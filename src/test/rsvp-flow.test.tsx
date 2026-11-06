@@ -248,7 +248,7 @@ describe("RSVP flow", () => {
   it("shows the closed message when the global lock turns on while the flow is open", async () => {
     state.upsertError = true;
     await openFlow();
-    answer("going"); next(); answer("going"); next(); answer("going"); next(); answer("going"); next();
+    answer("going"); next(); answer("not_going"); next(); answer("going"); next(); answer("going"); next();
     state.settings["rsvp_global_lock"] = "true"; // the host locks replies mid-flow
     fireEvent.click(screen.getByRole("button", { name: "purse.flow.save" }));
     expect(await screen.findByText("purse.banner.closed")).toBeInTheDocument();
