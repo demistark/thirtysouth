@@ -143,6 +143,18 @@ describe("Journal signed out", () => {
 });
 
 describe("Itinerary signed out", () => {
+  it("keeps navigation and content unavailable until auth finishes loading", () => {
+    state.loading = true;
+    renderWithClient(<Itinerary />);
+    expect(screen.getByText("itinerary.title")).toBeInTheDocument();
+    expect(screen.getByText("itinerary.intro")).toBeInTheDocument();
+    expect(screen.queryByRole("tablist")).toBeNull();
+    expect(screen.queryByText("days-content")).toBeNull();
+    expect(screen.queryByText("script-content")).toBeNull();
+    expect(screen.queryByText("lockout.recording")).toBeNull();
+    expect(screen.queryByRole("link")).toBeNull();
+  });
+
   it("shows only title, intro and the recording lockout — no tab row", () => {
     renderWithClient(<Itinerary />);
     expect(screen.getByText("itinerary.title")).toBeInTheDocument();
