@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { useChapters, useSettings } from "@/lib/data";
 import { useAuth } from "@/lib/auth";

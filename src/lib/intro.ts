@@ -3,6 +3,14 @@
 
 export const INTRO_DAY_KEY = "30s-intro-day";
 
+// The intro only exists during the trip; outside this window the bootstrap does nothing at all.
+export const INTRO_WINDOW = { start: "2026-11-20", end: "2026-11-30" } as const;
+
+/** True when a Cape Town day (YYYY-MM-DD) falls inside the intro window, boundaries included. */
+export function inIntroWindow(day: string): boolean {
+  return day >= INTRO_WINDOW.start && day <= INTRO_WINDOW.end;
+}
+
 /** Cape Town calendar date, YYYY-MM-DD. */
 export function capeTownDay(d: Date): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(d);
