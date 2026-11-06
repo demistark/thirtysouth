@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { JournalReflections } from "@/components/site/JournalReflections";
-import { ReflectionsLockout } from "@/components/site/Lockouts";
+import { FactLockout, JOURNAL_LOCKOUT_TONE } from "@/components/site/Lockouts";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/journal/reflections")({
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/journal/reflections")({
 
 function Reflections() {
   const { session, loading } = useAuth();
-  if (loading) return <div className="min-h-80 bg-paper" />;
-  if (!session) return <ReflectionsLockout />;
+  if (loading) return <div className={`min-h-80 ${JOURNAL_LOCKOUT_TONE}`} />;
+  if (!session) return <FactLockout tone={JOURNAL_LOCKOUT_TONE} />;
   return <JournalReflections />;
 }
