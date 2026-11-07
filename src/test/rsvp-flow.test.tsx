@@ -118,8 +118,8 @@ describe("RSVP banner", () => {
     expect(screen.getByText("purse.banner.label_other")).toBeInTheDocument(); // 4 waiting
     expect(screen.getByRole("button", { name: "purse.banner.start" })).toBeInTheDocument();
   });
-  it("shows nothing for honorary guests and friends afar", () => {
-    state.roles = ["honorary_guest"];
+  it("shows nothing for friends afar and friends afar", () => {
+    state.roles = ["friend_afar"];
     mount(<RsvpBanner currency="zar" />);
     expect(screen.queryByText("purse.banner.title")).toBeNull();
     cleanup();
@@ -286,7 +286,7 @@ describe("Home RSVP line", () => {
     expect(await screen.findByText("1 RSVP to complete")).toBeInTheDocument();
   });
   it("stays hidden for non-participants, guests without a record and the closed state", async () => {
-    state.roles = ["honorary_guest"];
+    state.roles = ["friend_afar"];
     mount(<PurseRsvpWaiting />);
     await vi.waitFor(() => expect(screen.queryByText(/RSVP/)).toBeNull());
     cleanup();

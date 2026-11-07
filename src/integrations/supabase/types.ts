@@ -597,6 +597,24 @@ export type Database = {
           },
         ]
       }
+      private_content: {
+        Row: {
+          key: string
+          updated_at: string | null
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string | null
+          value?: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
       reflection_entries: {
         Row: {
           body: string
@@ -1056,6 +1074,7 @@ export type Database = {
       can_edit_travel: { Args: { _user_id: string }; Returns: boolean }
       can_view_itinerary: { Args: { _user_id: string }; Returns: boolean }
       can_view_journal: { Args: { _user_id: string }; Returns: boolean }
+      can_view_private_content: { Args: { _user_id: string }; Returns: boolean }
       can_view_purse: { Args: { _user_id: string }; Returns: boolean }
       can_view_travel: { Args: { _user_id: string }; Returns: boolean }
       cast_list: {

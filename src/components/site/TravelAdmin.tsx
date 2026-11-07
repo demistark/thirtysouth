@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { SubTabs } from "@/components/site/Blocks";
 import { supabase } from "@/integrations/supabase/client";
-import { useContent } from "@/lib/data";
+import { useContent, PRIVATE_CONTENT_KEYS } from "@/lib/data";
 import { photoExtension, preparePhoto } from "@/lib/image-resize";
 import {
   CSV_MAX_BYTES, FLIGHT_CSV_COLUMNS, PACKING_CSV_COLUMNS, TRANSFER_CSV_COLUMNS,
@@ -22,7 +22,7 @@ const VILLA_KEYS = ["travel_subtitle", "cast_heading", "cast_subheading", "cast_
 
 function useRefresh() {
   const qc = useQueryClient();
-  return () => Promise.all([["travel"], ["admin"], ["site_content"], ["settings"]].map((k) => qc.invalidateQueries({ queryKey: k })));
+  return () => Promise.all([["travel"], ["admin"], ["site_content"], ["private_content"], ["settings"]].map((k) => qc.invalidateQueries({ queryKey: k })));
 }
 
 function F({ label, children, wide }: { label: string; children: ReactNode; wide?: boolean }) {
@@ -192,9 +192,9 @@ function VillaPanel() {
   const contentQ = useQuery({
     queryKey: ["admin", "travel-content"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("site_content").select("key,value").in("key", VILLA_KEYS);
-      if (error) throw error;
-      return Object.fromEntries((data ?? []).map((r) => [r.key, r.value])) as Record<string, string>;
+      const [publicRows, privateRows] = await Promise.all([supabase.from("site_content").select("key,value").in("key", VILLA_KEYS), supabase.from("private_content").select("key,value").in("key", VILLA_KEYS)]);
+      if (publicRows.error || privateRows.error) throw publicRows.error || privateRows.error;
+      return Object.fromEntries([...(publicRows.data ?? []), ...(privateRows.data ?? [])].map(r => [r.key, r.value])) as Record<string, string>;
     },
   });
   const roomsQ = useQuery({
@@ -218,7 +218,7 @@ function VillaPanel() {
   useEffect(() => { if (contentQ.data) setVals(contentQ.data); }, [contentQ.data]);
 
   const saveKey = async (key: string) => {
-    const { error } = await supabase.from("site_content").upsert({ key, value: vals[key] ?? "" });
+    const { error } = await supabase.from(PRIVATE_CONTENT_KEYS.some(k => k === key) ? "private_content" : "site_content").upsert({ key, value: vals[key] ?? "" });
     if (error) { toast.error(error.message); return; }
     toast.success(t("admin.itin.saved"));
     await refresh();

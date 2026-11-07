@@ -3,8 +3,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { afarAdminList, afarGenerateAll, afarGenerateCode, afarSetDisabled } from "@/lib/afar.functions";
+import { afarAddFriend, afarAdminList, afarGenerateAll, afarGenerateCode, afarSetDisabled } from "@/lib/afar.functions";
 import { AFAR_DEFAULT_TEMPLATE, buildAfarMessage } from "@/lib/afar-codes";
+import { useContent } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 
 interface FriendAfar {
@@ -29,7 +30,11 @@ function statusOf(f: FriendAfar): string {
 }
 
 export function AfarAdmin() {
+  const { t } = useContent();
   const qc = useQueryClient();
+  const addFn = useServerFn(afarAddFriend);
+  const [name, setName] = useState("");
+  const [adding, setAdding] = useState(false);
   const listFn = useServerFn(afarAdminList);
   const generateFn = useServerFn(afarGenerateCode);
   const generateAllFn = useServerFn(afarGenerateAll);
@@ -68,6 +73,11 @@ export function AfarAdmin() {
     } catch {
       toast.error("Couldn't copy. Select the text and copy it yourself.");
     }
+  };
+
+  const add = async (e: React.FormEvent) => {
+    e.preventDefault(); if(!name.trim() || adding) return; setAdding(true);
+    try { const result = await addFn({data:{name}}); setShown([result]); setName(""); refresh(); await qc.invalidateQueries({queryKey:["admin","guests"]}); } catch { toast.error(t("admin.afar.add_error")); } finally { setAdding(false); }
   };
 
   const generate = async (f: FriendAfar) => {
@@ -129,6 +139,8 @@ export function AfarAdmin() {
           remembers them.
         </p>
       </div>
+
+      <form onSubmit={add} className="space-y-3 border bg-card p-5"><h3 className="font-display-light text-2xl">{t("admin.afar.add_title")}</h3><label className="block text-sm">{t("admin.afar.add_label")}<input className="field mt-1" required maxLength={80} value={name} onChange={e=>setName(e.target.value)} /></label><Button type="submit" variant="pill" disabled={adding || !name.trim()}>{t("admin.afar.add_button")}</Button></form>
 
       <label className="flex items-center gap-3 text-sm">
         <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
@@ -210,6 +222,7 @@ export function AfarAdmin() {
                     >
                       Copy message
                     </button>
+                    <Button variant="pill" asChild><a href={`https://wa.me/?text=${encodeURIComponent(buildAfarMessage(template, s.displayName, s.code, linkFor(s.code)))}`} target="_blank" rel="noopener noreferrer">{t("admin.afar.whatsapp")}</a></Button>
                   </div>
                 </li>
               ))}

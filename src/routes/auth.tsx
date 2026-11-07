@@ -28,20 +28,20 @@ function SignIn() {
   const otpEnabled = isOtpEnabled(settings);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [state, setState] = useState<"idle" | "sending" | "sent" | "not_found" | "error">("idle");
+  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [codeState, setCodeState] = useState<"idle" | "checking" | "bad">("idle");
 
   const send = async () => {
     setState("sending");
     const clean = normalizeEmail(email);
-    const { data: invited, error: rpcErr } = await supabase.rpc("is_invited", { _email: clean });
-    if (rpcErr) return setState("error");
-    if (!invited) return setState("not_found");
+    try {
     const { error } = await supabase.auth.signInWithOtp({
       email: clean,
       options: { emailRedirectTo: window.location.origin, shouldCreateUser: false },
     });
-    setState(error ? "error" : "sent");
+    const network = error?.name === "AuthRetryableFetchError" || error instanceof TypeError;
+    setState(network ? "error" : "sent");
+    } catch (error) { setState(error instanceof TypeError || (error instanceof Error && error.name === "AuthRetryableFetchError") ? "error" : "sent"); }
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -77,7 +77,7 @@ function SignIn() {
       <p className="caption-serif mt-3">{t("signin.intro")}</p>
       {state === "sent" ? (
         <div className="fade-in mt-10 space-y-6 border bg-card p-6">
-          <p className="text-sm">{t(otpEnabled ? "signin.sent" : "signin.sent_link")}</p>
+          <h2 className="font-display-light text-2xl">{t("signin.sent_title")}</h2><p className="text-sm">{t("signin.sent_body")}</p>
           {otpEnabled && <form onSubmit={verify} className="space-y-3">
             <label className="label-caps block text-muted-foreground" htmlFor="code">
               {t("signin.code_label")}
@@ -115,7 +115,6 @@ function SignIn() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          {state === "not_found" && <p className="text-sm text-ember-deep">{t("signin.not_found")}</p>}
           {state === "error" && <p className="text-sm text-destructive">Something went wrong. Please try again.</p>}
           <button className="btn-pill btn-pill-solid w-full" disabled={state === "sending"}>
             {t("signin.button")}

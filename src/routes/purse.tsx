@@ -7,7 +7,7 @@ import { SharedExpenses } from "@/components/site/SharedExpenses";
 import { FactLockout, PurseLockout, PURSE_LOCKOUT_TONE } from "@/components/site/Lockouts";
 import { useAuth } from "@/lib/auth";
 import { useContent } from "@/lib/data";
-import { canViewPurse } from "@/lib/locked-areas";
+import { canViewPurse, isTripParticipant } from "@/lib/locked-areas";
 import { readPurseCurrency, showCurrencyToggle, storePurseCurrency, type PurseCurrency } from "@/lib/purse";
 import { useTripClock } from "@/lib/trip-clock";
 
@@ -31,6 +31,7 @@ function Purse() {
   const { t } = useContent();
   const { phase } = useTripClock();
   const { session, roles, loading } = useAuth();
+  const participant = isTripParticipant(roles);
   const allowed = !!session && canViewPurse(roles);
   const ids: Tab[] = phase === "after" ? ["experiences", "expenses", "sum"] : ["experiences", "expenses"];
   const [tab, setTab] = useState<Tab>("experiences");
@@ -62,9 +63,9 @@ function Purse() {
         tabs={ids.map((id) => ({ id, label: t(`purse.tab.${id}`) }))}
         value={current}
         onChange={setTab}
-        flush={showCurrencyToggle(current)}
+        flush={participant && showCurrencyToggle(current)}
       />
-      {showCurrencyToggle(current) && (
+      {participant && showCurrencyToggle(current) && (
         <div className="purse-currency-row">
           <CurrencyToggle value={currency} onChange={pickCurrency} />
         </div>
@@ -73,7 +74,7 @@ function Purse() {
         <PurseLockout />
       ) : current === "experiences" ? (
         <div id="purse-experiences">
-          <RsvpBanner currency={currency} />
+          {participant && <RsvpBanner currency={currency} />}
           {t("purse_experiences_deck") && <p className="caption-serif mb-8 text-lg">{t("purse_experiences_deck")}</p>}
           <Experiences currency={currency} />
         </div>

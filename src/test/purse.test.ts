@@ -18,24 +18,24 @@ const exp = (over: Partial<Experience>): Experience => ({
 });
 
 describe("purse access", () => {
-  it("lets host, schedule manager, trip guest and honorary guest view Purse", () => {
+  it("lets host, schedule manager, trip guest and friend afar view Purse", () => {
     expect(canViewPurse(["host"])).toBe(true);
     expect(canViewPurse(["schedule_manager"])).toBe(true);
     expect(canViewPurse(["trip_guest"])).toBe(true);
-    expect(canViewPurse(["honorary_guest"])).toBe(true);
+    expect(canViewPurse(["friend_afar"])).toBe(true);
   });
-  it("keeps friends afar and signed-out visitors out of Purse", () => {
-    expect(canViewPurse(["friend_afar"])).toBe(false);
+  it("keeps signed-out visitors out of Purse", () => {
+    expect(canViewPurse(["friend_afar"])).toBe(true);
     expect(canViewPurse([])).toBe(false);
   });
   it("lets only host and schedule manager edit Purse", () => {
     expect(canEditPurse(["host"])).toBe(true);
     expect(canEditPurse(["schedule_manager"])).toBe(true);
     expect(canEditPurse(["trip_guest"])).toBe(false);
-    expect(canEditPurse(["honorary_guest"])).toBe(false);
+    expect(canEditPurse(["friend_afar"])).toBe(false);
   });
-  it("honorary guests are never trip participants", () => {
-    expect(isTripParticipant(["honorary_guest"])).toBe(false);
+  it("friends afar are never trip participants", () => {
+    expect(isTripParticipant(["friend_afar"])).toBe(false);
     expect(isTripParticipant(["trip_guest"])).toBe(true);
   });
 });
@@ -59,9 +59,9 @@ describe("RSVP counts", () => {
   const participants = ["g1", "g2", "g3"];
   const rsvps: ExperienceRsvp[] = [
     { experience_id: "e1", guest_id: "g1", status: "going", choice: null },
-    { experience_id: "e1", guest_id: "honorary", status: "going", choice: null },
+    { experience_id: "e1", guest_id: "afar", status: "going", choice: null },
   ];
-  it("counts participants only, never honorary guests", () => {
+  it("counts participants only, never friends afar", () => {
     const c = rsvpCounts(exp({}), rsvps, participants);
     expect(c.going).toBe(1);
     expect(c.awaiting).toBe(2);
@@ -448,7 +448,7 @@ describe("scene experience tags", () => {
     const tags = sceneExperienceTags({ id: "s1", experience_card: "Aquila Safari" }, all, links, [], "g1", true);
     expect(tags.map((t) => t.id)).toEqual(["e1", "e2"]);
   });
-  it("gives honorary guests and non-participants the link only", () => {
+  it("gives friends afar and non-participants the link only", () => {
     const tags = sceneExperienceTags(scene, all, links, [], "g1", false);
     expect(tags.every((t) => t.status === null)).toBe(true);
   });

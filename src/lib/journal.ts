@@ -54,9 +54,7 @@ export interface JournalSettings {
   heartPhotosPerPerson: number;
   heartChars: number;
   counterShowAtPct: number;
-  commonsShowHonorary: boolean;
   commonsShowAfar: boolean;
-  heartShowHonorary: boolean;
   heartShowAfar: boolean;
   reflectionsOpen: boolean;
 }
@@ -68,9 +66,7 @@ export const DEFAULT_JOURNAL_SETTINGS: JournalSettings = {
   heartPhotosPerPerson: 3,
   heartChars: 800,
   counterShowAtPct: 70,
-  commonsShowHonorary: true,
   commonsShowAfar: true,
-  heartShowHonorary: true,
   heartShowAfar: true,
   reflectionsOpen: true,
 };
@@ -88,9 +84,7 @@ export function parseJournalSettings(m: Record<string, string>): JournalSettings
     heartPhotosPerPerson: num("heart_photos_per_person", 3),
     heartChars: num("heart_chars", 800),
     counterShowAtPct: num("counter_show_at_pct", 70),
-    commonsShowHonorary: bool("commons_show_honorary", true),
     commonsShowAfar: bool("commons_show_afar", true),
-    heartShowHonorary: bool("heart_show_honorary", true),
     heartShowAfar: bool("heart_show_afar", true),
     reflectionsOpen: bool("reflections_open", true),
   };

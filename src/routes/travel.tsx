@@ -6,7 +6,7 @@ import { PageShell } from "@/components/site/Blocks";
 import { TravelLockout } from "@/components/site/Lockouts";
 import { useAuth } from "@/lib/auth";
 import { canViewTravel, isTripParticipant } from "@/lib/locked-areas";
-import { useContent } from "@/lib/data";
+import { useContent, usePrivateContent } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
 import {
   TRAVEL_SLOTS, castName, castRole, type CastGuest, type PackingCategory, type PackingItem,
@@ -65,7 +65,7 @@ function TravelPage() {
 
   const categoriesQ = usePackingCategories(true);
   const itemsQ = usePackingItems(true);
-  const checksQ = usePackingChecks(!!session);
+  const checksQ = usePackingChecks(!!session && participant);
 
   // Assign the random cast order once, the first time anyone sees it missing.
   useEffect(() => {
@@ -114,7 +114,7 @@ function TravelPage() {
         <TravelSection slot="flights" deck="" media={imageFor("flights")} intro={<TravelFlights legs={legs} directory={directory} myGuestId={myGuestQ.data ?? null} editable={participant} />} />
         <TravelSection slot="packing" deck={t("packing_deck")} media={imageFor("packing")}
           intro={<PackingCount items={itemsQ.data ?? []} checks={checksQ.data ?? new Set()} />}
-          below={<PackingList categories={categoriesQ.data ?? []} items={itemsQ.data ?? []} checks={checksQ.data ?? new Set()} userId={session?.user.id} />} />
+          below={<PackingList categories={categoriesQ.data ?? []} items={itemsQ.data ?? []} checks={checksQ.data ?? new Set()} userId={participant ? session?.user.id : undefined} />} />
       </div>
     </main>
   );
@@ -232,30 +232,40 @@ function CastRoll({ cast, loading }: { cast: CastGuest[]; loading: boolean }) {
 
 /* ---------- Villa ---------- */
 
-function VillaIntro() {
+export function VillaIntro() {
   const { t } = useContent();
+  const { roles } = useAuth();
+  const privateContent = usePrivateContent();
+  const participant = isTripParticipant(roles);
+  const pt = privateContent.t;
   return (
     <div className="mt-8">
       <h3 className="font-display text-[26px] text-deep-atlantic">{t("villa_name")}</h3>
-      {t("villa_address") && <p className="mt-2 flex items-center gap-2 text-sm"><MapPin className="h-4 w-4 shrink-0 text-slate" aria-hidden="true" />{t("villa_address")}</p>}
+      {pt("villa_address") && <p className="mt-2 flex items-center gap-2 text-sm"><MapPin className="h-4 w-4 shrink-0 text-slate" aria-hidden="true" />{pt("villa_address")}</p>}
       {t("villa_stay") && <p className="mt-1 text-sm text-muted-foreground">{t("villa_stay")}</p>}
+      {!participant && <p className="caption-serif mt-6">{t("travel.villa_private_note")}</p>}
+      {participant && privateContent.ready && <>
       <div className="mt-5 grid grid-cols-2 gap-4">
-        <div><p className="travel-label">{t("travel.checkin")}</p><p className="mt-1 text-sm">{t("villa_checkin")}</p></div>
-        <div><p className="travel-label">{t("travel.checkout")}</p><p className="mt-1 text-sm">{t("villa_checkout")}</p></div>
+        <div><p className="travel-label">{t("travel.checkin")}</p><p className="mt-1 text-sm">{pt("villa_checkin")}</p></div>
+        <div><p className="travel-label">{t("travel.checkout")}</p><p className="mt-1 text-sm">{pt("villa_checkout")}</p></div>
       </div>
       <VillaFunLine />
-      {t("villa_about") && <LabelledText label={t("travel.about")} text={t("villa_about")} />}
-      {t("villa_amenities") && <LabelledText label={t("travel.amenities")} text={t("villa_amenities")} />}
-      {t("villa_house_rules") && <LabelledText label={t("travel.house_rules")} text={t("villa_house_rules")} />}
-      {t("villa_power_note") && <LabelledText label={t("travel.power_note")} text={t("villa_power_note")} />}
+      {pt("villa_about") && <LabelledText label={t("travel.about")} text={pt("villa_about")} />}
+      {pt("villa_amenities") && <LabelledText label={t("travel.amenities")} text={pt("villa_amenities")} />}
+      {pt("villa_house_rules") && <LabelledText label={t("travel.house_rules")} text={pt("villa_house_rules")} />}
+      {pt("villa_power_note") && <LabelledText label={t("travel.power_note")} text={pt("villa_power_note")} />}
+      {pt("villa_after_checkout") && <p className="caption-serif mt-6">{pt("villa_after_checkout")}</p>}
+      </>}
     </div>
   );
 }
 
 function VillaFunLine() {
   const {t}=useContent();
+  const { t: pt, ready }=usePrivateContent();
+  if (!ready || (!pt("villa_vrbo_url") && !pt("villa_website_url"))) return null;
   const parts=t("villa_fun_line").split(/(\[[^\]]+\]\((?:vrbo|website)\))/);
-  return <p className="mt-6 text-sm leading-relaxed">{parts.map((part,i)=>{const match=/^\[([^\]]+)\]\((vrbo|website)\)$/.exec(part);return match ? <a key={i} href={t(match[2]==="vrbo" ? "villa_vrbo_url" : "villa_website_url")} target="_blank" rel="noopener noreferrer" className="underline decoration-ember underline-offset-2">{match[1]}</a> : part;})}</p>;
+  return <p className="mt-6 text-sm leading-relaxed">{parts.map((part,i)=>{const match=/^\[([^\]]+)\]\((vrbo|website)\)$/.exec(part);return match ? <a key={i} href={pt(match[2]==="vrbo" ? "villa_vrbo_url" : "villa_website_url")} target="_blank" rel="noopener noreferrer" className="underline decoration-ember underline-offset-2">{match[1]}</a> : part;})}</p>;
 }
 
 /* ---------- Packing ---------- */
@@ -300,7 +310,7 @@ function PackingList({ categories, items, checks, userId }: {
               {catItems.map((item) => (
                 <li key={item.id} className="packing-item">
                   <label className="flex min-h-11 cursor-pointer items-start gap-3 py-1">
-                    <input type="checkbox" className="packing-checkbox" checked={local.has(item.id)} onChange={() => void toggle(item.id)} />
+                    <input type="checkbox" className="packing-checkbox" disabled={!userId} checked={local.has(item.id)} onChange={() => void toggle(item.id)} />
                     <span className="min-w-0 flex-1">
                       <span className={cn("block text-sm", local.has(item.id) && "text-muted-foreground line-through decoration-slate/60")}>{item.name}</span>
                       {item.note && <span className="block text-xs text-muted-foreground">{item.note}</span>}

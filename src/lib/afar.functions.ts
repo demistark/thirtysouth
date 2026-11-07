@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
+  afarNameMatches,
   AFAR_GENERIC_ERROR,
   AFAR_LOCKED_ERROR,
   constantTimeEqual,
@@ -23,7 +24,7 @@ async function loadAdmin() {
 }
 
 function randomInt(max: number): number {
-  return crypto.getRandomValues(new Uint32Array(1))[0]! % max;
+  return (crypto.getRandomValues(new Uint32Array(1))[0] ?? 0) % max;
 }
 
 function newSalt(): string {
@@ -44,7 +45,7 @@ type Fail = { ok: false; error: string; locked?: boolean };
  * The code and its hash are never logged.
  */
 export const afarSignIn = createServerFn({ method: "POST" })
-  .inputValidator((input: { code: string }) => input)
+  .inputValidator((input: { code: string; name: string }) => input)
   .handler(async ({ data }) => {
     const admin = await loadAdmin();
     const address = requestAddress();
@@ -84,10 +85,10 @@ export const afarSignIn = createServerFn({ method: "POST" })
 
     const { data: guest } = await admin
       .from("guests")
-      .select("id, user_id, email, pending_role")
+      .select("id, user_id, email, pending_role, display_name, full_name")
       .eq("id", matchedGuestId)
       .maybeSingle();
-    if (!guest) return fail();
+    if (!guest || !afarNameMatches(data.name ?? "", guest.display_name, guest.full_name)) return fail();
 
     // The code only works while the guest's current role is friend_afar.
     let isAfar = false;
@@ -118,7 +119,7 @@ export const afarSignIn = createServerFn({ method: "POST" })
           const found = list.users.find((u) => u.email?.trim().toLowerCase() === guest.email);
           if (found) {
             userId = found.id;
-            email = found.email!;
+            email = found.email ?? "";
             break;
           }
           if (list.users.length < 1000) break;
@@ -131,7 +132,7 @@ export const afarSignIn = createServerFn({ method: "POST" })
         userId = created.user.id;
       }
       await admin.from("guests").update({ user_id: userId }).eq("id", guest.id);
-      await admin.from("user_roles").delete().eq("user_id", userId).in("role", ["trip_guest", "friend_afar", "honorary_guest"]);
+      await admin.from("user_roles").delete().eq("user_id", userId).in("role", ["trip_guest", "friend_afar"]);
       await admin.from("user_roles").insert({ user_id: userId, role: "friend_afar" });
     }
 
@@ -156,8 +157,8 @@ function effectiveRole(
   rolesByUser: Map<string, string>,
   invitesByEmail: Map<string, string>,
 ): string {
-  if (g.user_id && rolesByUser.has(g.user_id)) return rolesByUser.get(g.user_id)!;
-  if (g.email && invitesByEmail.has(g.email)) return invitesByEmail.get(g.email)!;
+  if (g.user_id && rolesByUser.has(g.user_id)) return rolesByUser.get(g.user_id) ?? "trip_guest";
+  if (g.email && invitesByEmail.has(g.email)) return invitesByEmail.get(g.email) ?? "trip_guest";
   return g.pending_role ?? "trip_guest";
 }
 
@@ -215,6 +216,26 @@ async function revokeSessions(admin: Admin, guestId: string) {
   const { data: guest } = await admin.from("guests").select("user_id").eq("id", guestId).maybeSingle();
   if (guest?.user_id) await admin.auth.admin.signOut(guest.user_id);
 }
+
+export const afarAddFriend = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { name: string }) => {
+    const name = typeof input.name === "string" ? input.name.trim() : "";
+    if (!name || name.length > 80) throw new Error("Invalid name");
+    return { name };
+  })
+  .handler(async ({ data, context }) => {
+    await requireHost(context);
+    const admin = await loadAdmin();
+    const { data: guest, error } = await admin.from("guests").insert({ full_name: data.name, display_name: data.name, email: "", status: "confirmed", pending_role: "friend_afar", splitwise_name: null }).select("id").single();
+    if (error || !guest) throw new Error("Could not add friend");
+    try {
+      return { displayName: data.name, code: await issueCode(admin, guest.id) };
+    } catch (error) {
+      await admin.from("guests").delete().eq("id", guest.id);
+      throw error;
+    }
+  });
 
 export const afarGenerateCode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -30,7 +30,7 @@ export function JournalReflections() {
   return <Notebook settings={settingsQ.data} />;
 }
 
-/** Honorary guests and friends afar: a quiet message card, no data requests. */
+/** Friends afar: a quiet message card, no data requests. */
 function NonParticipantMessage() {
   const { t } = useContent();
   return (

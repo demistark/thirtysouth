@@ -114,7 +114,7 @@ function ExperienceCard({ exp, ctx }: { exp: Experience; ctx: CardContext }) {
   const status = effectiveStatus(exp, myRsvp);
   const isGroup = exp.level === "group";
   const showRsvp = !isGroup && exp.rsvp_mode !== "none";
-  const showPrice = !isGroup;
+  const showPrice = !isGroup && ctx.participant;
   const counts = rsvpCounts(exp, ctx.rsvps, ctx.participants.map((p) => p.id));
   const canExpand = experienceExpandable(exp, relatedScenes.length, ctx.settings.showNames);
   const needsReply = ctx.participant && exp.rsvp_mode === "must_reply" && !myRsvp;
@@ -150,7 +150,7 @@ function ExperienceCard({ exp, ctx }: { exp: Experience; ctx: CardContext }) {
             {(exp.details?.trim() || relatedScenes[0]?.details) && (
               <p className="whitespace-pre-line text-sm leading-relaxed">{exp.details?.trim() || relatedScenes[0]?.details}</p>
             )}
-            {exp.price_note && (
+            {ctx.participant && exp.price_note && (
               <div>
                 <p className="label-caps text-ember-deep">{t("purse.good_to_know")}</p>
                 <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">{exp.price_note}</p>
@@ -171,6 +171,8 @@ function ExperienceCard({ exp, ctx }: { exp: Experience; ctx: CardContext }) {
 
 export function PriceLine({ exp, settings, currency }: { exp: Experience; settings: PurseSettings; currency: PurseCurrency }) {
   const { t } = useContent();
+  const { roles } = useAuth();
+  if (!isTripParticipant(roles)) return null;
   if (exp.show_host_note) return <p className="exp-host-note">{t("host_note_instead_of_price")}</p>;
   if (exp.price_zar == null) return null;
   const parts = priceLineParts(exp.price_zar, settings.zarPerUsd, currency);
