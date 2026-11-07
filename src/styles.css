@@ -150,6 +150,10 @@
   --scene-shadow-4: 0 12px 26px -6.5px rgba(36, 72, 90, 0.17), 0 2.5px 7px rgba(45, 51, 48, 0.075);
   --scene-shadow-5: 0 14px 30px -6px rgba(36, 72, 90, 0.18), 0 3px 8px rgba(45, 51, 48, 0.08);
   --shadow-scene: var(--scene-shadow-3);
+  --experience-wash: linear-gradient(180deg, color-mix(in srgb, var(--paper) 92%, transparent) 0%, color-mix(in srgb, var(--paper) 88%, transparent) 100%);
+  --experience-scrim: linear-gradient(0deg, rgba(34,26,20,.62) 0%, rgba(34,26,20,0) 100%);
+  --experience-pill: color-mix(in srgb, var(--paper) 88%, transparent);
+  --experience-text-shadow: 0 1px 3px var(--ink);
 }
 
 .itinerary-days {
@@ -1982,6 +1986,59 @@ html[data-intro="reveal"] .home-during > :nth-child(n + 10) { animation-delay: 7
 }
 
 /* ---------- Purse: Shared Experiences (reuses the scene-card look) ---------- */
+.scene-main > .exp-card-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 200ms;
+}
+.scene-card[data-photo="true"] .scene-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+  overflow: hidden;
+  background: transparent;
+}
+.scene-card[data-photo="true"] .exp-card-photo { opacity: 1; }
+.exp-list .scene-card[data-photo="true"] .scene-main::before { display: none; }
+.scene-main > .exp-photo-scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+}
+.exp-photo-copy, .exp-photo-bottom { display: contents; }
+.exp-photo-copy > *, .exp-photo-bottom > * { position: relative; z-index: 2; }
+.scene-card[data-photo="true"] .exp-photo-copy { display: block; isolation: isolate; }
+.scene-card[data-photo="true"] .exp-photo-copy::before {
+  content: ""; position: absolute; inset: -18px -16px -16px; z-index: -1;
+  background: var(--experience-wash); pointer-events: none;
+}
+.scene-card[data-photo="true"] .exp-photo-bottom { display: block; }
+.scene-main > .exp-photo-scrim { background: var(--experience-scrim); top: 52%; }
+.scene-card[data-photo="true"] .exp-photo-bottom { margin-top: auto; padding-top: 24px; }
+.scene-card[data-photo="true"] .exp-rsvp {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; text-align: right; margin-top: 0;
+}
+.scene-card[data-photo="true"] .exp-rsvp > :not(.exp-photo-price):not(.exp-rsvp-pill) { grid-column: 1 / -1; justify-self: end; order: 1; }
+.scene-card[data-photo="true"] .exp-photo-price { grid-column: 1; order: 2; text-align: left; }
+.scene-card[data-photo="true"] .exp-rsvp-pill { grid-column: 2; order: 2; background: var(--experience-pill); border-color: var(--ink); }
+.scene-card[data-photo="true"] .exp-rsvp-pill button { padding: 0 12px; color: var(--ink); }
+.exp-rsvp-pill button { height: auto; border-radius: 0; gap: 0; }
+.scene-card[data-photo="true"] .exp-rsvp-pill button[aria-pressed="true"] { color: var(--cream); }
+.scene-card[data-photo="true"] :is(.exp-price, .exp-price-usd, .exp-price-status, .exp-host-note, .exp-rsvp-hint, .exp-rsvp-deadline, .exp-rsvp-summary) { color: var(--paper); text-shadow: var(--experience-text-shadow); }
+.scene-card[data-photo="true"] .exp-price { margin-top: 0; flex-direction: column; align-items: start; gap: 2px; }
+.scene-card[data-photo="true"] .scene-chevron { flex-shrink: 0; }
+.exp-photo-preview {
+  display: flex; position: relative; width: 100%; height: auto; padding: 0; overflow: hidden;
+  border: 1px solid var(--scene-border); border-radius: 14px; background: var(--paper); color: var(--slate); cursor: crosshair; white-space: normal;
+}
+.exp-photo-preview-phone { aspect-ratio: 7 / 8; }
+.exp-photo-preview-desktop { aspect-ratio: 3 / 2; }
+.exp-photo-preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+@media (min-width: 768px) { .scene-card[data-photo="true"] .scene-main { min-height: 460px; } }
+@media (prefers-reduced-motion: reduce) { .scene-main > .exp-card-photo { transition: none; } }
 .exp-list {
   display: flex;
   flex-direction: column;

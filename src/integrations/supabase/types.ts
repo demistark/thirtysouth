@@ -284,6 +284,11 @@ export type Database = {
           level: string
           location: string | null
           parent_id: string | null
+          photo_alt: string
+          photo_focal_x: number
+          photo_focal_y: number
+          photo_path: string | null
+          photo_zoom: number
           price_note: string | null
           price_status: string | null
           price_zar: number | null
@@ -307,6 +312,11 @@ export type Database = {
           level?: string
           location?: string | null
           parent_id?: string | null
+          photo_alt?: string
+          photo_focal_x?: number
+          photo_focal_y?: number
+          photo_path?: string | null
+          photo_zoom?: number
           price_note?: string | null
           price_status?: string | null
           price_zar?: number | null
@@ -330,6 +340,11 @@ export type Database = {
           level?: string
           location?: string | null
           parent_id?: string | null
+          photo_alt?: string
+          photo_focal_x?: number
+          photo_focal_y?: number
+          photo_path?: string | null
+          photo_zoom?: number
           price_note?: string | null
           price_status?: string | null
           price_zar?: number | null

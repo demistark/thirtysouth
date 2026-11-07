@@ -35,6 +35,7 @@ vi.mock("@/integrations/supabase/client", () => ({ supabase: {
   rpc: async (name: string) => (name === "participant_directory" ? { data: state.participants, error: null } : { data: [], error: null }),
 } }));
 vi.mock("@/lib/data", () => ({ useContent: () => ({ t: (key: string) => key === "purse.admin.select" ? "Select {card}" : key }) }));
+vi.mock("@/lib/auth", () => ({ useAuth: () => ({ roles: ["host"], session: { user: { id: "host" } }, loading: false }) }));
 vi.mock("@/components/site/TripTimeInput", () => ({ TripTimeInput: () => null }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 import { toast } from "sonner";

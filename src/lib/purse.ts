@@ -26,6 +26,11 @@ export interface Experience {
   show_host_note: boolean;
   rsvp_deadline: string | null;
   visible: boolean;
+  photo_path?: string | null;
+  photo_alt?: string;
+  photo_focal_x?: number;
+  photo_focal_y?: number;
+  photo_zoom?: number;
 }
 
 export interface ExperienceRsvp {
@@ -364,7 +369,7 @@ export const EXPERIENCE_CSV_COLUMNS = [
   "summary", "details", "price_zar", "price_status", "price_note", "show_host_note", "related_scenes", "rsvp_deadline",
 ] as const;
 
-export interface ExperienceImportRow extends Experience {
+export interface ExperienceImportRow extends Omit<Experience, "photo_path" | "photo_alt" | "photo_focal_x" | "photo_focal_y" | "photo_zoom"> {
   parent_title: string | null;
   related_scene_titles: string[];
 }
