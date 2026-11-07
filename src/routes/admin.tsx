@@ -187,7 +187,7 @@ function GuestsAdmin() {
 
   const baseRoleOf = (g: Guest) => guestsQ.data?.baseRoles.get(g.email) ?? g.pending_role ?? "trip_guest";
   const setBaseRole = async (g: Guest, role: string) => {
-    const { error } = await supabase.rpc("set_guest_role", { _guest_id: g.id, _role: role as "trip_guest" | "friend_afar" | "honorary_guest" });
+    const { error } = await supabase.rpc("set_guest_role", { _guest_id: g.id, _role: role as "trip_guest" | "friend_afar" });
     if (error) { toast.error(error.message); return; }
     toast.success("Saved");
     refresh();
@@ -231,7 +231,6 @@ function GuestsAdmin() {
           <option value="all">Everyone</option>
           <option value="trip_guest">On the trip</option>
           <option value="friend_afar">Afar</option>
-          <option value="honorary_guest">Honorary guest</option>
         </select>
       </div>
       <ul className="divide-y border-y">
@@ -254,8 +253,7 @@ function GuestsAdmin() {
             >
               <option value="trip_guest">On the trip</option>
               <option value="friend_afar">Afar</option>
-              <option value="honorary_guest">Honorary guest</option>
-            </select>
+                </select>
             <label className="label-caps flex items-center gap-2 text-muted-foreground">
               <input
                 type="checkbox"
@@ -292,6 +290,12 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 /* ---------------- Content ---------------- */
 
 function ContentAdmin() {
+  const { t } = useContent();
+  const qc = useQueryClient();
+  const [key, setKey] = useState("");
+  const [value, setValue] = useState("");
+  const privateQ = useQuery({ queryKey: ["admin", "private-content"], queryFn: async () => { const { data, error } = await supabase.from("private_content").select("key,value").order("key"); if(error) throw error; return data ?? []; } });
+  const addPrivate = async (e: React.FormEvent) => { e.preventDefault(); if(!key.trim()) return; const {error}=await supabase.from("private_content").insert({key:key.trim(),value}); if(error){toast.error(error.message);return;} setKey("");setValue(""); await qc.invalidateQueries({queryKey:["admin","private-content"]}); await qc.invalidateQueries({queryKey:["private_content"]}); };
   const q = useQuery({
     queryKey: ["admin", "content"],
     queryFn: async () => {
@@ -301,20 +305,20 @@ function ContentAdmin() {
     },
   });
   return (
-    <ul className="space-y-4">
+    <><ul className="space-y-4">
       {q.data?.map((row) => <ContentRow key={row.key} k={row.key} initial={row.value} />)}
-    </ul>
+    </ul><section className="mt-10 border-t pt-8"><h2 className="font-display-light text-3xl">{t("admin.content.private_title")}</h2><ul className="mt-6 space-y-4">{privateQ.data?.map(row => <ContentRow key={row.key} k={row.key} initial={row.value} table="private_content" />)}</ul><form onSubmit={addPrivate} className="mt-6 space-y-3"><label className="block">{t("admin.content.private_key")}<input className="field" required value={key} onChange={e=>setKey(e.target.value)} /></label><label className="block">{t("admin.content.private_value")}<textarea className="field" value={value} onChange={e=>setValue(e.target.value)} /></label><Button type="submit" variant="pill">{t("admin.content.private_add")}</Button></form></section></>
   );
 }
 
-function ContentRow({ k, initial }: { k: string; initial: string }) {
+function ContentRow({ k, initial, table = "site_content" }: { k: string; initial: string; table?: "site_content" | "private_content" }) {
   const qc = useQueryClient();
   const [value, setValue] = useState(initial);
   const save = async () => {
-    const { error } = await supabase.from("site_content").update({ value }).eq("key", k);
+    const { error } = await supabase.from(table).update({ value }).eq("key", k);
     if (error) { toast.error(error.message); return; }
     toast.success(`Saved ${k}`);
-    qc.invalidateQueries({ queryKey: ["site_content"] });
+    qc.invalidateQueries({ queryKey: [table] });
   };
   return (
     <li className="border bg-card p-4">
