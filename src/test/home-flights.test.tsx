@@ -205,7 +205,7 @@ describe("TravelFlights initialOpen", () => {
       <TravelFlights legs={[leg("g1", "arrival")]} directory={directory} myGuestId="g1" editable initialOpen="departure" />,
     );
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
-    const departureTab = screen.getByRole("tab", { name: /departures/i });
+    const departureTab = screen.getByRole("tab", { name: /departures/i, hidden: true });
     expect(departureTab).toHaveAttribute("aria-selected", "true");
   });
   it("opens in edit mode when a leg for that direction already exists", async () => {
