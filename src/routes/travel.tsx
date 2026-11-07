@@ -105,6 +105,14 @@ function TravelPage() {
 
   const directory = directoryQ.data ?? [];
 
+  // Home's "add your flights" nudge lands here: open the sheet for that direction, then clear the parameter.
+  const initialOpen = !flightParam || !participant || !myGuestQ.data ? undefined : flightParam === "add" ? "arrival" : flightParam;
+  useEffect(() => {
+    if (!initialOpen) return;
+    jumpToTravel("flights");
+    void navigate({ to: "/travel", search: {}, replace: true, resetScroll: false });
+  }, [initialOpen, navigate]);
+
   return (
     <main className="travel-page pt-14 md:pt-20">
       <header className="mx-auto max-w-5xl px-5">
