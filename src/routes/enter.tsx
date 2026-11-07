@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { afarSignIn } from "@/lib/afar.functions";
+import { useContent } from "@/lib/data";
+import { isValidAfarCodeFormat, normalizeAfarCode } from "@/lib/afar-codes";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/enter")({
@@ -23,7 +25,10 @@ export const Route = createFileRoute("/enter")({
   component: EnterCode,
 });
 
-function EnterCode() {
+export function EnterCode() {
+  const { t } = useContent();
+  const [step, setStep] = useState<"code" | "name">("code");
+  const [name, setName] = useState("");
   const { code: prefilled } = Route.useSearch();
   const { session } = useAuth();
   const navigate = useNavigate();
@@ -36,6 +41,7 @@ function EnterCode() {
   useEffect(() => {
     if (prefilled) {
       setCode(prefilled);
+      setStep("name");
       window.history.replaceState({}, "", "/enter");
     }
   }, [prefilled]);
@@ -46,10 +52,14 @@ function EnterCode() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!code.trim()) return;
+    if (step === "code") {
+      if (isValidAfarCodeFormat(normalizeAfarCode(code))) { setState("idle"); setStep("name"); } else setState("bad");
+      return;
+    }
+    if (!name.trim()) return;
     setState("checking");
     try {
-      const result = await signIn({ data: { code } });
+      const result = await signIn({ data: { code, name } });
       if (!result.ok) {
         setState(result.locked ? "locked" : "bad");
         return;
@@ -63,13 +73,13 @@ function EnterCode() {
 
   return (
     <main className="mx-auto max-w-md px-5 pt-20 md:pt-28">
-      <h1 className="font-display-light text-5xl">Your personal code</h1>
-      <p className="caption-serif mt-3">Type the code you were sent. This phone will remember you.</p>
+      <h1 className="font-display-light text-5xl">{t(step === "code" ? "enter.code_title" : "enter.name_title")}</h1>
+      <p className="caption-serif mt-3">{t(step === "code" ? "enter.code_intro" : "enter.name_intro")}</p>
       <form onSubmit={submit} className="mt-10 space-y-4">
-        <label className="label-caps block text-muted-foreground" htmlFor="personal-code">
-          Your personal code
+        <label className="label-caps block text-muted-foreground" htmlFor={step === "code" ? "personal-code" : "personal-name"}>
+          {t(step === "code" ? "enter.code_label" : "enter.name_label")}
         </label>
-        <input
+        {step === "code" ? <input
           id="personal-code"
           autoComplete="off"
           autoCapitalize="characters"
@@ -77,15 +87,16 @@ function EnterCode() {
           className="field tracking-[0.2em] uppercase"
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          placeholder="COAST-7K4M2"
-        />
-        {state === "bad" && <p className="text-sm text-ember-deep">That code didn't work.</p>}
+          placeholder={t("enter.code_placeholder")}
+        /> : <input id="personal-name" className="field" autoComplete="off" required value={name} onChange={e=>setName(e.target.value)} />}
+        {state === "bad" && <p className="text-sm text-ember-deep">{t("enter.error")}</p>}
         {state === "locked" && (
-          <p className="text-sm text-ember-deep">Too many tries just now. Take a breath and try again in a little while.</p>
+          <p className="text-sm text-ember-deep">{t("enter.locked")}</p>
         )}
         <Button variant="pill" className="btn-pill-solid w-full" disabled={state === "checking"}>
-          Continue
+          {t(step === "code" ? "enter.continue" : "enter.come_in")}
         </Button>
+        {step === "name" && <Button type="button" variant="link" disabled={state === "checking"} onClick={()=>{setStep("code");setState("idle");}}>{t("enter.back")}</Button>}
       </form>
     </main>
   );

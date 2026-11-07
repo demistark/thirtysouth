@@ -32,11 +32,21 @@ export const AFAR_WORDS = [
 export const AFAR_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
 
 export const AFAR_DEFAULT_TEMPLATE =
-  "Hi {name}, here is your personal code for 30° SOUTH: {code}. Open {link} and enter it once. This phone will remember you.";
+  "Hi {name}, here is your personal code for 30° SOUTH: {code}. Open {link}, enter the code, then type your name ({name}) when it asks. This phone will remember you.";
 
 /** Identical for every failure so nothing is revealed about which part was wrong. */
-export const AFAR_GENERIC_ERROR = "That code didn't work.";
+export const AFAR_GENERIC_ERROR = "That didn't work. Check your code and your name and try again.";
 export const AFAR_LOCKED_ERROR = "Too many tries just now. Take a breath and try again in a little while.";
+
+export function normalizeAfarName(input: string): string {
+  return input.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+}
+
+export function afarNameMatches(input: string, displayName: string, fullName: string): boolean {
+  const name = normalizeAfarName(input);
+  const full = normalizeAfarName(fullName);
+  return !!name && [normalizeAfarName(displayName), full, full.split(" ")[0]].includes(name);
+}
 
 /** Uppercases and strips everything that is not a letter or digit (spaces, dashes). */
 export function normalizeAfarCode(input: string): string {

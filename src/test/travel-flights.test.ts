@@ -25,7 +25,7 @@ describe("Travel flight list",()=>{
  it("allows zero to three connections only",()=>{expect(flightAirportsValid("ATL",[])).toBe(true);expect(flightAirportsValid("ATL",["LOS","DOH","JNB"])).toBe(true);expect(flightAirportsValid("ATL",["LOS","DOH","JNB","LHR"])).toBe(false);expect(flightAirportsValid("ATL",["LO"])).toBe(false);});
  it("orders routes around CPT for both directions",()=>{expect(flightRouteCodes(leg({connections:["LOS"]}))).toEqual(["ATL","LOS","CPT"]);expect(flightRouteCodes(leg({direction:"departure",connections:["LOS"]}))).toEqual(["CPT","LOS","ATL"]);});
  it("allows one flight per guest per direction, excluding edited row",()=>{expect(hasFlightDirection([leg()],"me","arrival")).toBe(true);expect(hasFlightDirection([leg()],"me","departure")).toBe(false);expect(hasFlightDirection([leg()],"other","arrival")).toBe(false);expect(hasFlightDirection([leg()],"me","arrival","a")).toBe(false);});
- it("Roomies follows resolved Travel visibility roles",()=>{for(const role of ["host","schedule_manager","trip_guest","honorary_guest"] as const)expect(canViewTravel([role])).toBe(true);expect(canViewTravel(["friend_afar"])).toBe(false);expect(canViewTravel([])).toBe(false);});
+ it("Roomies follows resolved Travel visibility roles",()=>{for(const role of ["host","schedule_manager","trip_guest","friend_afar"] as const)expect(canViewTravel([role])).toBe(true);expect(canViewTravel(["friend_afar"])).toBe(true);expect(canViewTravel([])).toBe(false);});
 });
 
 describe("Travel database rules",()=>{
@@ -38,9 +38,9 @@ describe("Travel database rules",()=>{
    expect(policy).toContain("public.is_trip_participant(auth.uid()) AND guest_id=public.my_guest()");
    if(command==="UPDATE")expect(policy?.match(/guest_id=public.my_guest\(\)/g)).toHaveLength(2);
  });
- it("Roomies read policy includes schedule managers and excludes friends afar",()=>{
-   const read=migration.split(";\n").find(s=>s.includes('"Travel friends read Roomies"'));
-   for(const role of ["host","schedule_manager","trip_guest","honorary_guest"])expect(read).toContain(`public.has_role(auth.uid(),'${role}')`);
-   expect(read).not.toContain("friend_afar");
+ it("Roomies read policy uses the shared Travel view helper",()=>{
+   const current=readFileSync("drizzle/migrations/0026_h10_access_private_content_and_signin.sql","utf8");
+   const read=current.split(";\n").find(s=>s.startsWith('CREATE POLICY "Travel friends read Roomies"'));
+   expect(read).toContain("public.can_view_travel(auth.uid())");
  });
 });

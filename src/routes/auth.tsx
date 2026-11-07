@@ -115,7 +115,6 @@ function SignIn() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          {state === "not_found" && <p className="text-sm text-ember-deep">{t("signin.not_found")}</p>}
           {state === "error" && <p className="text-sm text-destructive">Something went wrong. Please try again.</p>}
           <button className="btn-pill btn-pill-solid w-full" disabled={state === "sending"}>
             {t("signin.button")}

@@ -6,7 +6,7 @@ import { isTripParticipant } from "@/lib/locked-areas";
 export type GateKind = "rsvp" | "commons" | "expense" | "default";
 
 /**
- * Accessible dialog shown when an honorary guest (or other non-participant)
+ * Accessible dialog shown when a non-participant
  * taps a control that only friends on the trip may use. The control keeps its
  * normal look; the dialog explains instead of acting. Focus is trapped,
  * Escape closes, and focus returns to the triggering control.

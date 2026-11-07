@@ -9,19 +9,19 @@ import {
 /* ---------- role helpers ---------- */
 
 describe("travel roles", () => {
-  it("canViewTravel: host, schedule_manager, trip_guest, honorary_guest — never friend_afar", () => {
+  it("canViewTravel: host, schedule_manager, trip_guest, friend_afar (read-only afar)", () => {
     expect(canViewTravel(["host"])).toBe(true);
     expect(canViewTravel(["schedule_manager"])).toBe(true);
     expect(canViewTravel(["trip_guest"])).toBe(true);
-    expect(canViewTravel(["honorary_guest"])).toBe(true);
-    expect(canViewTravel(["friend_afar"])).toBe(false);
+    expect(canViewTravel(["friend_afar"])).toBe(true);
+    expect(canViewTravel(["friend_afar"])).toBe(true);
     expect(canViewTravel([])).toBe(false);
   });
   it("isTripParticipant: host, schedule_manager, trip_guest only", () => {
     expect(isTripParticipant(["host"])).toBe(true);
     expect(isTripParticipant(["schedule_manager"])).toBe(true);
     expect(isTripParticipant(["trip_guest"])).toBe(true);
-    expect(isTripParticipant(["honorary_guest"])).toBe(false);
+    expect(isTripParticipant(["friend_afar"])).toBe(false);
     expect(isTripParticipant(["friend_afar"])).toBe(false);
   });
 });

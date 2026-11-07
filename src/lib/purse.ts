@@ -44,7 +44,7 @@ export function effectiveStatus(exp: Pick<Experience, "rsvp_mode">, rsvp: Pick<E
 
 export interface RsvpCounts { going: number; not_going: number; awaiting: number }
 
-/** Counts cover participants only — never honorary guests or friends afar. */
+/** Counts cover participants only — never friends afar. */
 export function rsvpCounts(
   exp: Pick<Experience, "id" | "rsvp_mode">,
   rsvps: ExperienceRsvp[],
@@ -110,8 +110,7 @@ export interface SceneExperienceTag { id: string; card: string; status: SceneExp
 
 /**
  * One tag per linked experience (experience_scenes links, with the scenes.experience_card
- * text match as a fallback). The status is the viewer's own reply; honorary guests,
- * friends afar and no-RSVP experiences get the link only.
+ * text match as a fallback). The status is the viewer's own reply; friends afar and no-RSVP experiences get the link only.
  */
 export function sceneExperienceTags(
   scene: { id?: string | undefined; experience_card: string | null },
