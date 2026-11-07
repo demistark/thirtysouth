@@ -6,7 +6,7 @@ import { showHeroPlaceholder, useContent, useHomeImage } from "@/lib/data";
 import { canEditPurse, canViewPurse, canViewTravel, isTripParticipant } from "@/lib/locked-areas";
 import { needsReplyCount } from "@/lib/purse";
 import { useExperienceRsvps, useExperiences, usePurseSettings } from "@/lib/purse-data";
-import { formatLegDate, formatLegTime, nextLeg } from "@/lib/travel";
+import { formatLegDate, formatLegTime, missingFlightDirections, nextLeg } from "@/lib/travel";
 import { useMyGuest, useTravelLegs } from "@/lib/travel-data";
 import { useTripClock } from "@/lib/trip-clock";
 import { heroSubKey, zonedDate, type Phase } from "@/lib/phase";
