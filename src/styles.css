@@ -2021,9 +2021,9 @@ html[data-intro="reveal"] .home-during > :nth-child(n + 10) { animation-delay: 7
 .scene-card[data-photo="true"] .exp-rsvp {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; text-align: right; margin-top: 0;
 }
-.scene-card[data-photo="true"] .exp-rsvp > :not(.exp-photo-price):not(.exp-rsvp-pill) { grid-column: 1 / -1; justify-self: end; }
-.scene-card[data-photo="true"] .exp-photo-price { grid-column: 1; grid-row: 20; text-align: left; }
-.scene-card[data-photo="true"] .exp-rsvp-pill { grid-column: 2; grid-row: 20; background: var(--experience-pill); border-color: var(--ink); }
+.scene-card[data-photo="true"] .exp-rsvp > :not(.exp-photo-price):not(.exp-rsvp-pill) { grid-column: 1 / -1; justify-self: end; order: 1; }
+.scene-card[data-photo="true"] .exp-photo-price { grid-column: 1; order: 2; text-align: left; }
+.scene-card[data-photo="true"] .exp-rsvp-pill { grid-column: 2; order: 2; background: var(--experience-pill); border-color: var(--ink); }
 .scene-card[data-photo="true"] .exp-rsvp-pill button { padding: 0 12px; color: var(--ink); }
 .exp-rsvp-pill button { height: auto; border-radius: 0; gap: 0; }
 .scene-card[data-photo="true"] .exp-rsvp-pill button[aria-pressed="true"] { color: var(--cream); }
