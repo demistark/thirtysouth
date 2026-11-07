@@ -183,6 +183,13 @@
       "when": 1794004102724,
       "tag": "0025_rsvp_flow_going_not_going",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1794019478332,
+      "tag": "0026_h10_access_private_content_and_signin",
+      "breakpoints": true
     }
   ]
 }
