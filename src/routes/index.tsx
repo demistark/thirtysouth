@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PhotoSlot } from "@/components/site/Blocks";
 import { useAuth } from "@/lib/auth";
 import { showHeroPlaceholder, useContent, useHomeImage } from "@/lib/data";
-import { canEditPurse, canViewPurse, canViewTravel, isTripParticipant } from "@/lib/locked-areas";
+import { canEditPurse, isTripParticipant } from "@/lib/locked-areas";
 import { needsReplyCount } from "@/lib/purse";
 import { useExperienceRsvps, useExperiences, usePurseSettings } from "@/lib/purse-data";
 import { missingFlightDirections } from "@/lib/travel";
