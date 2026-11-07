@@ -2038,7 +2038,7 @@ html[data-intro="reveal"] .home-during > :nth-child(n + 10) { animation-delay: 7
 .exp-photo-preview-desktop { aspect-ratio: 3 / 2; }
 .exp-photo-preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 @media (min-width: 768px) { .scene-card[data-photo="true"] .scene-main { min-height: 460px; } }
-@media (prefers-reduced-motion: reduce) { .exp-card-photo { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .scene-main > .exp-card-photo { transition: none; } }
 .exp-list {
   display: flex;
   flex-direction: column;
