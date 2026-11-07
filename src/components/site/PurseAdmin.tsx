@@ -12,7 +12,9 @@ import {
   unfinishedByGuest, whatsAppUrl,
   type Experience, type ExperienceImportRow, type ExperienceRsvp, type RsvpStatus,
 } from "@/lib/purse";
-import { useParticipantDirectory } from "@/lib/purse-data";
+import { useExperiencePhotoUrls, useParticipantDirectory } from "@/lib/purse-data";
+import { EMPTY_EXPERIENCE_PHOTO, normalizeExperiencePhoto, saveExperiencePhoto } from "@/lib/experience-photo";
+import { ExperiencePhotoEditor } from "./ExperiencePhotoEditor";
 import { TripTimeInput } from "./TripTimeInput";
 
 type Sub = "experiences" | "rsvps" | "settings";
@@ -49,6 +51,7 @@ const emptyExp = {
   rank: "", card: "", level: "big", parent_id: "", rsvp_mode: "none", default_status: "", choices: "",
   when_text: "", location: "", summary: "", details: "", price_zar: "", price_status: "", price_note: "",
   show_host_note: false, rsvp_deadline: "",
+  ...EMPTY_EXPERIENCE_PHOTO,
 };
 type ExpForm = typeof emptyExp;
 
@@ -79,8 +82,13 @@ function ExperiencesPanel() {
   const [confirmingId, setConfirmingId] = useState<string>();
   const [confirmingBulk, setConfirmingBulk] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const photoUrls = useExperiencePhotoUrls(editing ? [{ ...editing, visible: true }] : []);
 
   useEffect(() => {
+    setPhotoBlob(null);
     setForm(
       editing
         ? {
@@ -89,6 +97,7 @@ function ExperiencesPanel() {
             when_text: editing.when_text, location: editing.location ?? "", summary: editing.summary,
             details: editing.details ?? "", price_zar: editing.price_zar?.toString() ?? "", price_status: editing.price_status ?? "",
             price_note: editing.price_note ?? "", show_host_note: editing.show_host_note, rsvp_deadline: editing.rsvp_deadline ?? "",
+            ...normalizeExperiencePhoto(editing),
           }
         : emptyExp,
     );
@@ -105,6 +114,8 @@ function ExperiencesPanel() {
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving || photoBusy) return;
+    setSaving(true);
     const payload = {
       rank: form.rank, card: form.card, level: form.level, parent_id: form.parent_id || null,
       rsvp_mode: form.rsvp_mode, default_status: (form.default_status || null) as Experience["default_status"],
@@ -113,14 +124,19 @@ function ExperiencesPanel() {
       price_status: (form.price_status || null) as Experience["price_status"], price_note: form.price_note || null,
       show_host_note: form.show_host_note, rsvp_deadline: form.rsvp_deadline || null,
     };
-    const { error } = editing
-      ? await supabase.from("experiences").update(payload).eq("id", editing.id)
-      : await supabase.from("experiences").insert({ ...payload, sort_order: experiences.length + 1 });
-    if (error) { toast.error(error.message); return; }
-    toast.success(t("admin.itin.saved"));
-    setEditing(null);
-    setForm(emptyExp);
-    await refresh();
+    try {
+      const id = editing?.id ?? crypto.randomUUID();
+      await saveExperiencePhoto(id, normalizeExperiencePhoto(form), photoBlob, editing?.photo_path ?? null, async (photo) => {
+        const { error } = editing
+          ? await supabase.from("experiences").update({ ...payload, ...photo }).eq("id", id)
+          : await supabase.from("experiences").insert({ ...payload, ...photo, id, sort_order: experiences.length + 1 });
+        if (error) throw error;
+      });
+      toast.success(t("admin.itin.saved"));
+      setEditing(null); setForm(emptyExp); setPhotoBlob(null);
+      await refresh();
+    } catch { toast.error(t("admin.itin.photo_error")); }
+    finally { setSaving(false); }
   };
 
   const move = async (exp: Experience & { id: string }, dir: -1 | 1) => {
@@ -258,12 +274,13 @@ function ExperiencesPanel() {
           </select>
         </F>
         <F label="Price note" wide><textarea className="field min-h-16" value={form.price_note} onChange={(e) => setForm({ ...form, price_note: e.target.value })} /></F>
+        <ExperiencePhotoEditor key={editing?.id ?? "new"} photo={form} url={editing?.photo_path ? photoUrls.data?.[editing.photo_path] : undefined} onBusy={setPhotoBusy} onChange={(photo, blob) => { setForm((current) => ({ ...current, ...photo })); if (blob !== undefined) setPhotoBlob(blob); }} />
         <label className="flex items-center gap-3 text-sm">
           <input type="checkbox" checked={form.show_host_note} onChange={(e) => setForm({ ...form, show_host_note: e.target.checked })} />
           Show the host note instead of a price
         </label>
         <div className="flex items-end gap-3">
-          <button className="btn-pill btn-pill-solid">{editing ? "Save" : "Add"}</button>
+          <button disabled={photoBusy || saving} className="btn-pill btn-pill-solid">{editing ? "Save" : "Add"}</button>
           {editing && <button type="button" className="btn-pill" onClick={() => setEditing(null)}>Cancel</button>}
         </div>
       </form>

@@ -16,6 +16,7 @@ import {
 } from "@/lib/purse";
 import {
   queueRsvpSave, useExperienceRsvps, useExperienceScenes, useExperiences, useParticipantDirectory, usePurseSettings,
+  useExperiencePhotoUrls,
   type PurseSettings,
 } from "@/lib/purse-data";
 import { useMyGuest } from "@/lib/travel-data";
@@ -24,6 +25,7 @@ import type { Scene } from "@/lib/itinerary";
 import { useActionGate } from "./ActionGate";
 import { Button } from "@/components/ui/button";
 import { scrollToContent } from "@/lib/scroll";
+import { experiencePhotoStyle } from "@/lib/experience-photo";
 
 interface CardContext {
   scenes: Scene[];
@@ -36,6 +38,7 @@ interface CardContext {
   editor: boolean;
   nowCpt: string;
   currency: PurseCurrency;
+  photoUrls?: Record<string, string | undefined>;
 }
 
 export function Experiences({ currency }: { currency: PurseCurrency }) {
@@ -53,6 +56,7 @@ export function Experiences({ currency }: { currency: PurseCurrency }) {
 
   const pending = expsQ.isPending || relatedQ.isPending || rsvpsQ.isPending || partsQ.isPending || settingsQ.isPending;
   const visible = useMemo(() => (expsQ.data ?? []).filter((e) => e.visible), [expsQ.data]);
+  const photoUrls = useExperiencePhotoUrls(visible);
   const top = visible.filter((e) => e.level !== "sub");
   const childrenOf = (id: string) => visible.filter((e) => e.level === "sub" && e.parent_id === id);
 
@@ -83,6 +87,7 @@ export function Experiences({ currency }: { currency: PurseCurrency }) {
     editor: canEditPurse(roles),
     nowCpt: capeTownNow(now),
     currency,
+    photoUrls: photoUrls.data,
   };
 
   return (
@@ -105,9 +110,12 @@ export function Experiences({ currency }: { currency: PurseCurrency }) {
   );
 }
 
-function ExperienceCard({ exp, ctx }: { exp: Experience; ctx: CardContext }) {
+export function ExperienceCard({ exp, ctx }: { exp: Experience; ctx: CardContext }) {
   const { t } = useContent();
   const [open, setOpen] = useState(false);
+  const photoUrl = exp.photo_path ? ctx.photoUrls?.[exp.photo_path] : undefined;
+  const [loadedUrl, setLoadedUrl] = useState<string>();
+  const hasPhoto = !!photoUrl && loadedUrl === photoUrl;
   const relatedScenes = ctx.related.filter((r) => r.experience_id === exp.id)
     .map((r) => ctx.scenes.find((s) => s.id === r.scene_id)).filter((s): s is Scene => !!s);
   const myRsvp = ctx.rsvps.find((r) => r.experience_id === exp.id && r.guest_id === ctx.myGuestId);
@@ -121,8 +129,10 @@ function ExperienceCard({ exp, ctx }: { exp: Experience; ctx: CardContext }) {
   const location = exp.location || relatedScenes[0]?.location || "";
 
   return (
-    <article id={`experience-${exp.id}`} className="scene-card" data-expandable={canExpand} data-open={open}>
+    <article id={`experience-${exp.id}`} className="scene-card" data-photo={hasPhoto ? "true" : undefined} data-expandable={canExpand} data-open={open}>
       <div className="scene-main">
+        {photoUrl && <img key={photoUrl} className="exp-card-photo" src={photoUrl} alt={exp.photo_alt ?? ""} style={experiencePhotoStyle(exp)} loading="lazy" decoding="async" onLoad={() => setLoadedUrl(photoUrl)} onError={() => setLoadedUrl(undefined)} />}
+        {hasPhoto && <><div className="exp-photo-wash" aria-hidden="true" /><div className="exp-photo-scrim" aria-hidden="true" /></>}
         {(exp.when_text || needsReply) && (
           <p className="exp-when">
             <span>{formatWhenList(exp.when_text)}</span>
@@ -141,8 +151,12 @@ function ExperienceCard({ exp, ctx }: { exp: Experience; ctx: CardContext }) {
         </div>
         {exp.summary && <p className="scene-summary">{exp.summary}</p>}
         {location && <p className="scene-location"><MapPin aria-hidden="true" />{location}</p>}
-        {showPrice && <PriceLine exp={exp} settings={ctx.settings} currency={ctx.currency} />}
-        {showRsvp && <RsvpBlock exp={exp} ctx={ctx} myRsvp={myRsvp} status={status} counts={counts} />}
+        {hasPhoto ? <div className="exp-photo-bottom">
+          {showRsvp ? <RsvpBlock exp={exp} ctx={ctx} myRsvp={myRsvp} status={status} counts={counts} photoPrice={showPrice ? <PriceLine exp={exp} settings={ctx.settings} currency={ctx.currency} /> : null} /> : showPrice && <PriceLine exp={exp} settings={ctx.settings} currency={ctx.currency} />}
+        </div> : <>
+          {showPrice && <PriceLine exp={exp} settings={ctx.settings} currency={ctx.currency} />}
+          {showRsvp && <RsvpBlock exp={exp} ctx={ctx} myRsvp={myRsvp} status={status} counts={counts} />}
+        </>}
       </div>
       {canExpand && (
         <div id={`exp-details-${exp.id}`} className="scene-expansion" data-open={open} inert={!open} aria-hidden={!open}>
@@ -185,9 +199,10 @@ export function PriceLine({ exp, settings, currency }: { exp: Experience; settin
   );
 }
 
-function RsvpBlock({ exp, ctx, myRsvp, status, counts }: {
+function RsvpBlock({ exp, ctx, myRsvp, status, counts, photoPrice }: {
   exp: Experience; ctx: CardContext; myRsvp: ExperienceRsvp | undefined;
   status: RsvpStatus | "unconfirmed" | null; counts: ReturnType<typeof rsvpCounts>;
+  photoPrice?: React.ReactNode;
 }) {
   const { t } = useContent();
   const qc = useQueryClient();
@@ -252,9 +267,10 @@ function RsvpBlock({ exp, ctx, myRsvp, status, counts }: {
 
   return (
     <div className="exp-rsvp">
+      {photoPrice !== undefined && <div className="exp-photo-price">{photoPrice}</div>}
       <div className="exp-rsvp-pill" data-locked={locked} role="group" aria-label={exp.card}>
         {options.map((o) => (
-          <button
+          <Button variant="ghost"
             key={o}
             type="button"
             data-status={o}
@@ -262,7 +278,7 @@ function RsvpBlock({ exp, ctx, myRsvp, status, counts }: {
             onClick={gate.wrap(() => pick(o))}
           >
             {t(`purse.status.${o}`)}
-          </button>
+          </Button>
         ))}
       </div>
       {gate.dialog}
