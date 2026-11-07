@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
@@ -23,6 +23,10 @@ import { TravelFlights } from "@/components/site/TravelFlights";
 import { TravelSliverChevron } from "@/components/site/TravelSliverChevron";
 
 export const Route = createFileRoute("/travel")({
+  validateSearch: (search: Record<string, unknown>): { flight?: "arrival" | "departure" | "add" } => {
+    const f = search["flight"];
+    return f === "arrival" || f === "departure" || f === "add" ? { flight: f } : {};
+  },
   head: () => ({
     meta: [
       { title: "Travel · 30° South" },
@@ -55,6 +59,8 @@ function TravelPage() {
   const { roles, session } = useAuth();
   const participant = isTripParticipant(roles);
   const qc = useQueryClient();
+  const navigate = useNavigate();
+  const { flight: flightParam } = Route.useSearch();
 
   const imagesQ = useTravelImages(true);
   const castQ = useCast(true);
@@ -99,6 +105,14 @@ function TravelPage() {
 
   const directory = directoryQ.data ?? [];
 
+  // Home's "add your flights" nudge lands here: open the sheet for that direction, then clear the parameter.
+  const initialOpen = !flightParam || !participant || !myGuestQ.data ? undefined : flightParam === "add" ? "arrival" : flightParam;
+  useEffect(() => {
+    if (!initialOpen) return;
+    jumpToTravel("flights");
+    void navigate({ to: "/travel", search: {}, replace: true, resetScroll: false });
+  }, [initialOpen, navigate]);
+
   return (
     <main className="travel-page pt-14 md:pt-20">
       <header className="mx-auto max-w-5xl px-5">
@@ -111,7 +125,7 @@ function TravelPage() {
           intro={<CastRoll cast={castQ.data ?? []} loading={castQ.isPending} />} />
         <TravelSection slot="villa" deck="" media={imageFor("villa")} intro={<VillaIntro />} />
         <TravelSection slot="roomies" deck="" media={imageFor("roomies")} intro={<div className="travel-roomies-grid">{(roomiesQ.data ?? []).map(r => <article key={r.id} className="travel-roomie"><p className="travel-roomie-names">{r.names}</p><p className="travel-roomie-floor">{r.floor_room}</p>{r.note && <p className="travel-roomie-note">{r.note}</p>}</article>)}</div>} below={!roomiesQ.isPending && !roomiesQ.data?.length ? <p className="caption-serif mt-6 text-sm">{t("travel.roomies.empty")}</p> : undefined} />
-        <TravelSection slot="flights" deck="" media={imageFor("flights")} intro={<TravelFlights legs={legs} directory={directory} myGuestId={myGuestQ.data ?? null} editable={participant} />} />
+        <TravelSection slot="flights" deck="" media={imageFor("flights")} intro={<TravelFlights legs={legs} directory={directory} myGuestId={myGuestQ.data ?? null} editable={participant} initialOpen={initialOpen} />} />
         <TravelSection slot="packing" deck={t("packing_deck")} media={imageFor("packing")}
           intro={<PackingCount items={itemsQ.data ?? []} checks={checksQ.data ?? new Set()} />}
           below={<PackingList categories={categoriesQ.data ?? []} items={itemsQ.data ?? []} checks={checksQ.data ?? new Set()} userId={participant ? session?.user.id : undefined} />} />

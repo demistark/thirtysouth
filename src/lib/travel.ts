@@ -136,6 +136,15 @@ export function flightTime(iso: string) {
 export function flightRouteCodes(leg: Pick<TravelLeg,"direction" | "other_airport" | "connections">) {
   return leg.direction === "arrival" ? [leg.other_airport,...(leg.connections ?? []),"CPT"] : ["CPT",...(leg.connections ?? []),leg.other_airport];
 }
+/** Which of a guest's two flight directions still need a leg saved, if any. */
+export function missingFlightDirections(legs: TravelLeg[], guestId: string): "both" | LegDirection | null {
+  const arrival = legs.some((l) => l.guest_id === guestId && l.direction === "arrival");
+  const departure = legs.some((l) => l.guest_id === guestId && l.direction === "departure");
+  if (arrival && departure) return null;
+  if (!arrival && !departure) return "both";
+  return arrival ? "departure" : "arrival";
+}
+
 export function hasFlightDirection(legs: TravelLeg[], guestId: string, direction: LegDirection, exceptId?: string) {
   return legs.some(l => l.guest_id === guestId && l.direction === direction && (!exceptId || l.id !== exceptId));
 }
