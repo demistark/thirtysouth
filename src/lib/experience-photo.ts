@@ -29,7 +29,8 @@ export async function saveExperiencePhoto(id: string, photo: ExperiencePhoto, bl
   try { await persist(next); }
   catch (error) { if (uploaded) await bucket.remove([uploaded]); throw error; }
   if (oldPath && oldPath !== next.photo_path) {
-    const { error } = await bucket.remove([oldPath]);
-    if (error) throw error;
+    try { const { error } = await bucket.remove([oldPath]); return { cleanupError: error }; }
+    catch (error) { return { cleanupError: error }; }
   }
+  return { cleanupError: null };
 }

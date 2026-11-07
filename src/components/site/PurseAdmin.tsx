@@ -126,13 +126,14 @@ function ExperiencesPanel() {
     };
     try {
       const id = editing?.id ?? crypto.randomUUID();
-      await saveExperiencePhoto(id, normalizeExperiencePhoto(form), photoBlob, editing?.photo_path ?? null, async (photo) => {
+      const { cleanupError } = await saveExperiencePhoto(id, normalizeExperiencePhoto(form), photoBlob, editing?.photo_path ?? null, async (photo) => {
         const { error } = editing
           ? await supabase.from("experiences").update({ ...payload, ...photo }).eq("id", id)
           : await supabase.from("experiences").insert({ ...payload, ...photo, id, sort_order: experiences.length + 1 });
         if (error) throw error;
       });
       toast.success(t("admin.itin.saved"));
+      if (cleanupError) toast.error(t("admin.itin.photo_error"));
       setEditing(null); setForm(emptyExp); setPhotoBlob(null);
       await refresh();
     } catch { toast.error(t("admin.itin.photo_error")); }

@@ -57,7 +57,7 @@ describe("photo persistence", () => {
 });
 describe("signed photo URLs", () => {
   it("batches visible paths once, deduplicating and excluding hidden rows", async () => { renderHook(() => useExperiencePhotoUrls([exp, exp, { ...exp, id: "e2", photo_path: "second" }, { ...exp, id: "e3", visible: false, photo_path: "hidden" }]), { wrapper }); await vi.waitFor(() => expect(state.signed).toHaveBeenCalledTimes(1)); expect(state.signed).toHaveBeenCalledWith([exp.photo_path, "second"], 3600); });
-  it.each([[], ["unassigned"]])("does not request for roles without Purse access %j", roles => { state.roles = roles; renderHook(() => useExperiencePhotoUrls([exp]), { wrapper }); expect(state.signed).not.toHaveBeenCalled(); });
+  it.each([{ roles: [] }, { roles: ["unassigned"] }])("does not request for roles without Purse access $roles", ({ roles }) => { state.roles = roles; renderHook(() => useExperiencePhotoUrls([exp]), { wrapper }); expect(state.signed).not.toHaveBeenCalled(); });
   it("does not request signed-out", () => { state.session = null; renderHook(() => useExperiencePhotoUrls([exp]), { wrapper }); expect(state.signed).not.toHaveBeenCalled(); });
   it("requests for friends afar", async () => { state.roles = ["friend_afar"]; renderHook(() => useExperiencePhotoUrls([exp]), { wrapper }); await vi.waitFor(() => expect(state.signed).toHaveBeenCalledTimes(1)); });
 });
