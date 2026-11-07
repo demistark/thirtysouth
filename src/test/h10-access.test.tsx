@@ -57,7 +57,7 @@ describe("H10 non-participant controls",()=>{
 });
 describe("H10 uniform email sign-in",()=>{
   it.each([null,{name:"AuthApiError",status:422}])("listed and unlisted responses show the same sent state",async error=>{
-    state.session=null;state.otp.mockResolvedValue({error});const Auth=AuthRoute.options.component;mount(<Auth/>);
+    state.session=null;state.otp.mockResolvedValue({error});const Auth=AuthRoute.options.component; if(!Auth) throw new Error("Missing auth page"); mount(<Auth/>);
     fireEvent.change(await screen.findByLabelText("Email"),{target:{value:"friend@example.test"}});fireEvent.click(screen.getByRole("button",{name:"Send"}));
     expect(await screen.findByText("Your link is on its way.")).toBeInTheDocument();expect(state.rpc).not.toHaveBeenCalled();expect(state.otp.mock.calls[0]?.[0].options.shouldCreateUser).toBe(false);
   });

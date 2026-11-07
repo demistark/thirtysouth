@@ -26,7 +26,7 @@ export function usePrivateContent() {
   const { roles, session, loading } = useAuth();
   const allowed = !loading && !!session && isTripParticipant(roles);
   const q = useQuery({
-    queryKey: ["private_content", session?.user.id], enabled: allowed, staleTime: 60_000,
+    queryKey: ["private_content", session?.user.id, allowed], enabled: allowed, staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase.from("private_content").select("key,value");
       if (error) throw error;
