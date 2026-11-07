@@ -242,7 +242,7 @@ const LOOK_LINKS = [
   { n: "04", to: "/journal", nameKey: "nav.journal", descKey: "home.look.journal" },
 ] as const;
 
-function LookAround() {
+export function LookAround() {
   const { t } = useContent();
   return (
     <section data-home-first-card className="home-look mx-auto px-5 md:max-w-none md:px-[clamp(20px,6.5vw,120px)]">
@@ -366,7 +366,7 @@ export function TravelFlightNudge() {
   const missing = missingFlightDirections(legs.data, myGuest.data);
   if (!missing) return null;
   return (
-    <Link to="/travel" search={{ flight: missing === "both" ? "add" : missing }} className="home-look-rsvp home-look-flight">
+    <Link to="/travel" search={{ flight: missing === "both" ? "add" : missing }} className="home-look-rsvp">
       <span className="home-look-rsvp-dot" aria-hidden="true" />
       {t(missing === "both" ? "home.flights_add_both" : missing === "arrival" ? "home.flights_add_arrival" : "home.flights_add_departure")}
     </Link>
