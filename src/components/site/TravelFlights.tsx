@@ -9,13 +9,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { copyFlightOptions, flightAirportsValid, flightNumberValid, flightDate, flightTime, flightRouteCodes, sortFlights, hasFlightDirection, type TravelLeg, type LegDirection } from "@/lib/travel";
 
-export function TravelFlights({ legs, directory, myGuestId, editable }: { legs: TravelLeg[]; directory: {id: string; display_name: string}[]; myGuestId: string | null; editable: boolean }) {
+export function TravelFlights({ legs, directory, myGuestId, editable, initialOpen }: { legs: TravelLeg[]; directory: {id: string; display_name: string}[]; myGuestId: string | null; editable: boolean; initialOpen?: LegDirection | undefined }) {
   const { t } = useContent();
   const privateContent = usePrivateContent();
   const [direction, setDirection] = useState<LegDirection>("arrival");
   const [open,setOpen] = useState(false);
   const [phone,setPhone] = useState(false);
   useEffect(() => { const mq=window.matchMedia("(max-width: 767px)"); const update=()=>setPhone(mq.matches); update(); mq.addEventListener("change",update); return ()=>mq.removeEventListener("change",update); },[]);
+  // Deep link from Home's flight nudge: preselect the direction and open the add/edit sheet.
+  useEffect(() => {
+    if (!initialOpen || !editable || !myGuestId) return;
+    setDirection(initialOpen);
+    setOpen(true);
+  }, [initialOpen, editable, myGuestId]);
   const mine = legs.find(l => l.guest_id === myGuestId && l.direction === direction);
   const title=t(mine ? "travel.flight.edit" : "travel.flight.add");
   const form=myGuestId ? <FlightForm key={`${direction}-${mine?.id ?? "new"}`} leg={mine} guestId={myGuestId} direction={direction} legs={legs} directory={directory} onDone={()=>setOpen(false)} /> : null;

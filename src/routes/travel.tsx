@@ -117,7 +117,7 @@ function TravelPage() {
           intro={<CastRoll cast={castQ.data ?? []} loading={castQ.isPending} />} />
         <TravelSection slot="villa" deck="" media={imageFor("villa")} intro={<VillaIntro />} />
         <TravelSection slot="roomies" deck="" media={imageFor("roomies")} intro={<div className="travel-roomies-grid">{(roomiesQ.data ?? []).map(r => <article key={r.id} className="travel-roomie"><p className="travel-roomie-names">{r.names}</p><p className="travel-roomie-floor">{r.floor_room}</p>{r.note && <p className="travel-roomie-note">{r.note}</p>}</article>)}</div>} below={!roomiesQ.isPending && !roomiesQ.data?.length ? <p className="caption-serif mt-6 text-sm">{t("travel.roomies.empty")}</p> : undefined} />
-        <TravelSection slot="flights" deck="" media={imageFor("flights")} intro={<TravelFlights legs={legs} directory={directory} myGuestId={myGuestQ.data ?? null} editable={participant} />} />
+        <TravelSection slot="flights" deck="" media={imageFor("flights")} intro={<TravelFlights legs={legs} directory={directory} myGuestId={myGuestQ.data ?? null} editable={participant} initialOpen={initialOpen} />} />
         <TravelSection slot="packing" deck={t("packing_deck")} media={imageFor("packing")}
           intro={<PackingCount items={itemsQ.data ?? []} checks={checksQ.data ?? new Set()} />}
           below={<PackingList categories={categoriesQ.data ?? []} items={itemsQ.data ?? []} checks={checksQ.data ?? new Set()} userId={participant ? session?.user.id : undefined} />} />
