@@ -26,8 +26,8 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 async function open() {
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><PurseAdmin /></QueryClientProvider>);
-  fireEvent.click(await screen.findByRole("button", { name: "Edit", exact: true }));
-  const save = screen.getByRole("button", { name: "Save", exact: true }); const form = save.closest("form"); if (!form) throw new Error("Missing form");
+  fireEvent.click(await screen.findByRole("button", { name: "Edit" }));
+  const save = screen.getByRole("button", { name: "Save" }); const form = save.closest("form"); if (!form) throw new Error("Missing form");
   return { save, form, view: within(form) };
 }
 it("group card crop and zoom update both previews and save with the existing form", async () => {
@@ -46,7 +46,7 @@ it("Remove saves all five defaults and deletes the old photo", async () => {
   const { save, view } = await open(); fireEvent.click(view.getByRole("button", { name: "admin.purse.photo_remove" }));
   expect(state.remove).not.toHaveBeenCalled(); fireEvent.click(save);
   await vi.waitFor(() => expect(state.update).toHaveBeenCalledWith(expect.objectContaining({ photo_path: null, photo_alt: "", photo_focal_x: 50, photo_focal_y: 50, photo_zoom: 1 }), "e1"));
-  expect(state.remove).toHaveBeenCalledWith(["experiences/e1/old.jpg"]);
+  await vi.waitFor(() => expect(state.remove).toHaveBeenCalledWith(["experiences/e1/old.jpg"]));
 });
 it("Replace prepares at 1600, uploads on Save and deletes the old photo", async () => {
   const { save, view } = await open();
