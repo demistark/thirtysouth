@@ -190,6 +190,13 @@
       "when": 1794019478332,
       "tag": "0026_h10_access_private_content_and_signin",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1794019669309,
+      "tag": "0027_h10_remove_inherited_private_content_grants",
+      "breakpoints": true
     }
   ]
 }
