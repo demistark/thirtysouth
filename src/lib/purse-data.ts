@@ -1,6 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Experience, ExperienceRsvp } from "./purse";
+import { useAuth } from "./auth";
+import { canViewPurse } from "./locked-areas";
+import { EXPERIENCE_PHOTO_BUCKET } from "./experience-photo";
+
+export function useExperiencePhotoUrls(experiences: Experience[]) {
+  const { session, roles, loading } = useAuth();
+  const paths = [...new Set(experiences.filter((e) => e.visible && e.photo_path).map((e) => e.photo_path).filter((path): path is string => !!path))].sort();
+  const allowed = !loading && !!session && canViewPurse(roles);
+  const q = useQuery({
+    queryKey: ["purse", "photo-urls", session?.user.id, allowed, paths],
+    enabled: allowed && paths.length > 0, staleTime: 50 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.storage.from(EXPERIENCE_PHOTO_BUCKET).createSignedUrls(paths, 3600);
+      if (error) throw error;
+      return Object.fromEntries((data ?? []).map((item) => [item.path ?? "", item.signedUrl])) as Record<string, string | undefined>;
+    },
+  });
+  return { ...q, data: allowed ? q.data : undefined };
+}
 
 export function useExperiences(enabled: boolean) {
   return useQuery({
