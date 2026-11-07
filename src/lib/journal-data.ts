@@ -24,8 +24,8 @@ export function useJournalSettings(enabled: boolean) {
         .select("key,value")
         .in("key", [
           "commons_posts_per_day", "commons_chars", "heart_cards_per_person", "heart_photos_per_person",
-          "heart_chars", "counter_show_at_pct", "commons_show_honorary", "commons_show_afar",
-          "heart_show_honorary", "heart_show_afar", "reflections_open",
+          "heart_chars", "counter_show_at_pct", "commons_show_afar",
+          "heart_show_afar", "reflections_open",
         ]);
       if (error) throw error;
       const m = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]));

@@ -44,7 +44,6 @@ export function JournalCommons() {
 function CommonsBody({ phase, roles, settings }: { phase: "before" | "during" | "after"; roles: string[]; settings: ReturnType<typeof useJournalSettings>["data"] & object }) {
   const { t } = useContent();
   const participant = isTripParticipant(roles as never);
-  const isAfar = roles.includes("friend_afar") && !participant;
   const [limit, setLimit] = useState(PAGE_SIZE);
   const hostBefore = phase === "before" && roles.includes("host");
   const postsQ = useCommonsPosts(phase !== "before" || hostBefore, limit);
@@ -69,7 +68,7 @@ function CommonsBody({ phase, roles, settings }: { phase: "before" | "during" | 
       {hostBefore && <div className="journal-notice mb-4"><h2 className="journal-notice-title">{t("commons_before_title")}</h2><p className="journal-notice-body">{t("commons_before_body")}</p></div>}
       {phase === "after" && <p className="caption-serif mb-6 text-lg text-slate italic">{t("commons_after_line")}</p>}
       {(phase === "during" && participant || hostBefore) && <CommonsComposer settings={settings} myPosts={posts} />}
-      {phase === "during" && !participant && !isAfar && <HonoraryComposerHint />}
+      {phase === "during" && !participant && roles.length > 0 && <NonParticipantComposerHint />}
       {postsQ.isLoading ? (
         <div className="h-48 border bg-card" />
       ) : posts.length === 0 ? (
@@ -97,13 +96,14 @@ function CommonsBody({ phase, roles, settings }: { phase: "before" | "during" | 
   );
 }
 
-function HonoraryComposerHint() {
+export function NonParticipantComposerHint() {
+  const { t } = useContent();
   const gate = useActionGate("commons");
   return (
     <div className="journal-composer mb-8">
-      <p className="journal-composer-label">PIN SOMETHING TO THE BOARD</p>
+      <p className="journal-composer-label">{t("commons.composer_label")}</p>
       <button className="btn-pill btn-pill-solid mt-4" onClick={gate.wrap(() => {})}>
-        Pin it
+        {t("commons.pin")}
       </button>
       {gate.dialog}
     </div>
@@ -111,6 +111,7 @@ function HonoraryComposerHint() {
 }
 
 function CommonsComposer({ settings, myPosts }: { settings: { commonsChars: number; commonsPostsPerDay: number; counterShowAtPct: number }; myPosts: CommonsPost[] }) {
+  const { t } = useContent();
   const queryClient = useQueryClient();
   const myGuestQ = useMyGuestId(true);
   const [body, setBody] = useState("");
@@ -165,7 +166,7 @@ function CommonsComposer({ settings, myPosts }: { settings: { commonsChars: numb
 
   return (
     <div className="journal-composer mb-8">
-      <p className="journal-composer-label">PIN SOMETHING TO THE BOARD</p>
+      <p className="journal-composer-label">{t("commons.composer_label")}</p>
       <textarea
         className="journal-textarea mt-3"
         maxLength={settings.commonsChars}

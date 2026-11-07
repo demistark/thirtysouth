@@ -198,6 +198,7 @@ function HeartAdmin() {
 /* ---------------- Reflections controls (never entries, authors or counts) ---------------- */
 
 function ReflectionsAdmin() {
+  const { t } = useContent();
   const { isHost } = useAuth();
   if (!isHost) return <p className="caption-serif text-slate">Only the host changes Reflections settings.</p>;
   return (
@@ -205,7 +206,7 @@ function ReflectionsAdmin() {
       <SettingToggle settingKey="reflections_open" label="Reflections is open" />
       <ContentText contentKey="reflections_notice_title" label="Notice title" />
       <ContentText contentKey="reflections_notice_body" label="Notice body" multiline />
-      <ContentText contentKey="reflections_message_non_participant" label="Message for honorary guests and friends afar" multiline />
+      <ContentText contentKey="reflections_message_non_participant" label={t("admin.journal.non_participant_label")} multiline />
       <ContentText contentKey="reflections_before_title" label="Before-trip box title" />
       <ContentText contentKey="reflections_before_body" label="Before-trip box body" multiline />
       <ContentText contentKey="reflections_closed_message" label="Closed message" multiline />
@@ -217,8 +218,8 @@ function ReflectionsAdmin() {
 
 const JOURNAL_SETTING_KEYS = [
   "commons_posts_per_day", "commons_chars", "heart_cards_per_person", "heart_photos_per_person",
-  "heart_chars", "counter_show_at_pct", "commons_show_honorary", "commons_show_afar",
-  "heart_show_honorary", "heart_show_afar", "reflections_open",
+  "heart_chars", "counter_show_at_pct", "commons_show_afar",
+  "heart_show_afar", "reflections_open",
 ];
 
 async function saveSetting(key: string, value: string) {
@@ -314,9 +315,7 @@ function JournalSettingsAdmin() {
         <SettingText settingKey="counter_show_at_pct" label="Counter appears at (% of limit)" />
       </div>
       <div className="space-y-3">
-        <SettingToggle settingKey="commons_show_honorary" label="Honorary guests see Our Commons" />
         <SettingToggle settingKey="commons_show_afar" label="Friends afar see Our Commons" />
-        <SettingToggle settingKey="heart_show_honorary" label="Honorary guests see Close to Heart" />
         <SettingToggle settingKey="heart_show_afar" label="Friends afar see Close to Heart" />
       </div>
       <div className="border-t pt-6">

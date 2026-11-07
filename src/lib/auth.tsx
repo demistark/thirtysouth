@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type Role = "host" | "schedule_manager" | "trip_guest" | "friend_afar" | "honorary_guest";
+type Role = "host" | "schedule_manager" | "trip_guest" | "friend_afar";
 
 interface AuthState {
   session: Session | null;
@@ -70,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     queryClient.removeQueries({ queryKey: ["roles"] });
     queryClient.removeQueries({ queryKey: ["admin"] });
+    queryClient.removeQueries({ queryKey: ["private_content"] });
     queryClient.removeQueries({ queryKey: ["my-profile"] });
   };
 

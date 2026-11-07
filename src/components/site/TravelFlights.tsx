@@ -4,13 +4,14 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { useContent } from "@/lib/data";
+import { useContent, usePrivateContent } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { copyFlightOptions, flightAirportsValid, flightNumberValid, flightDate, flightTime, flightRouteCodes, sortFlights, hasFlightDirection, type TravelLeg, type LegDirection } from "@/lib/travel";
 
 export function TravelFlights({ legs, directory, myGuestId, editable }: { legs: TravelLeg[]; directory: {id: string; display_name: string}[]; myGuestId: string | null; editable: boolean }) {
   const { t } = useContent();
+  const privateContent = usePrivateContent();
   const [direction, setDirection] = useState<LegDirection>("arrival");
   const [open,setOpen] = useState(false);
   const [phone,setPhone] = useState(false);
@@ -26,6 +27,7 @@ export function TravelFlights({ legs, directory, myGuestId, editable }: { legs: 
       {sortFlights(legs.filter(l=>l.direction===direction)).map(l=><FlightRow key={l.id} leg={l} name={directory.find(d=>d.id===l.guest_id)?.display_name ?? ""} />)}
     </ul>
     {!legs.some(l=>l.direction===direction) && <p className="caption-serif my-6 text-sm">{t("travel.flights.empty")}</p>}
+    {privateContent.t("flights_getting_to_villa") && <div className="mt-6"><p className="travel-label">{t("travel.getting_to_villa")}</p><p className="mt-2 whitespace-pre-line text-sm">{privateContent.t("flights_getting_to_villa")}</p></div>}
     {editable && myGuestId && <Button variant="link" className="px-0 text-deep-atlantic" onClick={()=>setOpen(true)}>{title}</Button>}
     {phone ? <Sheet open={open} onOpenChange={setOpen}><SheetContent side="bottom" className="travel-flight-sheet"><SheetTitle>{title}</SheetTitle>{form}</SheetContent></Sheet> : <Dialog open={open} onOpenChange={setOpen}><DialogContent className="max-w-md"><DialogTitle>{title}</DialogTitle>{form}</DialogContent></Dialog>}
   </div>;

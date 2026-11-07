@@ -1,10 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { useContent } from "@/lib/data";
+import { useAuth } from "@/lib/auth";
+import { isTripParticipant } from "@/lib/locked-areas";
+import { useContent, usePrivateContent } from "@/lib/data";
 import { ComingSoon } from "./Blocks";
 
 export function SharedExpenses() {
   const { t } = useContent();
-  const url = t("splitwise_url").trim();
+  const { roles, session } = useAuth();
+  const privateContent = usePrivateContent();
+  if (session && !isTripParticipant(roles)) return <div className="journal-message-card"><h2 className="font-display-light text-3xl text-deep-atlantic">{t("gate_heading")}</h2><p className="caption-serif mt-4">{t("gate_message_expense")}</p></div>;
+  if (session && !privateContent.ready) return null;
+  const url = privateContent.t("splitwise_url").trim();
   if (!url) return <ComingSoon />;
   return (
     <div className="fade-in border bg-card px-6 py-16 text-center">

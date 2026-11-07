@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_SETTINGS, type TripSettings } from "./phase";
+import { useAuth } from "./auth";
+import { isTripParticipant } from "./locked-areas";
 import { scriptAlignment, type ScriptFields } from "./itinerary";
 
 export function useContent() {
@@ -16,6 +18,22 @@ export function useContent() {
   const map = q.data ?? {};
   const t = (key: string) => map[key] ?? "";
   return { t, ready: !!q.data };
+}
+
+export const PRIVATE_CONTENT_KEYS = ["villa_address", "villa_vrbo_url", "villa_website_url", "villa_checkin", "villa_checkout", "villa_house_rules", "villa_amenities", "villa_power_note", "villa_about", "villa_after_checkout", "flights_getting_to_villa", "splitwise_url"] as const;
+
+export function usePrivateContent() {
+  const { roles, session, loading } = useAuth();
+  const allowed = !loading && !!session && isTripParticipant(roles);
+  const q = useQuery({
+    queryKey: ["private_content", session?.user.id], enabled: allowed, staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("private_content").select("key,value");
+      if (error) throw error;
+      return Object.fromEntries((data ?? []).map(row => [row.key, row.value])) as Record<string,string>;
+    },
+  });
+  return { t: (key: string) => allowed ? q.data?.[key] ?? "" : "", ready: allowed && !!q.data };
 }
 
 export function useSettings() {
