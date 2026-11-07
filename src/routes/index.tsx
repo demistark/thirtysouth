@@ -249,17 +249,19 @@ function LookAround() {
       <p className="home-look-label label-caps">{t("home.look.heading")}</p>
       <div className="home-look-list">
         {LOOK_LINKS.map((l) => (
-          <Link key={l.n} to={l.to} className="home-look-bar">
+          <div key={l.n} className="home-look-bar">
+            <Link to={l.to} className="home-look-bar-hit" aria-label={t(l.nameKey)} />
             <span className="home-look-num">{l.n}</span>
             <span>
               <span className="home-look-name block">{t(l.nameKey)}</span>
               <span className="home-look-desc mt-2 block md:mt-2.5">{t(l.descKey)}</span>
               {l.to === "/purse" && <PurseRsvpWaiting />}
+              {l.to === "/travel" && <TravelFlightNudge />}
             </span>
             <svg className="home-look-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path d="M4 12h15M13.5 6.5 19 12l-5.5 5.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-          </Link>
+          </div>
         ))}
       </div>
     </section>
@@ -349,6 +351,25 @@ export function PurseRsvpWaiting() {
       <span className="home-look-rsvp-dot" aria-hidden="true" />
       {t(count === 1 ? "home.rsvp_waiting_one" : "home.rsvp_waiting_other").replace("{n}", String(count))}
     </span>
+  );
+}
+
+/** "• Add your flights" under the Travel bar — participants missing a leg, before/during only. */
+export function TravelFlightNudge() {
+  const { t } = useContent();
+  const { session, roles } = useAuth();
+  const { phase } = useTripClock();
+  const allowed = !!session && isTripParticipant(roles) && phase !== "after";
+  const myGuest = useMyGuest(allowed);
+  const legs = useTravelLegs(allowed);
+  if (!allowed || !myGuest.data || !legs.data) return null;
+  const missing = missingFlightDirections(legs.data, myGuest.data);
+  if (!missing) return null;
+  return (
+    <Link to="/travel" search={{ flight: missing === "both" ? "add" : missing }} className="home-look-rsvp home-look-flight">
+      <span className="home-look-rsvp-dot" aria-hidden="true" />
+      {t(missing === "both" ? "home.flights_add_both" : missing === "arrival" ? "home.flights_add_arrival" : "home.flights_add_departure")}
+    </Link>
   );
 }
 
