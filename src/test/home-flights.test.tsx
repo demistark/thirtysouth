@@ -71,7 +71,7 @@ import { TravelFlights } from "@/components/site/TravelFlights";
 import { Route as TravelRoute } from "@/routes/travel";
 
 const leg = (guest_id: string, direction: "arrival" | "departure"): TravelLeg =>
-  ({ id: `${guest_id}-${direction}`, guest_id, direction, airline: "", flight_number: "", other_airport: "LHR", cpt_time: "2026-11-20T10:00", connections: [] }) as TravelLeg;
+  ({ id: `${guest_id}-${direction}`, guest_id, direction, airline: "", flight_number: "", other_airport: "LHR", cpt_time: "2026-11-20T10:00", connections: [] }) as unknown as TravelLeg;
 
 function renderNudge() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });

@@ -24,7 +24,7 @@ import { TravelSliverChevron } from "@/components/site/TravelSliverChevron";
 
 export const Route = createFileRoute("/travel")({
   validateSearch: (search: Record<string, unknown>): { flight?: "arrival" | "departure" | "add" } => {
-    const f = search.flight;
+    const f = search["flight"];
     return f === "arrival" || f === "departure" || f === "add" ? { flight: f } : {};
   },
   head: () => ({
