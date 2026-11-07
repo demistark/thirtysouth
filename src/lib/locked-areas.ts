@@ -1,7 +1,7 @@
 export type SiteRole = "host" | "trip_guest" | "friend_afar" | "schedule_manager";
 
 export function canViewScenes(roles: readonly SiteRole[]) {
-  return roles.some((role) => role === "host" || role === "schedule_manager" || role === "trip_guest" || role === "friend_afar");
+  return roles.some((role) => role === "host" || role === "trip_guest" || role === "friend_afar");
 }
 
 /** Travel is readable by every assigned role. */

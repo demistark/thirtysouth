@@ -10,6 +10,8 @@ import {
   hashAfarCode,
   isValidAfarCodeFormat,
   normalizeAfarCode,
+  normalizeAfarName,
+  afarNameMatches,
 } from "@/lib/afar-codes";
 
 // Deterministic rng for tests.
@@ -99,6 +101,19 @@ describe("afar message template", () => {
   });
 
   it("failure message is a single generic string", () => {
-    expect(AFAR_GENERIC_ERROR).toBe("That code didn't work.");
+    expect(AFAR_GENERIC_ERROR).toBe("That didn't work. Check your code and your name and try again.");
+  });
+});
+
+describe("afar name matching", () => {
+  it("ignores case, spaces, accents and punctuation", () => {
+    expect(normalizeAfarName("  DÉMI---Ogunkanmi! ")).toBe("demi ogunkanmi");
+    expect(afarNameMatches("DÉMI", "Demi", "Demilade Ogunkanmi")).toBe(true);
+  });
+  it("accepts the full name", () => expect(afarNameMatches("demilade  ogunkanmi", "Demi", "Demilade Ogunkanmi")).toBe(true));
+  it("accepts the first full-name word", () => expect(afarNameMatches("Demilade", "Demi", "Demilade Ogunkanmi")).toBe(true));
+  it("rejects another name and blanks", () => {
+    expect(afarNameMatches("Ada", "Demi", "Demilade Ogunkanmi")).toBe(false);
+    expect(afarNameMatches(" ", "", "")).toBe(false);
   });
 });
