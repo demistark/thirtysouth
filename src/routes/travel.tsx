@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
@@ -23,6 +23,10 @@ import { TravelFlights } from "@/components/site/TravelFlights";
 import { TravelSliverChevron } from "@/components/site/TravelSliverChevron";
 
 export const Route = createFileRoute("/travel")({
+  validateSearch: (search: Record<string, unknown>): { flight?: "arrival" | "departure" | "add" } => {
+    const f = search.flight;
+    return f === "arrival" || f === "departure" || f === "add" ? { flight: f } : {};
+  },
   head: () => ({
     meta: [
       { title: "Travel · 30° South" },
@@ -55,6 +59,8 @@ function TravelPage() {
   const { roles, session } = useAuth();
   const participant = isTripParticipant(roles);
   const qc = useQueryClient();
+  const navigate = useNavigate();
+  const { flight: flightParam } = Route.useSearch();
 
   const imagesQ = useTravelImages(true);
   const castQ = useCast(true);
