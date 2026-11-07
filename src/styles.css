@@ -2005,10 +2005,16 @@ html[data-intro="reveal"] .home-during > :nth-child(n + 10) { animation-delay: 7
 }
 .scene-card[data-photo="true"] .exp-card-photo { opacity: 1; }
 .exp-list .scene-card[data-photo="true"] .scene-main::before { display: none; }
-.scene-main > .exp-photo-wash, .scene-main > .exp-photo-scrim {
+.scene-main > .exp-photo-scrim {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
 }
-.scene-main > .exp-photo-wash { background: var(--experience-wash); bottom: auto; height: 60%; }
+.exp-photo-copy, .exp-photo-bottom { display: contents; }
+.scene-card[data-photo="true"] .exp-photo-copy { display: block; isolation: isolate; }
+.scene-card[data-photo="true"] .exp-photo-copy::before {
+  content: ""; position: absolute; inset: -18px -16px -16px; z-index: -1;
+  background: var(--experience-wash); pointer-events: none;
+}
+.scene-card[data-photo="true"] .exp-photo-bottom { display: block; }
 .scene-main > .exp-photo-scrim { background: var(--experience-scrim); top: 52%; }
 .scene-card[data-photo="true"] .exp-photo-bottom { margin-top: auto; padding-top: 24px; }
 .scene-card[data-photo="true"] .exp-rsvp {
@@ -2018,6 +2024,7 @@ html[data-intro="reveal"] .home-during > :nth-child(n + 10) { animation-delay: 7
 .scene-card[data-photo="true"] .exp-photo-price { grid-column: 1; grid-row: 20; text-align: left; }
 .scene-card[data-photo="true"] .exp-rsvp-pill { grid-column: 2; grid-row: 20; background: var(--experience-pill); border-color: var(--ink); }
 .scene-card[data-photo="true"] .exp-rsvp-pill button { padding: 0 12px; color: var(--ink); }
+.exp-rsvp-pill button { height: auto; border-radius: 0; gap: 0; }
 .scene-card[data-photo="true"] .exp-rsvp-pill button[aria-pressed="true"] { color: var(--cream); }
 .scene-card[data-photo="true"] :is(.exp-price, .exp-price-usd, .exp-price-status, .exp-host-note, .exp-rsvp-hint, .exp-rsvp-deadline, .exp-rsvp-summary) { color: var(--paper); text-shadow: var(--experience-text-shadow); }
 .scene-card[data-photo="true"] .exp-price { margin-top: 0; flex-direction: column; align-items: start; gap: 2px; }

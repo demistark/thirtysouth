@@ -38,7 +38,7 @@ interface CardContext {
   editor: boolean;
   nowCpt: string;
   currency: PurseCurrency;
-  photoUrls?: Record<string, string | undefined>;
+  photoUrls?: Record<string, string | undefined> | undefined;
 }
 
 export function Experiences({ currency }: { currency: PurseCurrency }) {
@@ -132,7 +132,8 @@ export function ExperienceCard({ exp, ctx }: { exp: Experience; ctx: CardContext
     <article id={`experience-${exp.id}`} className="scene-card" data-photo={hasPhoto ? "true" : undefined} data-expandable={canExpand} data-open={open}>
       <div className="scene-main">
         {photoUrl && <img key={photoUrl} className="exp-card-photo" src={photoUrl} alt={exp.photo_alt ?? ""} style={experiencePhotoStyle(exp)} loading="lazy" decoding="async" onLoad={() => setLoadedUrl(photoUrl)} onError={() => setLoadedUrl(undefined)} />}
-        {hasPhoto && <><div className="exp-photo-wash" aria-hidden="true" /><div className="exp-photo-scrim" aria-hidden="true" /></>}
+        {hasPhoto && <div className="exp-photo-scrim" aria-hidden="true" />}
+        <div className="exp-photo-copy">
         {(exp.when_text || needsReply) && (
           <p className="exp-when">
             <span>{formatWhenList(exp.when_text)}</span>
@@ -151,12 +152,11 @@ export function ExperienceCard({ exp, ctx }: { exp: Experience; ctx: CardContext
         </div>
         {exp.summary && <p className="scene-summary">{exp.summary}</p>}
         {location && <p className="scene-location"><MapPin aria-hidden="true" />{location}</p>}
-        {hasPhoto ? <div className="exp-photo-bottom">
-          {showRsvp ? <RsvpBlock exp={exp} ctx={ctx} myRsvp={myRsvp} status={status} counts={counts} photoPrice={showPrice ? <PriceLine exp={exp} settings={ctx.settings} currency={ctx.currency} /> : null} /> : showPrice && <PriceLine exp={exp} settings={ctx.settings} currency={ctx.currency} />}
-        </div> : <>
-          {showPrice && <PriceLine exp={exp} settings={ctx.settings} currency={ctx.currency} />}
-          {showRsvp && <RsvpBlock exp={exp} ctx={ctx} myRsvp={myRsvp} status={status} counts={counts} />}
-        </>}
+        </div>
+        <div className="exp-photo-bottom">
+          {showPrice && (!hasPhoto || !showRsvp) && <PriceLine exp={exp} settings={ctx.settings} currency={ctx.currency} />}
+          {showRsvp && <RsvpBlock exp={exp} ctx={ctx} myRsvp={myRsvp} status={status} counts={counts} photoPrice={hasPhoto ? showPrice ? <PriceLine exp={exp} settings={ctx.settings} currency={ctx.currency} /> : null : undefined} />}
+        </div>
       </div>
       {canExpand && (
         <div id={`exp-details-${exp.id}`} className="scene-expansion" data-open={open} inert={!open} aria-hidden={!open}>

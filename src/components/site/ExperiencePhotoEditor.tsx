@@ -5,7 +5,7 @@ import { preparePhoto } from "@/lib/image-resize";
 import { EMPTY_EXPERIENCE_PHOTO, experiencePhotoStyle, normalizeExperiencePhoto, type ExperiencePhoto } from "@/lib/experience-photo";
 import { toast } from "sonner";
 
-export function ExperiencePhotoEditor({ photo, url, onChange, onBusy }: { photo: ExperiencePhoto; url?: string; onChange: (photo: ExperiencePhoto, blob?: Blob | null) => void; onBusy: (busy: boolean) => void }) {
+export function ExperiencePhotoEditor({ photo, url, onChange, onBusy }: { photo: ExperiencePhoto; url?: string | undefined; onChange: (photo: ExperiencePhoto, blob?: Blob | null) => void; onBusy: (busy: boolean) => void }) {
   const { t } = useContent();
   const input = useRef<HTMLInputElement>(null);
   const [localUrl, setLocalUrl] = useState<string>();
