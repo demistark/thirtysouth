@@ -51,6 +51,11 @@ vi.mock("@/lib/data", () => ({
   }),
   usePrivateContent: () => ({ t: () => "", ready: false }),
 }));
+vi.mock("@/lib/purse-data", () => ({
+  useExperiences: () => ({ data: [] }),
+  useExperienceRsvps: () => ({ data: [] }),
+  usePurseSettings: () => ({ data: { globalLock: false } }),
+}));
 vi.mock("@/lib/trip-clock", () => ({
   useTripClock: () => ({ now: new Date("2026-11-01T10:00:00Z"), phase: state.phase, settings: { timezone: "Africa/Johannesburg" } }),
 }));
@@ -191,8 +196,12 @@ describe("Travel route flight search parameter", () => {
 
 describe("TravelFlights initialOpen", () => {
   const directory = [{ id: "g1", display_name: "Demi" }];
+  const renderFlights = (ui: React.ReactElement) => {
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
+  };
   it("opens the add sheet on the departure tab for initialOpen=departure", async () => {
-    render(
+    renderFlights(
       <TravelFlights legs={[leg("g1", "arrival")]} directory={directory} myGuestId="g1" editable initialOpen="departure" />,
     );
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
@@ -200,14 +209,14 @@ describe("TravelFlights initialOpen", () => {
     expect(departureTab).toHaveAttribute("aria-selected", "true");
   });
   it("opens in edit mode when a leg for that direction already exists", async () => {
-    render(
+    renderFlights(
       <TravelFlights legs={[leg("g1", "arrival")]} directory={directory} myGuestId="g1" editable initialOpen="arrival" />,
     );
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("button", { name: /delete/i })).toBeInTheDocument();
   });
   it("stays closed for people who cannot edit", () => {
-    render(
+    renderFlights(
       <TravelFlights legs={[]} directory={directory} myGuestId={null} editable={false} initialOpen="arrival" />,
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
