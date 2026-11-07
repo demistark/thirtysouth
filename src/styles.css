@@ -720,6 +720,12 @@
   background: var(--line);
   transition: background-color 0.25s ease;
 }
+/* Stretched link: the whole bar opens the section, while small links inside (flight nudge) stay clickable above it */
+.home-look-bar-hit {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
 .home-look-num {
   font-family: var(--font-sans);
   text-transform: uppercase;
@@ -751,21 +757,21 @@
   transition: color 0.25s ease;
 }
 .home-look-bar:hover,
-.home-look-bar:focus-visible {
+.home-look-bar:focus-within {
   background: var(--ember);
 }
 .home-look-bar:hover .home-look-num,
 .home-look-bar:hover .home-look-name,
 .home-look-bar:hover .home-look-desc,
 .home-look-bar:hover .home-look-arrow,
-.home-look-bar:focus-visible .home-look-num,
-.home-look-bar:focus-visible .home-look-name,
-.home-look-bar:focus-visible .home-look-desc,
-.home-look-bar:focus-visible .home-look-arrow {
+.home-look-bar:focus-within .home-look-num,
+.home-look-bar:focus-within .home-look-name,
+.home-look-bar:focus-within .home-look-desc,
+.home-look-bar:focus-within .home-look-arrow {
   color: var(--paper);
 }
 .home-look-bar:hover::after,
-.home-look-bar:focus-visible::after {
+.home-look-bar:focus-within::after {
   background: transparent;
 }
 @media (min-width: 768px) {
@@ -3070,12 +3076,19 @@ html[data-intro="reveal"] .home-during > :nth-child(n + 10) { animation-delay: 7
   transition: background-color 0.25s ease;
 }
 .home-look-bar:hover .home-look-rsvp,
-.home-look-bar:focus-visible .home-look-rsvp {
+.home-look-bar:focus-within .home-look-rsvp {
   color: var(--paper);
 }
 .home-look-bar:hover .home-look-rsvp-dot,
-.home-look-bar:focus-visible .home-look-rsvp-dot {
+.home-look-bar:focus-within .home-look-rsvp-dot {
   background: var(--paper);
+}
+/* The flight nudge is its own link, layered above the bar's stretched link */
+a.home-look-rsvp {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  text-decoration: none;
 }
 
 /* Scenes: experience tags sit at the very bottom of the expanded section, right-aligned */
